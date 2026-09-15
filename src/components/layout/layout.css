@@ -420,8 +420,14 @@
   border-radius: var(--spectrum-alias-border-radius-regular, 4px);
 }
 
-.mark-all-read-btn:hover {
+.mark-all-read-btn:hover:not(:disabled) {
   text-decoration: underline;
+}
+
+.mark-all-read-btn:disabled {
+  color: var(--spectrum-global-color-gray-500, #b3b3b3);
+  cursor: not-allowed;
+  text-decoration: none;
 }
 
 .mark-all-read-btn:focus-visible {
@@ -438,9 +444,20 @@
   max-height: 400px;
 }
 
+.notification-item-container {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
 .notification-item {
-  padding: var(--spectrum-global-dimension-size-150, 12px) var(--spectrum-global-dimension-size-200, 16px);
+  width: 100%;
+  background: transparent;
+  border: none;
   border-bottom: 1px solid var(--spectrum-global-color-gray-200, #eaeaea);
+  text-align: left;
+  font-family: inherit;
+  padding: var(--spectrum-global-dimension-size-150, 12px) var(--spectrum-global-dimension-size-200, 16px);
   cursor: pointer;
   transition: background-color 0.15s ease;
   display: flex;

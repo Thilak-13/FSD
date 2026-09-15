@@ -274,20 +274,61 @@ describe('Layout Components', () => {
       fireEvent.click(markBtn);
     });
 
-    it('renders empty message when notifications are all read', () => {
+    it('renders empty message and disabled button when unread count is zero', () => {
       render(
         <MemoryRouter>
           <NotificationPanel
             isOpen={true}
             onClose={() => {}}
-            notifications={[]}
+            notifications={[
+              {
+                id: 'notif-1',
+                invoiceId: 'inv-1',
+                userId: 'user-1',
+                message: 'Invoice approved',
+                type: 'paid',
+                read: true,
+                createdAt: new Date().toISOString(),
+              },
+            ]}
             onMarkAllAsRead={() => {}}
             onNotificationClick={() => {}}
           />
         </MemoryRouter>
       );
 
-      expect(screen.getByText(/no new notifications/i)).toBeDefined();
+      expect(screen.getByText(/no unread notifications/i)).toBeDefined();
+      const markBtn = screen.getByRole('button', { name: /mark all as read/i });
+      expect((markBtn as HTMLButtonElement).disabled).toBe(true);
+    });
+
+    it('renders unread notifications with StatusBadge and listitem button', () => {
+      render(
+        <MemoryRouter>
+          <NotificationPanel
+            isOpen={true}
+            onClose={() => {}}
+            notifications={[
+              {
+                id: 'notif-2',
+                invoiceId: 'inv-2',
+                userId: 'user-1',
+                message: 'Invoice flagged for review',
+                type: 'flagged',
+                read: false,
+                createdAt: new Date().toISOString(),
+              },
+            ]}
+            onMarkAllAsRead={() => {}}
+            onNotificationClick={() => {}}
+          />
+        </MemoryRouter>
+      );
+
+      expect(screen.getByText('Invoice flagged for review')).toBeDefined();
+      expect(screen.getByText('flagged')).toBeDefined();
+      const items = screen.getAllByRole('listitem');
+      expect(items.length).toBe(1);
     });
   });
 

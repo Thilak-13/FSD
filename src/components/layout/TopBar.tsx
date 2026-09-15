@@ -1,10 +1,10 @@
 // src/components/layout/TopBar.tsx
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search as SpSearch } from '@swc-react/search';
 import { Badge as SpBadge } from '@swc-react/badge';
 import { useAuth } from '../../context/AuthContext';
-import { useData } from '../../context/DataContext';
+import { DataContext } from '../../context/DataContext';
 import { Role } from '../../types';
 import { NotificationPanel } from './NotificationPanel';
 
@@ -21,16 +21,9 @@ export const TopBar: React.FC<TopBarProps> = ({
 }) => {
   const { currentUser, currentRole, switchRole, logout } = useAuth();
   const navigate = useNavigate();
+  const dataCtx = useContext(DataContext);
 
-  let dataContext: ReturnType<typeof useData> | null = null;
-  try {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    dataContext = useData();
-  } catch {
-    // Graceful fallback if rendered outside DataProvider in tests
-  }
-
-  const notifications = dataContext?.notifications || [];
+  const notifications = dataCtx?.notifications || [];
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -144,13 +137,13 @@ export const TopBar: React.FC<TopBarProps> = ({
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
               <path d="M13.73 21a2 2 0 0 1-3.46 0" />
             </svg>
-            <div className="notification-badge-wrapper" aria-live="polite">
+            <span className="notification-badge-wrapper" aria-live="polite">
               {unreadCount > 0 && (
                 <SpBadge size="s" variant="accent">
                   {unreadCount}
                 </SpBadge>
               )}
-            </div>
+            </span>
           </button>
 
           <NotificationPanel

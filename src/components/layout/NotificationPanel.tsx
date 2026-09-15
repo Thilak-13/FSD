@@ -1,8 +1,9 @@
 // src/components/layout/NotificationPanel.tsx
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useData } from '../../context/DataContext';
+import { DataContext } from '../../context/DataContext';
 import { Notification } from '../../types';
+import { StatusBadge } from '../shared/StatusBadge';
 
 export interface NotificationPanelProps {
   isOpen: boolean;
@@ -20,15 +21,12 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
   onNotificationClick: customOnClick,
 }) => {
   const navigate = useNavigate();
-  let dataContext: ReturnType<typeof useData> | null = null;
-  try {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    dataContext = useData();
-  } catch {
-    // Gracefully handle rendering without DataProvider if mocked
-  }
+  const dataCtx = useContext(DataContext);
 
-  const notifications = customNotifications ?? (dataContext?.notifications || []);
+  const notifications = customNotifications ?? (dataCtx?.notifications || []);
+  const unreadNotifications = notifications.filter((n) => !n.read);
+  const unreadCount = unreadNotifications.length;
+
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Close on Escape or outside click
@@ -67,8 +65,8 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
   const handleMarkAllRead = async () => {
     if (customMarkAll) {
       customMarkAll();
-    } else if (dataContext) {
-      await dataContext.markAllNotificationsAsRead();
+    } else if (dataCtx) {
+      await dataCtx.markAllNotificationsAsRead();
     }
   };
 
@@ -76,8 +74,8 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
     if (customOnClick) {
       customOnClick(item);
     } else {
-      if (dataContext && !item.read) {
-        await dataContext.markNotificationAsRead(item.id);
+      if (dataCtx && !item.read) {
+        await dataCtx.markNotificationAsRead(item.id);
       }
       if (item.invoiceId) {
         navigate(`/invoices/${item.invoiceId}`);
@@ -113,39 +111,33 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
           type="button"
           className="mark-all-read-btn"
           onClick={handleMarkAllRead}
-          disabled={notifications.length === 0}
+          disabled={unreadCount === 0}
           aria-label="Mark all as read"
         >
           Mark all as read
         </button>
       </div>
 
-      {notifications.length === 0 ? (
+      {unreadCount === 0 ? (
         <div className="notification-empty">
-          <p>No new notifications</p>
+          <p>No unread notifications</p>
         </div>
       ) : (
         <ul className="notification-list" role="list">
-          {notifications.map((notif) => (
-            <li
-              key={notif.id}
-              className={`notification-item ${notif.read ? 'read' : 'unread'}`}
-              onClick={() => handleItemClick(notif)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  handleItemClick(notif);
-                }
-              }}
-              tabIndex={0}
-              role="button"
-              aria-label={`${notif.read ? 'Read' : 'Unread'} notification: ${notif.message}`}
-            >
-              <p className="notification-item-message">{notif.message}</p>
-              <div className="notification-item-meta">
-                <span>{notif.type}</span>
-                <span>{formatTimestamp(notif.createdAt)}</span>
-              </div>
+          {unreadNotifications.map((notif) => (
+            <li key={notif.id} className="notification-item-container">
+              <button
+                type="button"
+                className={`notification-item ${notif.read ? 'read' : 'unread'}`}
+                onClick={() => handleItemClick(notif)}
+                aria-label={`${notif.read ? 'Read' : 'Unread'} notification: ${notif.message}`}
+              >
+                <p className="notification-item-message">{notif.message}</p>
+                <div className="notification-item-meta">
+                  <StatusBadge status={notif.type} />
+                  <span>{formatTimestamp(notif.createdAt)}</span>
+                </div>
+              </button>
             </li>
           ))}
         </ul>
