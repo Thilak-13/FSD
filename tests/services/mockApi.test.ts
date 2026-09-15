@@ -1,5 +1,6 @@
 // tests/services/mockApi.test.ts
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, beforeAll, afterAll } from 'vitest';
+import { setMockDelayEnabled } from '../../src/services/mockApi/delay';
 import {
   getInvoices,
   getInvoiceById,
@@ -20,15 +21,27 @@ import {
 } from '../../src/services/mockApi/purchaseOrders';
 import { getUsers, resetUsers } from '../../src/services/mockApi/users';
 import { getAuditLog, resetAuditLog } from '../../src/services/mockApi/auditLog';
-import { getNotifications } from '../../src/services/mockApi/notifications';
+import {
+  getNotifications,
+  resetReadNotifications,
+} from '../../src/services/mockApi/notifications';
 
 describe('Mock Data Layer', () => {
+  beforeAll(() => {
+    setMockDelayEnabled(false);
+  });
+
+  afterAll(() => {
+    setMockDelayEnabled(true);
+  });
+
   beforeEach(() => {
     resetInvoices();
     resetVendors();
     resetPurchaseOrders();
     resetUsers();
     resetAuditLog();
+    resetReadNotifications();
   });
 
   it('should fetch seeded invoices spanning all statuses', async () => {
@@ -64,6 +77,26 @@ describe('Mock Data Layer', () => {
     const types = new Set(notifications.map((n) => n.type));
     // Seeded data contains overdue, flagged, and pending invoices
     expect(types.has('flagged') || types.has('overdue') || types.has('pending_approval')).toBe(true);
+  });
+
+  it('should filter notifications by role when userId is provided', async () => {
+    // Approver (user-2) must see notifications across all invoices
+    const approverNotifs = await getNotifications('user-2');
+    expect(approverNotifs.length).toBeGreaterThan(0);
+
+    // Admin (user-1) must see notifications across all invoices
+    const adminNotifs = await getNotifications('user-1');
+    expect(adminNotifs.length).toBeGreaterThan(0);
+    expect(adminNotifs.length).toBe(approverNotifs.length);
+
+    // Requester (user-3) must only see notifications for invoices they submitted
+    const requesterNotifs = await getNotifications('user-3');
+    expect(requesterNotifs.length).toBeGreaterThan(0);
+    expect(requesterNotifs.every((n) => n.userId === 'user-3')).toBe(true);
+
+    // Unfiltered returns all
+    const allNotifs = await getNotifications();
+    expect(allNotifs.length).toBeGreaterThanOrEqual(requesterNotifs.length);
   });
 
   it('should fetch seeded vendors including the 5 specified vendors', async () => {

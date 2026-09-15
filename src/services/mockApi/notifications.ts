@@ -1,6 +1,7 @@
 import { Notification } from '../../types';
 import { simulateDelay } from './delay';
 import { getInvoices } from './invoices';
+import { getUserById } from './users';
 
 const readNotificationIds = new Set<string>();
 
@@ -14,11 +15,11 @@ export const markNotificationAsRead = async (id: string): Promise<void> => {
 };
 
 export const markAllNotificationsAsRead = async (
-  _userId?: string
+  userId?: string
 ): Promise<void> => {
   await simulateDelay();
-  // Mark all currently derived notifications as read
-  const notifications = await getNotifications();
+  // Mark all currently derived notifications for this user (or all) as read
+  const notifications = await getNotifications(userId);
   for (const n of notifications) {
     readNotificationIds.add(n.id);
   }
@@ -38,11 +39,19 @@ const getReferenceDate = (): Date => {
  * - Due within 5 days
  * - Overdue (past dueDate and not Paid)
  * - Flagged with discrepancies
+ *
+ * Role-aware filtering:
+ * - Admin and Approver: receive notifications across all invoices
+ * - Requester: only receives notifications for invoices they submitted
+ * - Undefined userId: returns all notifications
  */
 export const getNotifications = async (
   userId?: string
 ): Promise<Notification[]> => {
   await simulateDelay();
+
+  const user = userId ? await getUserById(userId) : null;
+  const isPrivileged = user?.role === 'Admin' || user?.role === 'Approver';
 
   // Call internal store without filters to derive from complete invoice ledger
   const allInvoices = await getInvoices();
@@ -53,8 +62,8 @@ export const getNotifications = async (
   const derived: Notification[] = [];
 
   for (const invoice of allInvoices) {
-    // If userId filter is applied, only consider invoices submitted by this user (or approvers)
-    if (userId && invoice.submittedBy !== userId) {
+    // If not privileged and userId is provided, filter by submittedBy
+    if (userId && !isPrivileged && invoice.submittedBy !== userId) {
       continue;
     }
 
