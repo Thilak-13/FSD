@@ -1,0 +1,61 @@
+/* Progressive Loading Skeleton styles using Spectrum Design Tokens */
+@keyframes spectrum-skeleton-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes spectrum-skeleton-pulse {
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}
+
+.spectrum-skeleton-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spectrum-global-dimension-size-100, 8px);
+  width: 100%;
+}
+
+.skeleton-line {
+  display: block;
+  background-color: var(--spectrum-alias-background-color-secondary, #eaeaea);
+  background-image: linear-gradient(
+    90deg,
+    var(--spectrum-alias-background-color-secondary, #eaeaea) 0%,
+    var(--spectrum-alias-background-color-tertiary, #e1e1e1) 50%,
+    var(--spectrum-alias-background-color-secondary, #eaeaea) 100%
+  );
+  background-size: 200% 100%;
+  animation: spectrum-skeleton-shimmer 1.8s infinite ease-in-out;
+  border-radius: var(--spectrum-alias-border-radius-regular, 4px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-line {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
