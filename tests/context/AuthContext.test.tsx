@@ -55,11 +55,18 @@ describe('AuthContext', () => {
     const { result } = renderHook(() => useAuth(), { wrapper });
 
     act(() => {
+      result.current.switchRole('Admin');
+    });
+    expect(sessionStorage.getItem('active_role')).toBe('Admin');
+
+    act(() => {
       result.current.logout();
     });
 
     expect(result.current.currentUser).toBeNull();
+    expect(result.current.currentRole).toBe('Requester');
     expect(result.current.isAuthenticated).toBe(false);
+    expect(sessionStorage.getItem('active_role')).toBeNull();
 
     act(() => {
       result.current.login('Admin');

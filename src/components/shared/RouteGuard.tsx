@@ -1,6 +1,6 @@
 // src/components/shared/RouteGuard.tsx
 import React, { useEffect } from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Role } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 
@@ -8,7 +8,7 @@ export const REDIRECT_NOTICE_KEY = 'redirect_notice';
 
 export interface RouteGuardProps {
   children?: React.ReactNode;
-  allowedRoles: Role[];
+  allowedRoles?: Role[];
   redirectPath?: string;
   unauthorizedMessage?: string;
 }
@@ -40,32 +40,32 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   redirectPath = '/',
   unauthorizedMessage,
 }) => {
-  const { currentRole } = useAuth();
+  const { isAuthenticated, currentRole } = useAuth();
+  const location = useLocation();
 
-  const isAuthorized = allowedRoles.includes(currentRole);
+  const isRoleForbidden = Boolean(allowedRoles && !allowedRoles.includes(currentRole));
 
   const message =
     unauthorizedMessage ||
-    `Access restricted: requires ${allowedRoles.join(' or ')} permissions.`;
+    (allowedRoles
+      ? `Access restricted: requires ${allowedRoles.join(' or ')} permissions.`
+      : 'Access restricted: unauthorized role.');
 
   useEffect(() => {
-    if (!isAuthorized && typeof window !== 'undefined' && window.sessionStorage) {
+    if (isAuthenticated && isRoleForbidden && typeof window !== 'undefined' && window.sessionStorage) {
       try {
         sessionStorage.setItem(REDIRECT_NOTICE_KEY, message);
       } catch {
         // Ignore
       }
     }
-  }, [isAuthorized, message]);
+  }, [isAuthenticated, isRoleForbidden, message]);
 
-  if (!isAuthorized) {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      try {
-        sessionStorage.setItem(REDIRECT_NOTICE_KEY, message);
-      } catch {
-        // Ignore
-      }
-    }
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  if (isRoleForbidden) {
     return <Navigate to={redirectPath} replace state={{ redirectNotice: message }} />;
   }
 

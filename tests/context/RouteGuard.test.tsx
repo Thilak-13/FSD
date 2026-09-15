@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import React, { useEffect } from 'react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from '../../src/context/AuthContext';
+import { AuthProvider, useAuth } from '../../src/context/AuthContext';
 import { RouteGuard } from '../../src/components/shared/RouteGuard';
 import { setMockDelayEnabled } from '../../src/services/mockApi';
 
@@ -34,6 +35,28 @@ describe('RouteGuard', () => {
     expect(screen.getByText('Protected Content')).toBeDefined();
   });
 
+  it('renders children for any authenticated user when allowedRoles is omitted', () => {
+    render(
+      <MemoryRouter initialEntries={['/general']}>
+        <AuthProvider>
+          <Routes>
+            <Route path="/" element={<div>Dashboard Page</div>} />
+            <Route
+              path="/general"
+              element={
+                <RouteGuard>
+                  <div>General Authenticated Content</div>
+                </RouteGuard>
+              }
+            />
+          </Routes>
+        </AuthProvider>
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText('General Authenticated Content')).toBeDefined();
+  });
+
   it('redirects to / and sets redirect notice in sessionStorage when role is unauthorized', () => {
     render(
       <MemoryRouter initialEntries={['/admin-only']}>
@@ -57,5 +80,39 @@ describe('RouteGuard', () => {
     expect(screen.queryByText('Admin Secret Area')).toBeNull();
     expect(screen.getByText('Dashboard Page')).toBeDefined();
     expect(sessionStorage.getItem('redirect_notice')).toBeTruthy();
+  });
+
+  it('redirects unauthenticated users to /login', () => {
+    const UnauthenticatedContainer: React.FC = () => {
+      const { logout } = useAuth();
+      useEffect(() => {
+        logout();
+      }, [logout]);
+
+      return (
+        <Routes>
+          <Route path="/login" element={<div>Login Page</div>} />
+          <Route
+            path="/protected"
+            element={
+              <RouteGuard allowedRoles={['Requester']}>
+                <div>Protected Secret</div>
+              </RouteGuard>
+            }
+          />
+        </Routes>
+      );
+    };
+
+    render(
+      <MemoryRouter initialEntries={['/protected']}>
+        <AuthProvider>
+          <UnauthenticatedContainer />
+        </AuthProvider>
+      </MemoryRouter>
+    );
+
+    expect(screen.queryByText('Protected Secret')).toBeNull();
+    expect(screen.getByText('Login Page')).toBeDefined();
   });
 });

@@ -114,6 +114,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
 
   const logout = useCallback(() => {
     setCurrentUser(null);
+    setCurrentRole('Requester');
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      try {
+        sessionStorage.removeItem(ROLE_STORAGE_KEY);
+      } catch {
+        // Ignore
+      }
+    }
   }, []);
 
   const isAuthenticated = currentUser !== null;

@@ -120,8 +120,10 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       setPurchaseOrders(pos);
       setAuditLog(audits);
       setNotifications(notifs);
-    } catch (err: any) {
-      setError(err?.message || 'Failed to load data from server');
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to load data from server';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -130,16 +132,6 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
   useEffect(() => {
     refreshAll().catch(() => {});
   }, [refreshAll]);
-
-  // When current user changes (e.g. role switch), re-derive notifications
-  useEffect(() => {
-    if (!simulateErrorRef.current && !loading) {
-      mockApi
-        .getNotifications(currentUser?.id)
-        .then(setNotifications)
-        .catch(() => {});
-    }
-  }, [currentUser?.id, loading]);
 
   const createInvoice = useCallback(
     async (input: NewInvoiceInput): Promise<Invoice> => {

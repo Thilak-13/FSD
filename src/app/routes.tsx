@@ -42,15 +42,27 @@ export const routeConfig: RouteObject[] = [
   },
   {
     path: '/',
-    element: <DashboardPlaceholder />,
+    element: (
+      <RouteGuard>
+        <DashboardPlaceholder />
+      </RouteGuard>
+    ),
   },
   {
     path: '/invoices',
-    element: <InvoicesPlaceholder />,
+    element: (
+      <RouteGuard>
+        <InvoicesPlaceholder />
+      </RouteGuard>
+    ),
   },
   {
     path: '/invoices/:id',
-    element: <InvoiceDetailPlaceholder />,
+    element: (
+      <RouteGuard>
+        <InvoiceDetailPlaceholder />
+      </RouteGuard>
+    ),
   },
   {
     path: '/approvals',
@@ -70,11 +82,19 @@ export const routeConfig: RouteObject[] = [
   },
   {
     path: '/vendors',
-    element: <VendorsPlaceholder />,
+    element: (
+      <RouteGuard>
+        <VendorsPlaceholder />
+      </RouteGuard>
+    ),
   },
   {
     path: '/vendors/:id',
-    element: <VendorDetailPlaceholder />,
+    element: (
+      <RouteGuard>
+        <VendorDetailPlaceholder />
+      </RouteGuard>
+    ),
   },
   {
     path: '/reports',

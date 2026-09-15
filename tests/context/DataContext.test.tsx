@@ -3,6 +3,7 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import React from 'react';
 import { DataProvider, useData } from '../../src/context/DataContext';
 import { AuthProvider } from '../../src/context/AuthContext';
+import { Invoice, Vendor } from '../../src/types';
 import {
   setMockDelayEnabled,
   resetInvoices,
@@ -50,7 +51,7 @@ describe('DataContext', () => {
       expect(result.current.loading).toBe(false);
     });
 
-    let newInvoice: any;
+    let newInvoice: Invoice | undefined;
     await act(async () => {
       newInvoice = await result.current.createInvoice({
         vendorId: 'vendor-1',
@@ -69,11 +70,11 @@ describe('DataContext', () => {
     });
 
     expect(newInvoice).toBeDefined();
-    expect(newInvoice.id).toBeDefined();
-    expect(result.current.invoices.some((inv) => inv.id === newInvoice.id)).toBe(true);
+    expect(newInvoice!.id).toBeDefined();
+    expect(result.current.invoices.some((inv) => inv.id === newInvoice!.id)).toBe(true);
 
     const latestAudit = result.current.auditLog[result.current.auditLog.length - 1];
-    expect(latestAudit.invoiceId).toBe(newInvoice.id);
+    expect(latestAudit.invoiceId).toBe(newInvoice!.id);
     expect(latestAudit.action).toBe('SUBMISSION');
   });
 
@@ -135,7 +136,7 @@ describe('DataContext', () => {
       expect(result.current.loading).toBe(false);
     });
 
-    let newVendor: any;
+    let newVendor: Vendor | undefined;
     await act(async () => {
       newVendor = await result.current.createVendor({
         name: 'Quantum Soft Solutions',
@@ -147,7 +148,7 @@ describe('DataContext', () => {
     });
 
     expect(newVendor).toBeDefined();
-    expect(result.current.vendors.some((v) => v.id === newVendor.id)).toBe(true);
+    expect(result.current.vendors.some((v) => v.id === newVendor!.id)).toBe(true);
   });
 
   it('should mark notification as read and mark all notifications as read', async () => {
