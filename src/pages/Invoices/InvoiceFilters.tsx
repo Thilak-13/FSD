@@ -1,6 +1,7 @@
 // src/pages/Invoices/InvoiceFilters.tsx
 import React from 'react';
 import { Button } from '@swc-react/button';
+import { FormField } from '../../components/shared/FormField';
 import { Vendor, InvoiceStatus } from '../../types';
 
 export interface InvoiceFiltersProps {
@@ -42,14 +43,11 @@ export const InvoiceFilters: React.FC<InvoiceFiltersProps> = ({
       role="search"
     >
       {/* Search Input */}
-      <div className="invoice-filter-search">
-        <label
-          htmlFor="invoice-search-input"
-          className="invoice-filter-label"
-          style={{ display: 'block', marginBottom: '4px' }}
-        >
-          Search Invoices
-        </label>
+      <FormField
+        label="Search Invoices"
+        htmlFor="invoice-search-input"
+        className="invoice-filter-search"
+      >
         <div style={{ position: 'relative', width: '100%' }}>
           <input
             id="invoice-search-input"
@@ -62,13 +60,14 @@ export const InvoiceFilters: React.FC<InvoiceFiltersProps> = ({
             aria-label="Search by invoice number, vendor, or item"
           />
         </div>
-      </div>
+      </FormField>
 
       {/* Status Filter Dropdown */}
-      <div className="invoice-filter-select-group">
-        <label htmlFor="invoice-status-filter" className="invoice-filter-label">
-          Status
-        </label>
+      <FormField
+        label="Status"
+        htmlFor="invoice-status-filter"
+        className="invoice-filter-select-group"
+      >
         <select
           id="invoice-status-filter"
           data-testid="invoice-status-filter"
@@ -84,13 +83,14 @@ export const InvoiceFilters: React.FC<InvoiceFiltersProps> = ({
             </option>
           ))}
         </select>
-      </div>
+      </FormField>
 
       {/* Vendor Filter Dropdown */}
-      <div className="invoice-filter-select-group">
-        <label htmlFor="invoice-vendor-filter" className="invoice-filter-label">
-          Vendor
-        </label>
+      <FormField
+        label="Vendor"
+        htmlFor="invoice-vendor-filter"
+        className="invoice-filter-select-group"
+      >
         <select
           id="invoice-vendor-filter"
           data-testid="invoice-vendor-filter"
@@ -106,7 +106,7 @@ export const InvoiceFilters: React.FC<InvoiceFiltersProps> = ({
             </option>
           ))}
         </select>
-      </div>
+      </FormField>
 
       {/* Clear Filters Button */}
       <div className="invoice-clear-filters-btn">

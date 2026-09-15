@@ -100,6 +100,10 @@
   box-shadow: 0 1px 3px var(--spectrum-alias-drop-shadow-color, rgba(0, 0, 0, 0.04));
 }
 
+.invoices-filters-card .spectrum-form-field {
+  margin-bottom: 0;
+}
+
 .invoice-filter-search {
   flex: 1 1 240px;
   min-width: 200px;
@@ -108,7 +112,7 @@
 .invoice-filter-select-group {
   display: flex;
   flex-direction: column;
-  gap: var(--spectrum-global-dimension-size-50, 4px);
+  min-width: 160px;
 }
 
 .invoice-filter-label {

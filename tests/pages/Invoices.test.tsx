@@ -1,5 +1,5 @@
 // tests/pages/Invoices.test.tsx
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom';
@@ -52,7 +52,9 @@ describe('InvoicesPage', () => {
     expect(screen.getByText(/\+ New Invoice/i)).toBeDefined();
 
     await waitFor(() => {
-      expect(screen.getByTestId('invoices-count-badge')).toBeDefined();
+      const badge = screen.getByTestId('invoices-count-badge');
+      expect(badge).toBeDefined();
+      expect(badge.getAttribute('aria-live')).toBe('polite');
     });
   });
 
@@ -317,6 +319,39 @@ describe('InvoicesPage', () => {
       fireEvent.keyDown(window, { key: 'Escape' });
 
       expect(screen.queryByTestId('invoice-form-dialog')).toBeNull();
+    });
+
+    it('saves previous activeElement on modal open and restores focus on modal close', async () => {
+      renderInvoicesPage();
+
+      const triggerBtn = screen.getByTestId('new-invoice-trigger');
+      const focusSpy = vi.spyOn(triggerBtn, 'focus');
+      triggerBtn.focus();
+      fireEvent.click(triggerBtn);
+
+      expect(screen.getByTestId('invoice-form-dialog')).toBeDefined();
+
+      const closeBtn = screen.getByTestId('close-invoice-dialog');
+      fireEvent.click(closeBtn);
+
+      expect(screen.queryByTestId('invoice-form-dialog')).toBeNull();
+      expect(focusSpy).toHaveBeenCalled();
+    });
+
+    it('guards against NaN when non-finite or empty inputs are entered in line items', async () => {
+      renderInvoicesPage();
+
+      fireEvent.click(screen.getByTestId('new-invoice-trigger'));
+
+      const qtyInput0 = screen.getByTestId('line-item-qty-0');
+      const priceInput0 = screen.getByTestId('line-item-price-0');
+
+      fireEvent.change(qtyInput0, { target: { value: 'invalid' } });
+      fireEvent.change(priceInput0, { target: { value: '' } });
+
+      // Total should safely be $0.00, not $NaN
+      expect(screen.getByTestId('line-item-total-0').textContent).toBe('$0.00');
+      expect(screen.getByTestId('invoice-aggregate-total').textContent).toBe('$0.00');
     });
 
     it('filters Purchase Orders matching selected vendor', async () => {

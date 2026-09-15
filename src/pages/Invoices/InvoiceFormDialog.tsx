@@ -56,6 +56,7 @@ export const InvoiceFormDialog: React.FC<InvoiceFormDialogProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const firstInputRef = useRef<HTMLSelectElement>(null);
+  const previousActiveElement = useRef<HTMLElement | null>(null);
 
   // Filter Purchase Orders for selected vendor
   const availablePOs = useMemo(() => {
@@ -63,18 +64,24 @@ export const InvoiceFormDialog: React.FC<InvoiceFormDialogProps> = ({
     return purchaseOrders.filter((po) => po.vendorId === vendorId);
   }, [purchaseOrders, vendorId]);
 
-  // Aggregate line item amounts
+  // Aggregate line item amounts guarded against NaN
   const aggregateAmount = useMemo(() => {
     return lineItems.reduce((acc, item) => {
-      const q = Number(item.quantity) || 0;
-      const p = Number(item.unitPrice) || 0;
-      return acc + q * p;
+      const q = Number(item.quantity);
+      const p = Number(item.unitPrice);
+      const safeQ = Number.isFinite(q) ? q : 0;
+      const safeP = Number.isFinite(p) ? p : 0;
+      return acc + safeQ * safeP;
     }, 0);
   }, [lineItems]);
 
-  // Reset form when dialog opens
+  // Reset form and manage focus when dialog opens
   useEffect(() => {
     if (open) {
+      if (typeof document !== 'undefined') {
+        previousActiveElement.current = document.activeElement as HTMLElement | null;
+      }
+
       setVendorId('');
       setPoId('');
       setInvoiceNumber('');
@@ -96,7 +103,13 @@ export const InvoiceFormDialog: React.FC<InvoiceFormDialogProps> = ({
       const timer = setTimeout(() => {
         firstInputRef.current?.focus();
       }, 50);
-      return () => clearTimeout(timer);
+
+      return () => {
+        clearTimeout(timer);
+        if (previousActiveElement.current && typeof previousActiveElement.current.focus === 'function') {
+          previousActiveElement.current.focus();
+        }
+      };
     }
   }, [open]);
 
@@ -181,9 +194,14 @@ export const InvoiceFormDialog: React.FC<InvoiceFormDialogProps> = ({
     setLineItems((prev) =>
       prev.map((item) => {
         if (item.id !== id) return item;
+        let parsedValue = value;
+        if (field === 'quantity' || field === 'unitPrice') {
+          const num = Number(value);
+          parsedValue = Number.isFinite(num) ? num : 0;
+        }
         return {
           ...item,
-          [field]: field === 'quantity' || field === 'unitPrice' ? Number(value) : value,
+          [field]: parsedValue,
         };
       })
     );
@@ -250,12 +268,18 @@ export const InvoiceFormDialog: React.FC<InvoiceFormDialogProps> = ({
         submittedBy: currentUser?.id || 'user-3',
         attachedDocumentName: attachedFileName || undefined,
         notes: notes.trim() || undefined,
-        items: lineItems.map((item) => ({
-          description: item.description.trim(),
-          quantity: Number(item.quantity),
-          unitPrice: Number(item.unitPrice),
-          total: Number(item.quantity) * Number(item.unitPrice),
-        })),
+        items: lineItems.map((item) => {
+          const q = Number(item.quantity);
+          const p = Number(item.unitPrice);
+          const safeQ = Number.isFinite(q) ? q : 0;
+          const safeP = Number.isFinite(p) ? p : 0;
+          return {
+            description: item.description.trim(),
+            quantity: safeQ,
+            unitPrice: safeP,
+            total: safeQ * safeP,
+          };
+        }),
       };
 
       const created = await createInvoice(invoiceData);
@@ -476,8 +500,11 @@ export const InvoiceFormDialog: React.FC<InvoiceFormDialogProps> = ({
                 </thead>
                 <tbody>
                   {lineItems.map((item, index) => {
-                    const lineTotal =
-                      (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0);
+                    const q = Number(item.quantity);
+                    const p = Number(item.unitPrice);
+                    const safeQ = Number.isFinite(q) ? q : 0;
+                    const safeP = Number.isFinite(p) ? p : 0;
+                    const lineTotal = safeQ * safeP;
 
                     return (
                       <tr key={item.id} data-testid={`line-item-row-${index}`}>
@@ -575,78 +602,75 @@ export const InvoiceFormDialog: React.FC<InvoiceFormDialogProps> = ({
 
           {/* Document Attachment Stub */}
           <section className="attachment-section" aria-label="Document Attachment">
-            <label
+            <FormField
+              label="Supporting Document (PDF, PNG, JPG)"
               htmlFor="invoice-file-input"
-              className="invoice-filter-label"
-              style={{ display: 'block' }}
             >
-              Supporting Document (PDF, PNG, JPG)
-            </label>
+              <input
+                ref={fileInputRef}
+                id="invoice-file-input"
+                data-testid="invoice-file-input"
+                type="file"
+                accept=".pdf,.png,.jpg,.jpeg"
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+                aria-label="Upload supporting document"
+              />
 
-            <input
-              ref={fileInputRef}
-              id="invoice-file-input"
-              data-testid="invoice-file-input"
-              type="file"
-              accept=".pdf,.png,.jpg,.jpeg"
-              onChange={handleFileChange}
-              style={{ display: 'none' }}
-              aria-label="Upload supporting document"
-            />
-
-            {attachedFileName ? (
-              <div
-                className="attachment-badge-pill"
-                data-testid="attachment-badge"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
+              {attachedFileName ? (
+                <div
+                  className="attachment-badge-pill"
+                  data-testid="attachment-badge"
                 >
-                  <path
-                    fillRule="evenodd"
-                    d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <span data-testid="attachment-name">
-                  {attachedFileName} ({attachedFileSize || '1.2 MB'})
-                </span>
-                <button
-                  type="button"
-                  className="attachment-remove-btn"
-                  onClick={handleRemoveFile}
-                  aria-label="Remove attached document"
-                  data-testid="remove-attachment-btn"
-                >
-                  &times;
-                </button>
-              </div>
-            ) : (
-              <div>
-                <Button
-                  variant="secondary"
-                  size="s"
-                  data-testid="attach-file-button"
-                  onClick={() => fileInputRef.current?.click()}
-                  aria-label="Choose file to attach"
-                >
-                  📎 Choose File...
-                </Button>
-                <span
-                  style={{
-                    marginLeft: '8px',
-                    fontSize: '12px',
-                    color: 'var(--spectrum-global-color-gray-600, #8e8e8e)',
-                  }}
-                >
-                  No file selected (Optional)
-                </span>
-              </div>
-            )}
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span data-testid="attachment-name">
+                    {attachedFileName} ({attachedFileSize || '1.2 MB'})
+                  </span>
+                  <button
+                    type="button"
+                    className="attachment-remove-btn"
+                    onClick={handleRemoveFile}
+                    aria-label="Remove attached document"
+                    data-testid="remove-attachment-btn"
+                  >
+                    &times;
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <Button
+                    variant="secondary"
+                    size="s"
+                    data-testid="attach-file-button"
+                    onClick={() => fileInputRef.current?.click()}
+                    aria-label="Choose file to attach"
+                  >
+                    📎 Choose File...
+                  </Button>
+                  <span
+                    style={{
+                      marginLeft: '8px',
+                      fontSize: '12px',
+                      color: 'var(--spectrum-global-color-gray-600, #8e8e8e)',
+                    }}
+                  >
+                    No file selected (Optional)
+                  </span>
+                </div>
+              )}
+            </FormField>
           </section>
 
           {/* Optional Notes */}

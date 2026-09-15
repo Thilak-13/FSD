@@ -183,6 +183,7 @@ export const InvoicesPage: React.FC = () => {
           <span
             className="invoices-count-badge"
             data-testid="invoices-count-badge"
+            aria-live="polite"
             aria-label={`${filteredInvoices.length} invoices displayed`}
           >
             {filteredInvoices.length} {filteredInvoices.length === 1 ? 'Invoice' : 'Invoices'}
