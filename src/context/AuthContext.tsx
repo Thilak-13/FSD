@@ -10,11 +10,17 @@ export interface AuthContextType {
   currentRole: Role;
   isAuthenticated: boolean;
   switchRole: (role: Role) => void;
-  login: (userOrRole?: User | Role | string) => void;
+  login: (userOrRole?: User | Role | string, role?: Role) => void;
   logout: () => void;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const DEMO_ACCOUNTS: Record<string, { name: string; role: Role; email: string }> = {
+  'alex.rivera@apex.corp': { name: 'Alex Rivera', role: 'Admin', email: 'alex.rivera@apex.corp' },
+  'sarah.chen@apex.corp': { name: 'Sarah Chen', role: 'Approver', email: 'sarah.chen@apex.corp' },
+  'jordan.lee@apex.corp': { name: 'Jordan Lee', role: 'Requester', email: 'jordan.lee@apex.corp' },
+};
 
 const findUserForRole = (role: Role): User => {
   const match = INITIAL_USERS.find((u) => u.role === role);
@@ -68,7 +74,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   }, []);
 
   const login = useCallback(
-    (userOrRole?: User | Role | string) => {
+    (userOrRole?: User | Role | string, role?: Role) => {
       if (!userOrRole) {
         const defaultRole = getInitialRole();
         const user = findUserForRole(defaultRole);
@@ -94,16 +100,51 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
         return;
       }
 
-      // Check if email match
+      const query = userOrRole.toLowerCase().trim();
+      const demoMatch = DEMO_ACCOUNTS[query];
+
+      if (demoMatch) {
+        const targetRole = role || demoMatch.role;
+        const demoUser: User = {
+          id: `demo-${targetRole.toLowerCase()}`,
+          name: demoMatch.name,
+          email: demoMatch.email,
+          role: targetRole,
+          department:
+            targetRole === 'Admin'
+              ? 'Finance Operations'
+              : targetRole === 'Approver'
+              ? 'Procurement & Approvals'
+              : 'Engineering / Facilities',
+        };
+        setCurrentUser(demoUser);
+        setCurrentRole(targetRole);
+        saveRoleToSession(targetRole);
+        return;
+      }
+
+      // Check if email match in INITIAL_USERS
       const matched = INITIAL_USERS.find(
         (u) =>
-          u.email.toLowerCase() === userOrRole.toLowerCase() ||
-          u.name.toLowerCase() === userOrRole.toLowerCase()
+          u.email.toLowerCase() === query ||
+          u.name.toLowerCase() === query
       );
-      if (matched) {
+
+      if (matched && !role) {
         setCurrentUser(matched);
         setCurrentRole(matched.role);
         saveRoleToSession(matched.role);
+      } else if (role) {
+        const customUser: User = {
+          id: `user-${Date.now()}`,
+          name: query.includes('@') ? query.split('@')[0] : userOrRole,
+          email: query.includes('@') ? userOrRole : `${userOrRole}@apex.corp`,
+          role: role,
+          department: 'General Operations',
+        };
+        setCurrentUser(customUser);
+        setCurrentRole(role);
+        saveRoleToSession(role);
       } else {
         // Default to Requester
         switchRole('Requester');

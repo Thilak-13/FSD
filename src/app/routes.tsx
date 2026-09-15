@@ -2,11 +2,10 @@
 import React from 'react';
 import { RouteObject, Navigate, useRoutes } from 'react-router-dom';
 import { RouteGuard } from '../components/shared/RouteGuard';
+import { LoginPage } from '../pages/Login/LoginPage';
 
 // Placeholder components until dedicated page implementations (Tasks 5-11) are attached
-export const LoginPlaceholder: React.FC = () => (
-  <div data-testid="page-login">Login Page</div>
-);
+export const LoginPlaceholder: React.FC = LoginPage;
 export const DashboardPlaceholder: React.FC = () => (
   <div data-testid="page-dashboard">Dashboard Page</div>
 );
@@ -38,7 +37,7 @@ export const AuditLogPlaceholder: React.FC = () => (
 export const routeConfig: RouteObject[] = [
   {
     path: '/login',
-    element: <LoginPlaceholder />,
+    element: <LoginPage />,
   },
   {
     path: '/',
