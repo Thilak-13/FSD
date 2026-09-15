@@ -1,0 +1,395 @@
+/* ==========================================================================
+   Invoices Directory & Submission Dialog CSS
+   Strict Spectrum Design Tokens & Zero Hardcoded Colors
+   ========================================================================== */
+
+.invoices-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spectrum-global-dimension-size-300, 24px);
+  width: 100%;
+  padding: var(--spectrum-global-dimension-size-300, 24px);
+  box-sizing: border-box;
+  font-family: var(--spectrum-alias-body-text-font-family, "Adobe Clean", sans-serif);
+  color: var(--spectrum-global-color-gray-900, #2c2c2c);
+}
+
+/* Header */
+.invoices-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spectrum-global-dimension-size-200, 16px);
+}
+
+.invoices-header-left {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spectrum-global-dimension-size-150, 12px);
+}
+
+.invoices-title {
+  margin: 0;
+  font-size: var(--spectrum-global-dimension-size-350, 28px);
+  font-weight: 700;
+  color: var(--spectrum-global-color-gray-900, #2c2c2c);
+  letter-spacing: -0.01em;
+}
+
+.invoices-count-badge {
+  font-size: var(--spectrum-global-dimension-size-150, 12px);
+  font-weight: 600;
+  padding: var(--spectrum-global-dimension-size-25, 2px) var(--spectrum-global-dimension-size-100, 8px);
+  border-radius: var(--spectrum-alias-border-radius-regular, 4px);
+  background-color: var(--spectrum-global-color-gray-200, #eaeaea);
+  color: var(--spectrum-global-color-gray-700, #6e6e6e);
+}
+
+.invoices-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spectrum-global-dimension-size-150, 12px);
+}
+
+/* Success / Notification Toast */
+.invoices-toast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spectrum-global-dimension-size-150, 12px) var(--spectrum-global-dimension-size-200, 16px);
+  background-color: var(--spectrum-global-color-green-100, #dcfce7);
+  border: 1px solid var(--spectrum-global-color-green-400, #2d9d78);
+  border-radius: var(--spectrum-alias-border-radius-medium, 8px);
+  color: var(--spectrum-global-color-green-900, #134e4a);
+  font-size: var(--spectrum-global-dimension-size-175, 14px);
+  box-shadow: 0 2px 8px var(--spectrum-alias-drop-shadow-color, rgba(0, 0, 0, 0.05));
+}
+
+.invoices-toast-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spectrum-global-dimension-size-100, 8px);
+}
+
+.invoices-toast-dismiss {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--spectrum-global-color-green-800, #115e59);
+  padding: var(--spectrum-global-dimension-size-50, 4px);
+  border-radius: var(--spectrum-alias-border-radius-regular, 4px);
+}
+
+.invoices-toast-dismiss:hover {
+  background-color: var(--spectrum-global-color-green-200, #bbf7d0);
+}
+
+/* Filters Bar */
+.invoices-filters-card {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spectrum-global-dimension-size-200, 16px);
+  padding: var(--spectrum-global-dimension-size-200, 16px);
+  background-color: var(--spectrum-global-color-gray-50, #ffffff);
+  border: 1px solid var(--spectrum-global-color-gray-200, #eaeaea);
+  border-radius: var(--spectrum-alias-border-radius-medium, 8px);
+  box-shadow: 0 1px 3px var(--spectrum-alias-drop-shadow-color, rgba(0, 0, 0, 0.04));
+}
+
+.invoice-filter-search {
+  flex: 1 1 240px;
+  min-width: 200px;
+}
+
+.invoice-filter-select-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spectrum-global-dimension-size-50, 4px);
+}
+
+.invoice-filter-label {
+  font-size: var(--spectrum-global-dimension-size-150, 12px);
+  font-weight: 600;
+  color: var(--spectrum-global-color-gray-700, #6e6e6e);
+}
+
+.invoice-filter-select {
+  padding: var(--spectrum-global-dimension-size-100, 8px) var(--spectrum-global-dimension-size-150, 12px);
+  font-family: inherit;
+  font-size: var(--spectrum-alias-font-size-default, 14px);
+  border: 1px solid var(--spectrum-global-color-gray-300, #e1e1e1);
+  border-radius: var(--spectrum-alias-border-radius-regular, 4px);
+  background-color: var(--spectrum-global-color-gray-50, #ffffff);
+  color: var(--spectrum-global-color-gray-900, #2c2c2c);
+  min-width: 160px;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.invoice-filter-select:focus {
+  outline: 2px solid var(--spectrum-global-color-blue-500, #1473e6);
+  outline-offset: 1px;
+  border-color: var(--spectrum-global-color-blue-500, #1473e6);
+}
+
+.invoice-clear-filters-btn {
+  align-self: flex-end;
+}
+
+/* Invoices Table Card */
+.invoices-table-card {
+  background-color: var(--spectrum-global-color-gray-50, #ffffff);
+  border-radius: var(--spectrum-alias-border-radius-medium, 8px);
+}
+
+/* Modal Dialog Overlay */
+.invoice-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: var(--spectrum-dialog-confirm-overlay-background-color, rgba(0, 0, 0, 0.45));
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: var(--spectrum-global-dimension-size-200, 16px);
+  box-sizing: border-box;
+}
+
+.invoice-dialog-container {
+  width: 100%;
+  max-width: 720px;
+  max-height: 92vh;
+  background-color: var(--spectrum-global-color-gray-50, #ffffff);
+  border-radius: var(--spectrum-alias-border-radius-large, 12px);
+  box-shadow: 0 8px 32px var(--spectrum-alias-drop-shadow-color, rgba(0, 0, 0, 0.15));
+  border: 1px solid var(--spectrum-global-color-gray-200, #eaeaea);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.invoice-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spectrum-global-dimension-size-250, 20px) var(--spectrum-global-dimension-size-300, 24px);
+  border-bottom: 1px solid var(--spectrum-global-color-gray-200, #eaeaea);
+  background-color: var(--spectrum-global-color-gray-75, #f8f8f8);
+}
+
+.invoice-dialog-title {
+  margin: 0;
+  font-size: var(--spectrum-alias-font-size-heading, 20px);
+  font-weight: 700;
+  color: var(--spectrum-global-color-gray-900, #2c2c2c);
+}
+
+.invoice-dialog-close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  color: var(--spectrum-global-color-gray-600, #8e8e8e);
+  cursor: pointer;
+  padding: var(--spectrum-global-dimension-size-50, 4px);
+  border-radius: var(--spectrum-alias-border-radius-regular, 4px);
+}
+
+.invoice-dialog-close-btn:hover {
+  background-color: var(--spectrum-global-color-gray-200, #eaeaea);
+  color: var(--spectrum-global-color-gray-900, #2c2c2c);
+}
+
+.invoice-dialog-body {
+  padding: var(--spectrum-global-dimension-size-300, 24px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spectrum-global-dimension-size-250, 20px);
+}
+
+.invoice-form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spectrum-global-dimension-size-200, 16px);
+}
+
+@media (max-width: 600px) {
+  .invoice-form-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.invoice-form-input,
+.invoice-form-select {
+  width: 100%;
+  padding: var(--spectrum-global-dimension-size-100, 8px) var(--spectrum-global-dimension-size-150, 12px);
+  font-family: inherit;
+  font-size: var(--spectrum-alias-font-size-default, 14px);
+  border: 1px solid var(--spectrum-global-color-gray-300, #e1e1e1);
+  border-radius: var(--spectrum-alias-border-radius-regular, 4px);
+  background-color: var(--spectrum-global-color-gray-50, #ffffff);
+  color: var(--spectrum-global-color-gray-900, #2c2c2c);
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.invoice-form-input:focus,
+.invoice-form-select:focus {
+  outline: 2px solid var(--spectrum-global-color-blue-500, #1473e6);
+  outline-offset: 1px;
+  border-color: var(--spectrum-global-color-blue-500, #1473e6);
+}
+
+.invoice-form-input[aria-invalid="true"],
+.invoice-form-select[aria-invalid="true"] {
+  border-color: var(--spectrum-global-color-red-600, #c9252d);
+}
+
+/* Line Items Section */
+.line-items-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spectrum-global-dimension-size-150, 12px);
+  border: 1px solid var(--spectrum-global-color-gray-200, #eaeaea);
+  border-radius: var(--spectrum-alias-border-radius-medium, 8px);
+  padding: var(--spectrum-global-dimension-size-200, 16px);
+  background-color: var(--spectrum-global-color-gray-75, #fafafa);
+}
+
+.line-items-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.line-items-heading {
+  margin: 0;
+  font-size: var(--spectrum-global-dimension-size-175, 14px);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--spectrum-global-color-gray-700, #6e6e6e);
+}
+
+.line-items-table-wrapper {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.line-items-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--spectrum-alias-font-size-default, 14px);
+}
+
+.line-items-table th {
+  text-align: left;
+  padding: var(--spectrum-global-dimension-size-100, 8px);
+  font-weight: 600;
+  color: var(--spectrum-global-color-gray-700, #6e6e6e);
+  border-bottom: 1px solid var(--spectrum-global-color-gray-300, #e1e1e1);
+}
+
+.line-items-table td {
+  padding: var(--spectrum-global-dimension-size-75, 6px) var(--spectrum-global-dimension-size-100, 8px);
+  vertical-align: middle;
+}
+
+.line-item-total-cell {
+  text-align: right;
+  font-weight: 600;
+  color: var(--spectrum-global-color-gray-900, #2c2c2c);
+  white-space: nowrap;
+}
+
+.line-item-remove-btn {
+  background: none;
+  border: none;
+  color: var(--spectrum-global-color-red-600, #c9252d);
+  cursor: pointer;
+  padding: var(--spectrum-global-dimension-size-50, 4px) var(--spectrum-global-dimension-size-100, 8px);
+  font-size: var(--spectrum-global-dimension-size-150, 12px);
+  border-radius: var(--spectrum-alias-border-radius-regular, 4px);
+}
+
+.line-item-remove-btn:hover:not(:disabled) {
+  background-color: var(--spectrum-global-color-red-100, #fee2e2);
+}
+
+.line-item-remove-btn:disabled {
+  color: var(--spectrum-global-color-gray-400, #cacaca);
+  cursor: not-allowed;
+}
+
+.line-items-summary-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spectrum-global-dimension-size-150, 12px);
+  padding: var(--spectrum-global-dimension-size-150, 12px) var(--spectrum-global-dimension-size-100, 8px);
+  border-top: 1px solid var(--spectrum-global-color-gray-300, #e1e1e1);
+  font-size: var(--spectrum-alias-font-size-large, 16px);
+}
+
+.line-items-total-label {
+  font-weight: 600;
+  color: var(--spectrum-global-color-gray-800, #4b4b4b);
+}
+
+.line-items-total-amount {
+  font-weight: 700;
+  color: var(--spectrum-global-color-blue-700, #0d66d0);
+  font-size: var(--spectrum-alias-font-size-heading, 20px);
+}
+
+/* Attachment Section */
+.attachment-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spectrum-global-dimension-size-100, 8px);
+}
+
+.attachment-badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spectrum-global-dimension-size-100, 8px);
+  padding: var(--spectrum-global-dimension-size-100, 8px) var(--spectrum-global-dimension-size-150, 12px);
+  background-color: var(--spectrum-global-color-blue-100, #f0f7ff);
+  border: 1px solid var(--spectrum-global-color-blue-300, #a0c7ff);
+  border-radius: var(--spectrum-alias-border-radius-regular, 4px);
+  color: var(--spectrum-global-color-blue-800, #004599);
+  font-size: var(--spectrum-global-dimension-size-150, 12px);
+  font-weight: 500;
+}
+
+.attachment-remove-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--spectrum-global-color-blue-700, #0d66d0);
+  padding: 0 var(--spectrum-global-dimension-size-25, 2px);
+}
+
+.attachment-remove-btn:hover {
+  color: var(--spectrum-global-color-red-600, #c9252d);
+}
+
+/* Dialog Footer */
+.invoice-dialog-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spectrum-global-dimension-size-150, 12px);
+  padding: var(--spectrum-global-dimension-size-200, 16px) var(--spectrum-global-dimension-size-300, 24px);
+  border-top: 1px solid var(--spectrum-global-color-gray-200, #eaeaea);
+  background-color: var(--spectrum-global-color-gray-75, #f8f8f8);
+}
