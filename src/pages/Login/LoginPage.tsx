@@ -72,31 +72,38 @@ export const LoginPage: React.FC = () => {
   }>({});
   const [bannerNotice, setBannerNotice] = useState<string | null>(null);
 
-  // Sync value with custom element DOM properties and attributes
+  // Sync value and invalid status with custom element DOM properties and attributes
   useEffect(() => {
     if (emailRef.current) {
       emailRef.current.value = email;
       if (typeof emailRef.current.setAttribute === 'function') {
         emailRef.current.setAttribute('value', email);
+        if (errors.email) {
+          emailRef.current.setAttribute('invalid', '');
+        } else {
+          emailRef.current.removeAttribute('invalid');
+        }
       }
     }
-  }, [email]);
+  }, [email, errors.email]);
 
   useEffect(() => {
     if (passwordRef.current) {
       passwordRef.current.value = password;
       if (typeof passwordRef.current.setAttribute === 'function') {
         passwordRef.current.setAttribute('value', password);
+        if (errors.password) {
+          passwordRef.current.setAttribute('invalid', '');
+        } else {
+          passwordRef.current.removeAttribute('invalid');
+        }
       }
     }
-  }, [password]);
+  }, [password, errors.password]);
 
-  // Derive target redirect path
+  // Derive target redirect path (preserves location object with search query params)
   const locationState = location.state as any;
-  const targetPath =
-    locationState?.from?.pathname ||
-    (typeof locationState?.from === 'string' ? locationState.from : '/') ||
-    '/';
+  const targetPath = locationState?.from || '/';
 
   // Read redirect/security notices from router state or sessionStorage
   useEffect(() => {
@@ -162,6 +169,11 @@ export const LoginPage: React.FC = () => {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      if (newErrors.email) {
+        emailRef.current?.focus?.();
+      } else if (newErrors.password) {
+        passwordRef.current?.focus?.();
+      }
       return;
     }
 
@@ -332,6 +344,8 @@ export const LoginPage: React.FC = () => {
                   data-testid="login-email-input"
                   type="email"
                   value={email}
+                  invalid={Boolean(errors.email)}
+                  aria-describedby={errors.email ? 'login-email-error' : undefined}
                   placeholder="name@apex.corp"
                   onInput={(e: any) =>
                     handleEmailChange(
@@ -364,6 +378,8 @@ export const LoginPage: React.FC = () => {
                   data-testid="login-password-input"
                   type="password"
                   value={password}
+                  invalid={Boolean(errors.password)}
+                  aria-describedby={errors.password ? 'login-password-error' : undefined}
                   placeholder="••••••••"
                   onInput={(e: any) =>
                     handlePasswordChange(

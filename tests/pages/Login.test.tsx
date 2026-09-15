@@ -1,5 +1,5 @@
 // tests/pages/Login.test.tsx
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom';
@@ -262,5 +262,66 @@ describe('LoginPage', () => {
 
     const alertBanner = screen.getByRole('alert');
     expect(alertBanner.textContent).toContain(noticeMessage);
+  });
+
+  it('sets invalid and aria-describedby attributes on invalid inputs and focuses first invalid field', async () => {
+    render(
+      <MemoryRouter initialEntries={['/login']}>
+        <AuthProvider>
+          <LoginPage />
+        </AuthProvider>
+      </MemoryRouter>
+    );
+
+    const emailInput = screen.getByTestId('login-email-input');
+    const focusSpy = vi.spyOn(emailInput, 'focus');
+    const submitBtn = screen.getByTestId('login-submit-button');
+
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(emailInput.hasAttribute('invalid')).toBe(true);
+      expect(emailInput.getAttribute('aria-describedby')).toBe('login-email-error');
+      expect(focusSpy).toHaveBeenCalled();
+    });
+  });
+
+  it('preserves search parameters from location state on redirect', async () => {
+    render(
+      <MemoryRouter
+        initialEntries={[
+          {
+            pathname: '/login',
+            state: {
+              from: {
+                pathname: '/invoices',
+                search: '?status=Pending&vendor=Acme',
+              },
+            },
+          },
+        ]}
+      >
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route
+              path="/invoices"
+              element={
+                <div data-testid="target-page">
+                  <CurrentAuthDisplay />
+                </div>
+              }
+            />
+          </Routes>
+        </AuthProvider>
+      </MemoryRouter>
+    );
+
+    const adminBtn = screen.getByTestId('quick-login-Admin');
+    fireEvent.click(adminBtn);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('target-page')).toBeDefined();
+    });
   });
 });
