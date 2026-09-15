@@ -1,0 +1,51 @@
+{
+  "name": "invoice-verification-platform",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@spectrum-web-components/bundle": "^1.12.2",
+    "@swc-react/action-button": "^1.12.2",
+    "@swc-react/avatar": "^1.12.2",
+    "@swc-react/badge": "^1.12.2",
+    "@swc-react/button": "^1.12.2",
+    "@swc-react/card": "^1.12.2",
+    "@swc-react/checkbox": "^1.12.2",
+    "@swc-react/dialog": "^1.12.2",
+    "@swc-react/divider": "^1.12.2",
+    "@swc-react/menu": "^1.12.2",
+    "@swc-react/picker": "^1.12.2",
+    "@swc-react/progress-circle": "^1.12.2",
+    "@swc-react/search": "^1.12.2",
+    "@swc-react/sidenav": "^1.12.2",
+    "@swc-react/status-light": "^1.12.2",
+    "@swc-react/switch": "^1.12.2",
+    "@swc-react/table": "^1.12.2",
+    "@swc-react/tabs": "^1.12.2",
+    "@swc-react/textfield": "^1.12.2",
+    "@swc-react/theme": "^1.12.2",
+    "@swc-react/toast": "^1.12.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.0",
+    "recharts": "^2.13.3"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.0.1",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/node": "^22.8.7",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "jsdom": "^25.0.1",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10",
+    "vitest": "^2.1.4"
+  }
+}

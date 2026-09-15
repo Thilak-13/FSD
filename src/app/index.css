@@ -1,0 +1,108 @@
+/* ==========================================================================
+   Spectrum Design Tokens & Global Styles
+   Invoice Verification & Vendor Payment Platform
+   ========================================================================== */
+
+:root {
+  /* Adobe Clean Font Fallback Stack */
+  --spectrum-alias-body-text-font-family: "Adobe Clean", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --spectrum-alias-code-text-font-family: "Source Code Pro", Monaco, Consolas, "Courier New", monospace;
+
+  /* Global Color Fallbacks */
+  --spectrum-global-color-blue-400: #2680eb;
+  --spectrum-global-color-blue-500: #1473e6;
+  --spectrum-global-color-blue-600: #0d66d0;
+  --spectrum-global-color-green-400: #2d9d78;
+  --spectrum-global-color-green-500: #268e6c;
+  --spectrum-global-color-green-600: #12805c;
+  --spectrum-global-color-orange-400: #e68619;
+  --spectrum-global-color-orange-500: #cb6f10;
+  --spectrum-global-color-orange-600: #b15b06;
+  --spectrum-global-color-red-400: #e34850;
+  --spectrum-global-color-red-500: #d7373f;
+  --spectrum-global-color-red-600: #c9252d;
+
+  --spectrum-global-color-gray-50: #ffffff;
+  --spectrum-global-color-gray-100: #fafafa;
+  --spectrum-global-color-gray-200: #eaeaea;
+  --spectrum-global-color-gray-300: #e1e1e1;
+  --spectrum-global-color-gray-400: #cacaca;
+  --spectrum-global-color-gray-500: #b3b3b3;
+  --spectrum-global-color-gray-600: #8e8e8e;
+  --spectrum-global-color-gray-700: #6e6e6e;
+  --spectrum-global-color-gray-800: #4b4b4b;
+  --spectrum-global-color-gray-900: #2c2c2c;
+
+  /* Spacing Tokens */
+  --spectrum-global-dimension-size-25: 2px;
+  --spectrum-global-dimension-size-50: 4px;
+  --spectrum-global-dimension-size-100: 8px;
+  --spectrum-global-dimension-size-150: 12px;
+  --spectrum-global-dimension-size-200: 16px;
+  --spectrum-global-dimension-size-300: 24px;
+  --spectrum-global-dimension-size-400: 32px;
+  --spectrum-global-dimension-size-500: 40px;
+  --spectrum-global-dimension-size-600: 48px;
+
+  /* Semantic Typography & App Sizing */
+  --spectrum-alias-font-size-default: 14px;
+  --spectrum-alias-font-size-large: 16px;
+  --spectrum-alias-font-size-heading: 20px;
+  --spectrum-alias-border-radius-regular: 4px;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--spectrum-alias-body-text-font-family);
+  font-size: var(--spectrum-alias-font-size-default);
+  background-color: var(--spectrum-global-color-gray-100, #f8f9fa);
+  color: var(--spectrum-global-color-gray-900, #2c2c2c);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Accessibility: Skip to Main Content Link */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 1rem;
+  background: var(--spectrum-global-color-gray-50, #ffffff);
+  color: var(--spectrum-global-color-blue-600, #0d66d0);
+  padding: 0.75rem 1.25rem;
+  z-index: 99999;
+  border-radius: var(--spectrum-alias-border-radius-regular, 4px);
+  text-decoration: none;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  border: 2px solid var(--spectrum-global-color-blue-500, #1473e6);
+  transition: top 0.2s ease-in-out;
+}
+
+.skip-link:focus {
+  top: 1rem;
+  outline: 3px solid var(--spectrum-global-color-blue-400, #2680eb);
+  outline-offset: 2px;
+}
+
+/* Ensure #main-content target does not exhibit an ugly focus box if programmatically focused */
+#main-content:focus {
+  outline: none;
+}
+
+/* Accessible focus styling */
+:focus-visible {
+  outline: 2px solid var(--spectrum-global-color-blue-500, #1473e6);
+  outline-offset: 2px;
+}
