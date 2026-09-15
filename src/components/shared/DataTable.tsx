@@ -36,6 +36,8 @@ export interface DataTableProps<T> {
 
   // Pagination
   pagination?: boolean;
+  manualPagination?: boolean;
+  totalCount?: number;
   pageSize?: number;
   currentPage?: number;
   onPageChange?: (page: number) => void;
@@ -84,6 +86,8 @@ export function DataTable<T extends Record<string, any>>({
   sortDirection: controlledSortDir,
   onSort,
   pagination = false,
+  manualPagination = false,
+  totalCount,
   pageSize = 10,
   currentPage: controlledPage,
   onPageChange,
@@ -109,7 +113,6 @@ export function DataTable<T extends Record<string, any>>({
 
   const handleSearchChange = (term: string) => {
     if (onSearchChange) {
-      onSort?.('', 'asc'); // Keep signature clean
       onSearchChange(term);
     } else {
       setInternalSearch(term);
@@ -173,7 +176,8 @@ export function DataTable<T extends Record<string, any>>({
   // Pagination state
   const [internalPage, setInternalPage] = useState(1);
   const currentPageNumber = controlledPage !== undefined ? controlledPage : internalPage;
-  const totalPages = Math.max(1, Math.ceil(sortedData.length / pageSize));
+  const totalRecordCount = totalCount !== undefined ? totalCount : sortedData.length;
+  const totalPages = Math.max(1, Math.ceil(totalRecordCount / pageSize));
   const safeCurrentPage = Math.min(Math.max(1, currentPageNumber), totalPages);
 
   const handlePageChange = (newPage: number) => {
@@ -187,9 +191,10 @@ export function DataTable<T extends Record<string, any>>({
 
   const displayRows = useMemo(() => {
     if (!pagination) return sortedData;
+    if (manualPagination) return sortedData; // Data is already sliced by parent/server
     const start = (safeCurrentPage - 1) * pageSize;
     return sortedData.slice(start, start + pageSize);
-  }, [sortedData, pagination, safeCurrentPage, pageSize]);
+  }, [sortedData, pagination, manualPagination, safeCurrentPage, pageSize]);
 
   // Selection state
   const [internalSelectedIds, setInternalSelectedIds] = useState<string[]>([]);
@@ -279,6 +284,8 @@ export function DataTable<T extends Record<string, any>>({
               value={currentSearch}
               onChange={(e) => handleSearchChange(e.target.value)}
               aria-label={searchPlaceholder}
+              aria-hidden="true"
+              tabIndex={-1}
               style={{
                 position: 'absolute',
                 width: '1px',
@@ -324,25 +331,22 @@ export function DataTable<T extends Record<string, any>>({
               <TableRow>
                 {selectable && (
                   <TableCheckboxCell
+                    ref={(el: any) => {
+                      if (el?.setAttribute) {
+                        el.setAttribute('role', 'checkbox');
+                        el.setAttribute('aria-checked', isAllSelected ? 'true' : isSomeSelected ? 'mixed' : 'false');
+                      }
+                    }}
+                    role="checkbox"
                     checked={isAllSelected}
                     indeterminate={isSomeSelected}
-                    onClick={(e: any) => e.stopPropagation()}
-                  >
-                    <input
-                      type="checkbox"
-                      role="checkbox"
-                      aria-label="Select all rows"
-                      checked={isAllSelected}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        handleToggleSelectAll();
-                      }}
-                      style={{
-                        cursor: 'pointer',
-                        accentColor: 'var(--spectrum-global-color-blue-500, #1473e6)',
-                      }}
-                    />
-                  </TableCheckboxCell>
+                    aria-label="Select all rows"
+                    aria-checked={isAllSelected ? 'true' : isSomeSelected ? 'mixed' : 'false'}
+                    onClick={(e: any) => {
+                      e.stopPropagation();
+                      handleToggleSelectAll();
+                    }}
+                  />
                 )}
 
                 {columns.map((col) => {
@@ -431,24 +435,21 @@ export function DataTable<T extends Record<string, any>>({
                   >
                     {selectable && (
                       <TableCheckboxCell
+                        ref={(el: any) => {
+                          if (el?.setAttribute) {
+                            el.setAttribute('role', 'checkbox');
+                            el.setAttribute('aria-checked', isSelected ? 'true' : 'false');
+                          }
+                        }}
+                        role="checkbox"
                         checked={isSelected}
-                        onClick={(e: any) => e.stopPropagation()}
-                      >
-                        <input
-                          type="checkbox"
-                          role="checkbox"
-                          aria-label={`Select row ${actualIndex + 1}`}
-                          checked={isSelected}
-                          onChange={(e) => {
-                            e.stopPropagation();
-                            handleToggleSelectRow(rowId);
-                          }}
-                          style={{
-                            cursor: 'pointer',
-                            accentColor: 'var(--spectrum-global-color-blue-500, #1473e6)',
-                          }}
-                        />
-                      </TableCheckboxCell>
+                        aria-label={`Select row ${actualIndex + 1}`}
+                        aria-checked={isSelected ? 'true' : 'false'}
+                        onClick={(e: any) => {
+                          e.stopPropagation();
+                          handleToggleSelectRow(rowId);
+                        }}
+                      />
                     )}
 
                     {columns.map((col) => {
@@ -498,7 +499,7 @@ export function DataTable<T extends Record<string, any>>({
         >
           <div>
             Showing {(safeCurrentPage - 1) * pageSize + 1} to{' '}
-            {Math.min(safeCurrentPage * pageSize, sortedData.length)} of {sortedData.length} entries
+            {Math.min(safeCurrentPage * pageSize, totalRecordCount)} of {totalRecordCount} entries
           </div>
 
           <div style={{ display: 'flex', gap: 'var(--spectrum-global-dimension-size-100, 8px)', alignItems: 'center' }}>

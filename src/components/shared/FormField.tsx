@@ -43,6 +43,17 @@ export const FormField: React.FC<FormFieldProps> = ({
   const displayHint = hint || helperText;
   const errorId = htmlFor ? `${htmlFor}-error` : undefined;
   const hintId = htmlFor ? `${htmlFor}-hint` : undefined;
+  const labelRef = React.useRef<any>(null);
+
+  React.useEffect(() => {
+    if (labelRef.current && typeof labelRef.current.setAttribute === 'function') {
+      if (required) {
+        labelRef.current.setAttribute('required', '');
+      } else {
+        labelRef.current.removeAttribute('required');
+      }
+    }
+  }, [required]);
 
   return (
     <div
@@ -55,6 +66,7 @@ export const FormField: React.FC<FormFieldProps> = ({
       }}
     >
       <SpFieldLabelComponent
+        ref={labelRef}
         for={htmlFor}
         required={required}
         disabled={disabled}
@@ -69,18 +81,6 @@ export const FormField: React.FC<FormFieldProps> = ({
         }}
       >
         {label}
-        {required && (
-          <span
-            aria-hidden="true"
-            style={{
-              color: 'var(--spectrum-global-color-red-600, #d7373f)',
-              marginLeft: 'var(--spectrum-global-dimension-size-50, 4px)',
-              fontWeight: 'bold',
-            }}
-          >
-            *
-          </span>
-        )}
       </SpFieldLabelComponent>
 
       <div style={{ position: 'relative', width: '100%' }}>

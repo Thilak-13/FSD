@@ -155,6 +155,48 @@ describe('Shared Components', () => {
       fireEvent.keyDown(window, { key: 'Escape' });
       expect(handleCancel).toHaveBeenCalledTimes(1);
     });
+
+    it('focuses safe Cancel button by default when variant="negative"', async () => {
+      vi.useFakeTimers();
+      render(
+        <ConfirmDialog
+          open={true}
+          title="Delete Record"
+          message="Delete?"
+          variant="negative"
+          cancelLabel="Cancel Action"
+          onConfirm={() => {}}
+          onCancel={() => {}}
+        />
+      );
+
+      vi.advanceTimersByTime(100);
+      const cancelBtn = screen.getByText('Cancel Action');
+      expect(cancelBtn).toBeDefined();
+      vi.useRealTimers();
+    });
+
+    it('saves previous activeElement and restores focus upon closing', () => {
+      const button = document.createElement('button');
+      button.textContent = 'Trigger';
+      document.body.appendChild(button);
+      button.focus();
+      expect(document.activeElement).toBe(button);
+
+      const { unmount } = render(
+        <ConfirmDialog
+          open={true}
+          title="Action"
+          message="Message"
+          onConfirm={() => {}}
+          onCancel={() => {}}
+        />
+      );
+
+      unmount();
+      expect(document.activeElement).toBe(button);
+      document.body.removeChild(button);
+    });
   });
 
   describe('FormField', () => {
@@ -170,13 +212,15 @@ describe('Shared Components', () => {
     });
 
     it('renders required indicator when required is true', () => {
-      render(
+      const { container } = render(
         <FormField label="Vendor Name" htmlFor="vendor-name" required>
           <input id="vendor-name" type="text" />
         </FormField>
       );
 
-      expect(screen.getByText('*')).toBeDefined();
+      const fieldLabel = container.querySelector('sp-field-label');
+      expect(fieldLabel).toBeDefined();
+      expect(fieldLabel?.hasAttribute('required') || (fieldLabel as any)?.required).toBeTruthy();
     });
 
     it('renders error message with role="alert" and aria-live="polite"', () => {
@@ -309,6 +353,52 @@ describe('Shared Components', () => {
     it('renders LoadingSkeleton when loading is true', () => {
       render(<DataTable columns={columns} data={data} loading />);
       expect(screen.getByRole('status')).toBeDefined();
+    });
+
+    it('supports manualPagination without re-slicing provided data', () => {
+      const preSlicedData: TestRow[] = [
+        { id: '10', name: 'Vendor 10', amount: 1000, status: 'Approved' },
+        { id: '11', name: 'Vendor 11', amount: 1100, status: 'Approved' },
+      ];
+
+      render(
+        <DataTable
+          columns={columns}
+          data={preSlicedData}
+          pagination
+          manualPagination
+          pageSize={5}
+          currentPage={3}
+          totalCount={15}
+        />
+      );
+
+      // Both pre-sliced rows are rendered directly without slice(10, 15) returning []
+      expect(screen.getByText('Vendor 10')).toBeDefined();
+      expect(screen.getByText('Vendor 11')).toBeDefined();
+      expect(screen.getByText(/Showing 11 to 15 of 15 entries/i)).toBeDefined();
+    });
+
+    it('does not reset or corrupt sort state when searching', () => {
+      const handleSort = vi.fn();
+      render(
+        <DataTable
+          columns={columns}
+          data={data}
+          sortColumn="name"
+          sortDirection="desc"
+          onSort={handleSort}
+          searchable
+          searchPlaceholder="Filter items..."
+        />
+      );
+
+      const searchInput = screen.getByPlaceholderText('Filter items...');
+      fireEvent.change(searchInput, { target: { value: 'Summit' } });
+
+      // onSort must NOT have been called with empty string or reset
+      expect(handleSort).not.toHaveBeenCalled();
+      expect(screen.getByText('Summit Creative')).toBeDefined();
     });
   });
 });

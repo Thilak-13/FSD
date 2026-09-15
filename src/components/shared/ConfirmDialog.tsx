@@ -34,11 +34,18 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   className,
 }) => {
   const confirmBtnRef = useRef<any>(null);
+  const cancelBtnRef = useRef<any>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
+  const previousActiveElement = useRef<HTMLElement | null>(null);
 
   // Keyboard navigation and focus management
   useEffect(() => {
     if (!open) return;
+
+    // Save previous activeElement to restore focus upon dialog close
+    if (typeof document !== 'undefined') {
+      previousActiveElement.current = document.activeElement as HTMLElement | null;
+    }
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -49,18 +56,23 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
 
     window.addEventListener('keydown', handleKeyDown);
 
-    // Auto-focus the primary action button after mounting
+    // When variant="negative", focus safe Cancel button by default to prevent accidental execution on Enter.
+    // Otherwise focus the Confirm button.
     const timer = setTimeout(() => {
-      if (confirmBtnRef.current && typeof confirmBtnRef.current.focus === 'function') {
-        confirmBtnRef.current.focus();
+      const targetBtn = variant === 'negative' ? cancelBtnRef.current : confirmBtnRef.current;
+      if (targetBtn && typeof targetBtn.focus === 'function') {
+        targetBtn.focus();
       }
     }, 50);
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       clearTimeout(timer);
+      if (previousActiveElement.current && typeof previousActiveElement.current.focus === 'function') {
+        previousActiveElement.current.focus();
+      }
     };
-  }, [open, onCancel]);
+  }, [open, onCancel, variant]);
 
   if (!open) return null;
 
@@ -131,6 +143,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           {children}
 
           <Button
+            ref={cancelBtnRef}
             slot="button"
             variant="secondary"
             onClick={onCancel}
