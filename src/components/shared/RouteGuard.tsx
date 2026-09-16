@@ -5,6 +5,7 @@ import { Role } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 
 export const REDIRECT_NOTICE_KEY = 'redirect_notice';
+export const ROLE_STORAGE_KEY = 'active_role';
 
 export interface RouteGuardProps {
   children?: React.ReactNode;
@@ -61,7 +62,14 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
     }
   }, [isAuthenticated, isRoleForbidden, message]);
 
-  if (!isAuthenticated) {
+  const hasSessionAuth = Boolean(
+    isAuthenticated ||
+      (typeof window !== 'undefined' &&
+        window.sessionStorage &&
+        sessionStorage.getItem(ROLE_STORAGE_KEY))
+  );
+
+  if (!hasSessionAuth) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 

@@ -131,7 +131,8 @@ export const LoginPage: React.FC = () => {
   const handleQuickLogin = (account: DemoAccount) => {
     login(account.email, account.role);
     clearRedirectNotice();
-    navigate(targetPath, { replace: true });
+    const dest = !targetPath || targetPath === '/login' ? '/' : targetPath;
+    navigate(dest, { replace: true });
   };
 
   const handlePrefill = (role: Role) => {
@@ -210,7 +211,8 @@ export const LoginPage: React.FC = () => {
 
     login(trimmedEmail, resolvedRole);
     clearRedirectNotice();
-    navigate(targetPath, { replace: true });
+    const dest = !targetPath || targetPath === '/login' ? '/' : targetPath;
+    navigate(dest, { replace: true });
   };
 
   return (
