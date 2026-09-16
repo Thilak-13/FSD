@@ -4,6 +4,7 @@ import { RouteObject, Navigate, useRoutes } from 'react-router-dom';
 import { RouteGuard } from '../components/shared/RouteGuard';
 import { LoginPage } from '../pages/Login/LoginPage';
 import { InvoicesPage } from '../pages/Invoices/InvoicesPage';
+import { InvoiceDetailPage } from '../pages/InvoiceDetail/InvoiceDetailPage';
 
 // Placeholder components until dedicated page implementations (Tasks 5-11) are attached
 export const LoginPlaceholder: React.FC = LoginPage;
@@ -11,9 +12,7 @@ export const DashboardPlaceholder: React.FC = () => (
   <div data-testid="page-dashboard">Dashboard Page</div>
 );
 export const InvoicesPlaceholder: React.FC = InvoicesPage;
-export const InvoiceDetailPlaceholder: React.FC = () => (
-  <div data-testid="page-invoice-detail">Invoice Detail</div>
-);
+export const InvoiceDetailPlaceholder: React.FC = InvoiceDetailPage;
 export const ApprovalsPlaceholder: React.FC = () => (
   <div data-testid="page-approvals">Approvals Triage Queue</div>
 );
@@ -58,7 +57,7 @@ export const routeConfig: RouteObject[] = [
     path: '/invoices/:id',
     element: (
       <RouteGuard>
-        <InvoiceDetailPlaceholder />
+        <InvoiceDetailPage />
       </RouteGuard>
     ),
   },
