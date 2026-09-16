@@ -74,36 +74,41 @@ export const LoginPage: React.FC = () => {
 
   // Sync value and invalid status with custom element DOM properties and attributes
   useEffect(() => {
-    if (emailRef.current) {
+    if (emailRef.current && emailRef.current.value !== email) {
       emailRef.current.value = email;
-      if (typeof emailRef.current.setAttribute === 'function') {
-        emailRef.current.setAttribute('value', email);
-        if (errors.email) {
-          emailRef.current.setAttribute('invalid', '');
-        } else {
-          emailRef.current.removeAttribute('invalid');
-        }
+    }
+    if (emailRef.current && typeof emailRef.current.setAttribute === 'function') {
+      if (errors.email) {
+        emailRef.current.setAttribute('invalid', '');
+      } else {
+        emailRef.current.removeAttribute('invalid');
       }
     }
   }, [email, errors.email]);
 
   useEffect(() => {
-    if (passwordRef.current) {
+    if (passwordRef.current && passwordRef.current.value !== password) {
       passwordRef.current.value = password;
-      if (typeof passwordRef.current.setAttribute === 'function') {
-        passwordRef.current.setAttribute('value', password);
-        if (errors.password) {
-          passwordRef.current.setAttribute('invalid', '');
-        } else {
-          passwordRef.current.removeAttribute('invalid');
-        }
+    }
+    if (passwordRef.current && typeof passwordRef.current.setAttribute === 'function') {
+      if (errors.password) {
+        passwordRef.current.setAttribute('invalid', '');
+      } else {
+        passwordRef.current.removeAttribute('invalid');
       }
     }
   }, [password, errors.password]);
 
   // Derive target redirect path (preserves location object with search query params)
   const locationState = location.state as any;
-  const targetPath = locationState?.from || '/';
+  const targetPath = React.useMemo(() => {
+    if (!locationState?.from) return '/';
+    if (typeof locationState.from === 'string') return locationState.from;
+    if (locationState.from.pathname) {
+      return `${locationState.from.pathname}${locationState.from.search || ''}`;
+    }
+    return '/';
+  }, [locationState]);
 
   // Read redirect/security notices from router state or sessionStorage
   useEffect(() => {
@@ -152,8 +157,10 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  const handleFormSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleFormSubmit = (e?: React.FormEvent) => {
+    if (e && typeof e.preventDefault === 'function') {
+      e.preventDefault();
+    }
     const newErrors: { email?: string; password?: string; general?: string } = {};
 
     const trimmedEmail = email.trim();
@@ -177,11 +184,29 @@ export const LoginPage: React.FC = () => {
       return;
     }
 
-    // Determine role from matching demo account or default to Requester
+    // Determine role from matching demo account or heuristics
+    const lowerEmail = trimmedEmail.toLowerCase();
+    let resolvedRole: Role = 'Requester';
+
     const demo = DEMO_ACCOUNTS.find(
-      (a) => a.email.toLowerCase() === trimmedEmail.toLowerCase()
+      (a) => a.email.toLowerCase() === lowerEmail
     );
-    const resolvedRole: Role = demo ? demo.role : 'Requester';
+    if (demo) {
+      resolvedRole = demo.role;
+    } else if (
+      lowerEmail.includes('admin') ||
+      lowerEmail.includes('alex') ||
+      lowerEmail.includes('sarah')
+    ) {
+      resolvedRole = 'Admin';
+    } else if (
+      lowerEmail.includes('approv') ||
+      lowerEmail.includes('marcus')
+    ) {
+      resolvedRole = 'Approver';
+    } else {
+      resolvedRole = 'Requester';
+    }
 
     login(trimmedEmail, resolvedRole);
     clearRedirectNotice();
@@ -361,6 +386,12 @@ export const LoginPage: React.FC = () => {
                         : (e.target as any)?.getAttribute?.('value') || ''
                     )
                   }
+                  onKeyDown={(e: any) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault?.();
+                      handleFormSubmit(e);
+                    }
+                  }}
                   className="login-input"
                 />
               </FormField>
@@ -395,6 +426,12 @@ export const LoginPage: React.FC = () => {
                         : (e.target as any)?.getAttribute?.('value') || ''
                     )
                   }
+                  onKeyDown={(e: any) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault?.();
+                      handleFormSubmit(e);
+                    }
+                  }}
                   className="login-input"
                 />
               </FormField>
@@ -406,10 +443,7 @@ export const LoginPage: React.FC = () => {
                 data-testid="login-submit-button"
                 className="login-submit-btn"
                 onClick={(e: any) => {
-                  // In case custom element click doesn't trigger form submit natively in jsdom
-                  if (e.target && e.target.closest('form')) {
-                    handleFormSubmit(e);
-                  }
+                  handleFormSubmit(e);
                 }}
               >
                 Sign In

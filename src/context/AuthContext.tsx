@@ -4,6 +4,7 @@ import { User, Role } from '../types';
 import { INITIAL_USERS } from '../services/mockApi/users';
 
 const ROLE_STORAGE_KEY = 'active_role';
+const USER_STORAGE_KEY = 'active_user';
 
 export interface AuthContextType {
   currentUser: User | null;
@@ -20,6 +21,12 @@ export const DEMO_ACCOUNTS: Record<string, { name: string; role: Role; email: st
   'alex.rivera@apex.corp': { name: 'Alex Rivera', role: 'Admin', email: 'alex.rivera@apex.corp' },
   'sarah.chen@apex.corp': { name: 'Sarah Chen', role: 'Approver', email: 'sarah.chen@apex.corp' },
   'jordan.lee@apex.corp': { name: 'Jordan Lee', role: 'Requester', email: 'jordan.lee@apex.corp' },
+  'sarah.chen@enterprise.com': { name: 'Sarah Chen', role: 'Admin', email: 'sarah.chen@enterprise.com' },
+  'marcus.vance@enterprise.com': { name: 'Marcus Vance', role: 'Approver', email: 'marcus.vance@enterprise.com' },
+  'elena.rodriguez@enterprise.com': { name: 'Elena Rodriguez', role: 'Requester', email: 'elena.rodriguez@enterprise.com' },
+  'sarah@platform.io': { name: 'Sarah Chen', role: 'Admin', email: 'sarah@platform.io' },
+  'marcus@platform.io': { name: 'Marcus Vance', role: 'Approver', email: 'marcus@platform.io' },
+  'elena@platform.io': { name: 'Elena Rodriguez', role: 'Requester', email: 'elena@platform.io' },
 };
 
 const findUserForRole = (role: Role): User => {
@@ -41,6 +48,20 @@ const getInitialRole = (): Role => {
   return 'Requester';
 };
 
+const getInitialUser = (role: Role): User | null => {
+  if (typeof window !== 'undefined' && window.sessionStorage) {
+    try {
+      const storedUser = sessionStorage.getItem(USER_STORAGE_KEY);
+      if (storedUser) {
+        return JSON.parse(storedUser);
+      }
+    } catch {
+      // Ignore
+    }
+  }
+  return findUserForRole(role);
+};
+
 export interface AuthProviderProps {
   children: React.ReactNode;
   initialRole?: Role;
@@ -52,25 +73,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
 }) => {
   const [currentRole, setCurrentRole] = useState<Role>(() => initialRole || getInitialRole());
   const [currentUser, setCurrentUser] = useState<User | null>(() =>
-    findUserForRole(initialRole || getInitialRole())
+    initialRole ? findUserForRole(initialRole) : getInitialUser(getInitialRole())
   );
 
-  // Sync role with session storage
-  const saveRoleToSession = (role: Role) => {
+  // Sync role and user with session storage
+  const saveSession = (role: Role, user: User | null) => {
     if (typeof window !== 'undefined' && window.sessionStorage) {
       try {
         sessionStorage.setItem(ROLE_STORAGE_KEY, role);
+        if (user) {
+          sessionStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+        } else {
+          sessionStorage.removeItem(USER_STORAGE_KEY);
+        }
       } catch {
         // Ignore sessionStorage write errors
       }
     }
   };
 
+
   const switchRole = useCallback((role: Role) => {
     const user = findUserForRole(role);
     setCurrentRole(role);
     setCurrentUser(user);
-    saveRoleToSession(role);
+    saveSession(role, user);
   }, []);
 
   const login = useCallback(
@@ -80,14 +107,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
         const user = findUserForRole(defaultRole);
         setCurrentRole(defaultRole);
         setCurrentUser(user);
-        saveRoleToSession(defaultRole);
+        saveSession(defaultRole, user);
         return;
       }
 
       if (typeof userOrRole === 'object' && 'role' in userOrRole) {
         setCurrentUser(userOrRole);
         setCurrentRole(userOrRole.role);
-        saveRoleToSession(userOrRole.role);
+        saveSession(userOrRole.role, userOrRole);
         return;
       }
 
@@ -119,7 +146,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
         };
         setCurrentUser(demoUser);
         setCurrentRole(targetRole);
-        saveRoleToSession(targetRole);
+        saveSession(targetRole, demoUser);
         return;
       }
 
@@ -130,21 +157,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
           u.name.toLowerCase() === query
       );
 
-      if (matched && !role) {
-        setCurrentUser(matched);
-        setCurrentRole(matched.role);
-        saveRoleToSession(matched.role);
+      if (matched) {
+        const effectiveRole = role || matched.role;
+        const userToSet: User = { ...matched, role: effectiveRole };
+        setCurrentUser(userToSet);
+        setCurrentRole(effectiveRole);
+        saveSession(effectiveRole, userToSet);
       } else if (role) {
         const customUser: User = {
           id: `user-${Date.now()}`,
           name: query.includes('@') ? query.split('@')[0] : userOrRole,
           email: query.includes('@') ? userOrRole : `${userOrRole}@apex.corp`,
           role: role,
-          department: 'General Operations',
+          department:
+            role === 'Admin'
+              ? 'Finance Operations'
+              : role === 'Approver'
+              ? 'Procurement & Approvals'
+              : 'General Operations',
         };
         setCurrentUser(customUser);
         setCurrentRole(role);
-        saveRoleToSession(role);
+        saveSession(role, customUser);
       } else {
         // Default to Requester
         switchRole('Requester');
@@ -159,6 +193,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     if (typeof window !== 'undefined' && window.sessionStorage) {
       try {
         sessionStorage.removeItem(ROLE_STORAGE_KEY);
+        sessionStorage.removeItem(USER_STORAGE_KEY);
       } catch {
         // Ignore
       }
