@@ -266,6 +266,7 @@ export const InvoiceDetailPage: React.FC = () => {
           onNotice={(msg) => setToastMessage(msg)}
         />
         <ApprovalActions
+          key={invoice.id}
           invoice={invoice}
           onApprove={handleApprove}
           onFlag={handleFlag}

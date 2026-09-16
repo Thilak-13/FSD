@@ -74,7 +74,7 @@ export const StatusStepper: React.FC<StatusStepperProps> = ({
         <ol className="status-stepper-list" role="list">
           {LIFECYCLE_STEPS.map((step, idx) => {
             const isCompleted = status === 'Paid' || (!isFlagged && idx < currentStepIndex) || (isFlagged && idx === 0);
-            const isCurrent = !isFlagged ? idx === currentStepIndex : idx === 1;
+            const isCurrent = status !== 'Paid' && (!isFlagged ? idx === currentStepIndex : idx === 1);
 
             let itemClass = 'status-stepper-item';
             if (isCompleted) itemClass += ' is-completed';

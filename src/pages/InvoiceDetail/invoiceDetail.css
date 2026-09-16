@@ -207,17 +207,18 @@
   transition: all 0.2s ease;
 }
 
-.status-stepper-item.is-completed .status-stepper-marker {
-  background-color: var(--spectrum-global-color-green-400, #2d9d78);
-  border-color: var(--spectrum-global-color-green-400, #2d9d78);
-  color: var(--spectrum-global-color-gray-50, #ffffff);
-}
-
 .status-stepper-item.is-current .status-stepper-marker {
   background-color: var(--spectrum-global-color-blue-500, #1473e6);
   border-color: var(--spectrum-global-color-blue-500, #1473e6);
   color: var(--spectrum-global-color-gray-50, #ffffff);
   box-shadow: 0 0 0 4px var(--spectrum-global-color-blue-100, #f0f7ff);
+}
+
+.status-stepper-item.is-completed .status-stepper-marker {
+  background-color: var(--spectrum-global-color-green-400, #2d9d78);
+  border-color: var(--spectrum-global-color-green-400, #2d9d78);
+  color: var(--spectrum-global-color-gray-50, #ffffff);
+  box-shadow: none;
 }
 
 .status-stepper-label {
@@ -570,4 +571,31 @@
 .activity-feed-details {
   font-size: var(--spectrum-alias-font-size-default, 14px);
   color: var(--spectrum-global-color-gray-700, #6e6e6e);
+}
+
+/* Form Inputs & Controls in Dialogs */
+.invoice-form-input,
+.invoice-form-select {
+  width: 100%;
+  padding: var(--spectrum-global-dimension-size-100, 8px) var(--spectrum-global-dimension-size-150, 12px);
+  font-family: inherit;
+  font-size: var(--spectrum-alias-font-size-default, 14px);
+  border: 1px solid var(--spectrum-global-color-gray-300, #e1e1e1);
+  border-radius: var(--spectrum-alias-border-radius-regular, 4px);
+  background-color: var(--spectrum-global-color-gray-50, #ffffff);
+  color: var(--spectrum-global-color-gray-900, #2c2c2c);
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+}
+
+.invoice-form-input:focus,
+.invoice-form-select:focus {
+  outline: 2px solid var(--spectrum-global-color-blue-500, #1473e6);
+  outline-offset: 1px;
+  border-color: var(--spectrum-global-color-blue-500, #1473e6);
+}
+
+.invoice-form-input[aria-invalid="true"],
+.invoice-form-select[aria-invalid="true"] {
+  border-color: var(--spectrum-global-color-red-600, #c9252d);
 }
