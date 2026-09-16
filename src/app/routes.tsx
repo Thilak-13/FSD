@@ -6,6 +6,7 @@ import { LoginPage } from '../pages/Login/LoginPage';
 import { InvoicesPage } from '../pages/Invoices/InvoicesPage';
 import { InvoiceDetailPage } from '../pages/InvoiceDetail/InvoiceDetailPage';
 import { ApprovalsPage } from '../pages/Approvals/ApprovalsPage';
+import { PaymentsPage } from '../pages/Payments/PaymentsPage';
 
 // Placeholder components until dedicated page implementations (Tasks 5-11) are attached
 export const LoginPlaceholder: React.FC = LoginPage;
@@ -15,9 +16,7 @@ export const DashboardPlaceholder: React.FC = () => (
 export const InvoicesPlaceholder: React.FC = InvoicesPage;
 export const InvoiceDetailPlaceholder: React.FC = InvoiceDetailPage;
 export const ApprovalsPlaceholder: React.FC = ApprovalsPage;
-export const PaymentsPlaceholder: React.FC = () => (
-  <div data-testid="page-payments">Payments Disbursement</div>
-);
+export const PaymentsPlaceholder: React.FC = PaymentsPage;
 export const VendorsPlaceholder: React.FC = () => (
   <div data-testid="page-vendors">Vendors Directory</div>
 );
@@ -72,7 +71,7 @@ export const routeConfig: RouteObject[] = [
     path: '/payments',
     element: (
       <RouteGuard allowedRoles={['Admin', 'Approver']}>
-        <PaymentsPlaceholder />
+        <PaymentsPage />
       </RouteGuard>
     ),
   },

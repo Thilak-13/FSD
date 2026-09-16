@@ -1,0 +1,229 @@
+/* ==========================================================================
+   Payments Tracking & Disbursement Dashboard CSS
+   Strict Spectrum Design Tokens & Zero Hardcoded Colors
+   ========================================================================== */
+
+.payments-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spectrum-global-dimension-size-300, 24px);
+  width: 100%;
+  padding: var(--spectrum-global-dimension-size-300, 24px);
+  box-sizing: border-box;
+  font-family: var(--spectrum-alias-body-text-font-family, "Adobe Clean", sans-serif);
+  color: var(--spectrum-global-color-gray-900, #2c2c2c);
+}
+
+/* Header */
+.payments-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spectrum-global-dimension-size-200, 16px);
+}
+
+.payments-header-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spectrum-global-dimension-size-50, 4px);
+}
+
+.payments-header-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spectrum-global-dimension-size-150, 12px);
+}
+
+.payments-title {
+  margin: 0;
+  font-size: var(--spectrum-global-dimension-size-350, 28px);
+  font-weight: 700;
+  color: var(--spectrum-global-color-gray-900, #2c2c2c);
+  letter-spacing: -0.01em;
+}
+
+.payments-count-badge {
+  font-size: var(--spectrum-global-dimension-size-150, 12px);
+  font-weight: 600;
+  padding: var(--spectrum-global-dimension-size-25, 2px) var(--spectrum-global-dimension-size-100, 8px);
+  border-radius: var(--spectrum-alias-border-radius-regular, 4px);
+  background-color: var(--spectrum-global-color-gray-200, #eaeaea);
+  color: var(--spectrum-global-color-gray-700, #6e6e6e);
+}
+
+.payments-description {
+  margin: 0;
+  font-size: var(--spectrum-alias-font-size-default, 14px);
+  color: var(--spectrum-global-color-gray-700, #6e6e6e);
+  line-height: 1.5;
+}
+
+/* Summary Strip / Metrics Grid */
+.payments-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--spectrum-global-dimension-size-200, 16px);
+  width: 100%;
+}
+
+.payments-metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spectrum-global-dimension-size-75, 6px);
+  padding: var(--spectrum-global-dimension-size-200, 16px) var(--spectrum-global-dimension-size-250, 20px);
+  background-color: var(--spectrum-global-color-gray-50, #ffffff);
+  border: 1px solid var(--spectrum-global-color-gray-200, #eaeaea);
+  border-radius: var(--spectrum-alias-border-radius-medium, 8px);
+  box-shadow: 0 1px 3px var(--spectrum-alias-drop-shadow-color, rgba(0, 0, 0, 0.04));
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.payments-metric-card:hover {
+  box-shadow: 0 2px 6px var(--spectrum-alias-drop-shadow-color, rgba(0, 0, 0, 0.08));
+}
+
+.payments-metric-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.payments-metric-label {
+  font-size: var(--spectrum-global-dimension-size-150, 12px);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--spectrum-global-color-gray-700, #6e6e6e);
+}
+
+.payments-metric-value {
+  font-size: var(--spectrum-global-dimension-size-300, 24px);
+  font-weight: 700;
+  color: var(--spectrum-global-color-gray-900, #2c2c2c);
+  line-height: 1.2;
+}
+
+.payments-metric-sub {
+  font-size: var(--spectrum-global-dimension-size-150, 12px);
+  color: var(--spectrum-global-color-gray-600, #747474);
+}
+
+.payments-metric-card.metric-scheduled .payments-metric-value {
+  color: var(--spectrum-global-color-blue-700, #0d66d0);
+}
+
+.payments-metric-card.metric-paid .payments-metric-value {
+  color: var(--spectrum-global-color-green-700, #1b8a5a);
+}
+
+.payments-metric-card.metric-overdue .payments-metric-value {
+  color: var(--spectrum-global-color-red-600, #d7373f);
+}
+
+/* Toast / Feedback Banner */
+.payments-toast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spectrum-global-dimension-size-150, 12px) var(--spectrum-global-dimension-size-200, 16px);
+  border-radius: var(--spectrum-alias-border-radius-regular, 4px);
+  background-color: var(--spectrum-global-color-green-100, #e6f6ee);
+  border-left: 4px solid var(--spectrum-global-color-green-600, #2680eb);
+  color: var(--spectrum-global-color-green-900, #0f5132);
+  font-size: var(--spectrum-alias-font-size-default, 14px);
+}
+
+.payments-toast-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spectrum-global-dimension-size-100, 8px);
+}
+
+.payments-toast-dismiss {
+  background: none;
+  border: none;
+  font-size: var(--spectrum-global-dimension-size-225, 18px);
+  cursor: pointer;
+  color: var(--spectrum-global-color-green-800, #146c43);
+  padding: 0 4px;
+}
+
+/* Filter Toolbar */
+.payments-filter-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spectrum-global-dimension-size-200, 16px);
+  flex-wrap: wrap;
+}
+
+.payments-filter-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spectrum-global-dimension-size-200, 16px);
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.payments-filter-search {
+  min-width: 280px;
+  max-width: 420px;
+  flex: 1;
+}
+
+.payments-filter-select-group {
+  min-width: 220px;
+}
+
+.payments-form-input,
+.payments-filter-select {
+  box-sizing: border-box;
+  width: 100%;
+  height: var(--spectrum-global-dimension-size-400, 32px);
+  padding: 0 var(--spectrum-global-dimension-size-150, 12px);
+  font-family: var(--spectrum-alias-body-text-font-family, "Adobe Clean", sans-serif);
+  font-size: var(--spectrum-alias-font-size-default, 14px);
+  color: var(--spectrum-global-color-gray-800, #4b4b4b);
+  background-color: var(--spectrum-global-color-gray-50, #ffffff);
+  border: 1px solid var(--spectrum-global-color-gray-400, #bcbcbc);
+  border-radius: var(--spectrum-alias-border-radius-regular, 4px);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.payments-form-input:focus,
+.payments-filter-select:focus {
+  outline: none;
+  border-color: var(--spectrum-global-color-blue-600, #0d66d0);
+  box-shadow: 0 0 0 1px var(--spectrum-global-color-blue-600, #0d66d0);
+}
+
+/* Table Card */
+.payments-table-card {
+  background-color: var(--spectrum-global-color-gray-50, #ffffff);
+  border: 1px solid var(--spectrum-global-color-gray-200, #eaeaea);
+  border-radius: var(--spectrum-alias-border-radius-medium, 8px);
+  padding: var(--spectrum-global-dimension-size-200, 16px);
+  box-shadow: 0 1px 3px var(--spectrum-alias-drop-shadow-color, rgba(0, 0, 0, 0.04));
+}
+
+/* Row Actions */
+.payments-row-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spectrum-global-dimension-size-100, 8px);
+  justify-content: flex-end;
+}
+
+/* Overdue indicator pill */
+.payments-overdue-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spectrum-global-dimension-size-50, 4px);
+  font-size: var(--spectrum-global-dimension-size-150, 12px);
+  font-weight: 600;
+  color: var(--spectrum-global-color-red-700, #c9252d);
+  background-color: var(--spectrum-global-color-red-100, #ffebe8);
+  padding: var(--spectrum-global-dimension-size-25, 2px) var(--spectrum-global-dimension-size-75, 6px);
+  border-radius: var(--spectrum-alias-border-radius-regular, 4px);
+}
