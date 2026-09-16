@@ -3,6 +3,7 @@ import React from 'react';
 import { RouteObject, Navigate, useRoutes } from 'react-router-dom';
 import { RouteGuard } from '../components/shared/RouteGuard';
 import { LoginPage } from '../pages/Login/LoginPage';
+import { DashboardPage } from '../pages/Dashboard/DashboardPage';
 import { InvoicesPage } from '../pages/Invoices/InvoicesPage';
 import { InvoiceDetailPage } from '../pages/InvoiceDetail/InvoiceDetailPage';
 import { ApprovalsPage } from '../pages/Approvals/ApprovalsPage';
@@ -12,9 +13,7 @@ import { VendorDetailPage } from '../pages/VendorDetail/VendorDetailPage';
 
 // Placeholder components until dedicated page implementations (Tasks 5-11) are attached
 export const LoginPlaceholder: React.FC = LoginPage;
-export const DashboardPlaceholder: React.FC = () => (
-  <div data-testid="page-dashboard">Dashboard Page</div>
-);
+export const DashboardPlaceholder: React.FC = DashboardPage;
 export const InvoicesPlaceholder: React.FC = InvoicesPage;
 export const InvoiceDetailPlaceholder: React.FC = InvoiceDetailPage;
 export const ApprovalsPlaceholder: React.FC = ApprovalsPage;
@@ -37,7 +36,7 @@ export const routeConfig: RouteObject[] = [
     path: '/',
     element: (
       <RouteGuard>
-        <DashboardPlaceholder />
+        <DashboardPage />
       </RouteGuard>
     ),
   },
