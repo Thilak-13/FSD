@@ -10,6 +10,7 @@ import { ApprovalsPage } from '../pages/Approvals/ApprovalsPage';
 import { PaymentsPage } from '../pages/Payments/PaymentsPage';
 import { VendorsPage } from '../pages/Vendors/VendorsPage';
 import { VendorDetailPage } from '../pages/VendorDetail/VendorDetailPage';
+import { ReportsPage } from '../pages/Reports/ReportsPage';
 
 // Placeholder components until dedicated page implementations (Tasks 5-11) are attached
 export const LoginPlaceholder: React.FC = LoginPage;
@@ -20,9 +21,7 @@ export const ApprovalsPlaceholder: React.FC = ApprovalsPage;
 export const PaymentsPlaceholder: React.FC = PaymentsPage;
 export const VendorsPlaceholder: React.FC = VendorsPage;
 export const VendorDetailPlaceholder: React.FC = VendorDetailPage;
-export const ReportsPlaceholder: React.FC = () => (
-  <div data-testid="page-reports">Reports & Financial Analytics</div>
-);
+export const ReportsPlaceholder: React.FC = ReportsPage;
 export const AuditLogPlaceholder: React.FC = () => (
   <div data-testid="page-audit-log">Audit Log Trail</div>
 );
@@ -92,7 +91,7 @@ export const routeConfig: RouteObject[] = [
     path: '/reports',
     element: (
       <RouteGuard allowedRoles={['Admin', 'Approver']}>
-        <ReportsPlaceholder />
+        <ReportsPage />
       </RouteGuard>
     ),
   },
