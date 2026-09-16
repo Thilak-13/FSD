@@ -6,6 +6,8 @@ import { LoginPage } from '../pages/Login/LoginPage';
 import { InvoicesPage } from '../pages/Invoices/InvoicesPage';
 import { InvoiceDetailPage } from '../pages/InvoiceDetail/InvoiceDetailPage';
 import { ApprovalsPage } from '../pages/Approvals/ApprovalsPage';
+import { VendorsPage } from '../pages/Vendors/VendorsPage';
+import { VendorDetailPage } from '../pages/VendorDetail/VendorDetailPage';
 
 // Placeholder components until dedicated page implementations (Tasks 5-11) are attached
 export const LoginPlaceholder: React.FC = LoginPage;
@@ -18,12 +20,8 @@ export const ApprovalsPlaceholder: React.FC = ApprovalsPage;
 export const PaymentsPlaceholder: React.FC = () => (
   <div data-testid="page-payments">Payments Disbursement</div>
 );
-export const VendorsPlaceholder: React.FC = () => (
-  <div data-testid="page-vendors">Vendors Directory</div>
-);
-export const VendorDetailPlaceholder: React.FC = () => (
-  <div data-testid="page-vendor-detail">Vendor Detail</div>
-);
+export const VendorsPlaceholder: React.FC = VendorsPage;
+export const VendorDetailPlaceholder: React.FC = VendorDetailPage;
 export const ReportsPlaceholder: React.FC = () => (
   <div data-testid="page-reports">Reports & Financial Analytics</div>
 );
@@ -80,7 +78,7 @@ export const routeConfig: RouteObject[] = [
     path: '/vendors',
     element: (
       <RouteGuard>
-        <VendorsPlaceholder />
+        <VendorsPage />
       </RouteGuard>
     ),
   },
@@ -88,7 +86,7 @@ export const routeConfig: RouteObject[] = [
     path: '/vendors/:id',
     element: (
       <RouteGuard>
-        <VendorDetailPlaceholder />
+        <VendorDetailPage />
       </RouteGuard>
     ),
   },
