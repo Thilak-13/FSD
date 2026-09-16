@@ -1,0 +1,241 @@
+/* ==========================================================================
+   Approvals Triage Queue CSS
+   Strict Spectrum Design Tokens & Zero Hardcoded Colors
+   ========================================================================== */
+
+.approvals-page-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spectrum-global-dimension-size-300, 24px);
+  width: 100%;
+  padding: var(--spectrum-global-dimension-size-300, 24px);
+  box-sizing: border-box;
+  font-family: var(--spectrum-alias-body-text-font-family, "Adobe Clean", sans-serif);
+  color: var(--spectrum-global-color-gray-900, #2c2c2c);
+}
+
+/* Header */
+.approvals-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--spectrum-global-dimension-size-200, 16px);
+}
+
+.approvals-header-left {
+  display: flex;
+  align-items: baseline;
+  gap: var(--spectrum-global-dimension-size-150, 12px);
+}
+
+.approvals-title {
+  margin: 0;
+  font-size: var(--spectrum-global-dimension-size-350, 28px);
+  font-weight: 700;
+  color: var(--spectrum-global-color-gray-900, #2c2c2c);
+  letter-spacing: -0.01em;
+}
+
+.approvals-count-badge {
+  font-size: var(--spectrum-global-dimension-size-150, 12px);
+  font-weight: 600;
+  padding: var(--spectrum-global-dimension-size-25, 2px) var(--spectrum-global-dimension-size-100, 8px);
+  border-radius: var(--spectrum-alias-border-radius-regular, 4px);
+  background-color: var(--spectrum-global-color-gray-200, #eaeaea);
+  color: var(--spectrum-global-color-gray-700, #6e6e6e);
+}
+
+/* Queue Metrics Bar */
+.approvals-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--spectrum-global-dimension-size-200, 16px);
+}
+
+.approvals-metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spectrum-global-dimension-size-75, 6px);
+  padding: var(--spectrum-global-dimension-size-200, 16px) var(--spectrum-global-dimension-size-250, 20px);
+  background-color: var(--spectrum-global-color-gray-50, #ffffff);
+  border: 1px solid var(--spectrum-global-color-gray-200, #eaeaea);
+  border-radius: var(--spectrum-alias-border-radius-medium, 8px);
+  box-shadow: 0 1px 3px var(--spectrum-alias-drop-shadow-color, rgba(0, 0, 0, 0.04));
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.approvals-metric-label {
+  font-size: var(--spectrum-global-dimension-size-150, 12px);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--spectrum-global-color-gray-700, #6e6e6e);
+}
+
+.approvals-metric-value {
+  font-size: var(--spectrum-global-dimension-size-300, 24px);
+  font-weight: 700;
+  color: var(--spectrum-global-color-gray-900, #2c2c2c);
+  line-height: 1.2;
+}
+
+.approvals-metric-card.metric-pending .approvals-metric-value {
+  color: var(--spectrum-global-color-blue-700, #0d66d0);
+}
+
+.approvals-metric-card.metric-flagged .approvals-metric-value {
+  color: var(--spectrum-global-color-red-600, #c9252d);
+}
+
+.approvals-metric-card.metric-amount .approvals-metric-value {
+  color: var(--spectrum-global-color-gray-900, #2c2c2c);
+}
+
+/* Toast / Feedback Banner */
+.approvals-toast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spectrum-global-dimension-size-150, 12px) var(--spectrum-global-dimension-size-200, 16px);
+  background-color: var(--spectrum-global-color-green-100, #dcfce7);
+  border: 1px solid var(--spectrum-global-color-green-400, #2d9d78);
+  border-radius: var(--spectrum-alias-border-radius-medium, 8px);
+  color: var(--spectrum-global-color-green-900, #134e4a);
+  font-size: var(--spectrum-global-dimension-size-175, 14px);
+  box-shadow: 0 2px 8px var(--spectrum-alias-drop-shadow-color, rgba(0, 0, 0, 0.05));
+}
+
+.approvals-toast-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spectrum-global-dimension-size-100, 8px);
+}
+
+.approvals-toast-dismiss {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--spectrum-global-color-green-800, #115e59);
+  padding: var(--spectrum-global-dimension-size-50, 4px);
+  border-radius: var(--spectrum-alias-border-radius-regular, 4px);
+}
+
+.approvals-toast-dismiss:hover {
+  background-color: var(--spectrum-global-color-green-200, #bbf7d0);
+}
+
+/* Approvals Table Card */
+.approvals-table-card {
+  background-color: var(--spectrum-global-color-gray-50, #ffffff);
+  border-radius: var(--spectrum-alias-border-radius-medium, 8px);
+}
+
+/* Row Action Buttons Container */
+.approval-row-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spectrum-global-dimension-size-75, 6px);
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+
+/* Flag Reason Snippet Badge in table row */
+.flag-reason-snippet {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spectrum-global-dimension-size-50, 4px);
+  font-size: var(--spectrum-global-dimension-size-150, 12px);
+  color: var(--spectrum-global-color-red-700, #b21e25);
+  background-color: var(--spectrum-global-color-red-100, #fee2e2);
+  border: 1px solid var(--spectrum-global-color-red-300, #fca5a5);
+  border-radius: var(--spectrum-alias-border-radius-regular, 4px);
+  padding: var(--spectrum-global-dimension-size-25, 2px) var(--spectrum-global-dimension-size-75, 6px);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Batch Approval Bar */
+.batch-approval-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spectrum-global-dimension-size-150, 12px) var(--spectrum-global-dimension-size-250, 20px);
+  background-color: var(--spectrum-global-color-gray-900, #2c2c2c);
+  color: var(--spectrum-global-color-gray-50, #ffffff);
+  border-radius: var(--spectrum-alias-border-radius-medium, 8px);
+  box-shadow: 0 4px 16px var(--spectrum-alias-drop-shadow-color, rgba(0, 0, 0, 0.2));
+  animation: batchBarSlideIn 0.2s ease-out;
+  flex-wrap: wrap;
+  gap: var(--spectrum-global-dimension-size-150, 12px);
+}
+
+@keyframes batchBarSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.batch-approval-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spectrum-global-dimension-size-100, 8px);
+  font-size: var(--spectrum-alias-font-size-default, 14px);
+  font-weight: 600;
+  color: var(--spectrum-global-color-gray-50, #ffffff);
+}
+
+.batch-approval-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 var(--spectrum-global-dimension-size-75, 6px);
+  border-radius: 11px;
+  background-color: var(--spectrum-global-color-blue-500, #1473e6);
+  color: var(--spectrum-global-color-gray-50, #ffffff);
+  font-size: var(--spectrum-global-dimension-size-150, 12px);
+  font-weight: 700;
+}
+
+.batch-approval-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spectrum-global-dimension-size-100, 8px);
+}
+
+/* Flag Reason Textarea in Modal */
+.flag-reason-textarea {
+  width: 100%;
+  padding: var(--spectrum-global-dimension-size-100, 8px) var(--spectrum-global-dimension-size-150, 12px);
+  font-family: inherit;
+  font-size: var(--spectrum-alias-font-size-default, 14px);
+  border: 1px solid var(--spectrum-global-color-gray-300, #e1e1e1);
+  border-radius: var(--spectrum-alias-border-radius-regular, 4px);
+  background-color: var(--spectrum-global-color-gray-50, #ffffff);
+  color: var(--spectrum-global-color-gray-900, #2c2c2c);
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color 0.15s ease;
+}
+
+.flag-reason-textarea:focus {
+  outline: 2px solid var(--spectrum-global-color-blue-500, #1473e6);
+  outline-offset: 1px;
+  border-color: var(--spectrum-global-color-blue-500, #1473e6);
+}
+
+.flag-reason-textarea[aria-invalid="true"] {
+  border-color: var(--spectrum-global-color-red-600, #c9252d);
+}

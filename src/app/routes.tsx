@@ -4,6 +4,7 @@ import { RouteObject, Navigate, useRoutes } from 'react-router-dom';
 import { RouteGuard } from '../components/shared/RouteGuard';
 import { LoginPage } from '../pages/Login/LoginPage';
 import { InvoicesPage } from '../pages/Invoices/InvoicesPage';
+import { ApprovalsPage } from '../pages/Approvals/ApprovalsPage';
 
 // Placeholder components until dedicated page implementations (Tasks 5-11) are attached
 export const LoginPlaceholder: React.FC = LoginPage;
@@ -66,7 +67,7 @@ export const routeConfig: RouteObject[] = [
     path: '/approvals',
     element: (
       <RouteGuard allowedRoles={['Admin', 'Approver']}>
-        <ApprovalsPlaceholder />
+        <ApprovalsPage />
       </RouteGuard>
     ),
   },

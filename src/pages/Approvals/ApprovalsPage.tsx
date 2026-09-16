@@ -1,0 +1,467 @@
+// src/pages/Approvals/ApprovalsPage.tsx
+import React, { useState, useMemo, useContext, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@swc-react/button';
+import { DataTable, Column } from '../../components/shared/DataTable';
+import { StatusBadge } from '../../components/shared/StatusBadge';
+import { ConfirmDialog } from '../../components/shared/ConfirmDialog';
+import { useAuth } from '../../context/AuthContext';
+import { DataContext } from '../../context/DataContext';
+import { BatchApprovalBar } from './BatchApprovalBar';
+import { FlagModal } from './FlagModal';
+import { Invoice } from '../../types';
+import './approvals.css';
+
+export const ApprovalsPage: React.FC = () => {
+  const dataContext = useContext(DataContext);
+  const { currentUser } = useAuth();
+  const navigate = useNavigate();
+
+  // If DataContext is not provided (e.g., in isolated route stub tests), render fallback
+  if (!dataContext) {
+    return <div data-testid="page-approvals">Approvals Triage Queue</div>;
+  }
+
+  const { invoices, vendors, loading, updateStatus } = dataContext;
+
+  // Selection state for batch operations
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  // Dialog & Modal states
+  const [approvingInvoice, setApprovingInvoice] = useState<Invoice | null>(null);
+  const [flaggingInvoice, setFlaggingInvoice] = useState<Invoice | null>(null);
+  const [isBatchConfirmOpen, setIsBatchConfirmOpen] = useState<boolean>(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+
+  // Notification Toast state
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Search filter inside the queue
+  const [searchTerm, setSearchTerm] = useState<string>('');
+
+  // Vendor Lookup Map
+  const vendorMap = useMemo(() => {
+    return new Map(vendors.map((v) => [v.id, v.name]));
+  }, [vendors]);
+
+  // 1. Triage Queue Filtering: strictly display only 'Submitted' or 'Flagged' invoices
+  const queueInvoices = useMemo(() => {
+    return invoices.filter(
+      (inv) => inv.status === 'Submitted' || inv.status === 'Flagged'
+    );
+  }, [invoices]);
+
+  // 2. Metrics calculation
+  const metrics = useMemo(() => {
+    const totalAwaiting = queueInvoices.length;
+    const flaggedCount = queueInvoices.filter((i) => i.status === 'Flagged').length;
+    const totalPendingAmount = queueInvoices.reduce((sum, inv) => sum + (inv.amount || 0), 0);
+
+    return {
+      totalAwaiting,
+      flaggedCount,
+      totalPendingAmount,
+    };
+  }, [queueInvoices]);
+
+  // 3. Search filtered invoices in queue
+  const filteredQueueInvoices = useMemo(() => {
+    if (!searchTerm.trim()) return queueInvoices;
+    const query = searchTerm.toLowerCase().trim();
+
+    return queueInvoices.filter((inv) => {
+      const vendorName = (vendorMap.get(inv.vendorId) || '').toLowerCase();
+      const numMatch = inv.invoiceNumber.toLowerCase().includes(query);
+      const vendMatch = vendorName.includes(query);
+      const flagMatch = inv.flagReason?.toLowerCase().includes(query);
+      return numMatch || vendMatch || flagMatch;
+    });
+  }, [queueInvoices, searchTerm, vendorMap]);
+
+  // Action Handlers
+  const handleSingleApproveConfirm = async () => {
+    if (!approvingInvoice) return;
+    try {
+      setIsProcessing(true);
+      const targetInvoice = approvingInvoice;
+      await updateStatus(
+        targetInvoice.id,
+        'Approved',
+        'Approved via Approvals Queue',
+        currentUser?.name || currentUser?.id
+      );
+      // Remove approved invoice from selectedIds if present
+      setSelectedIds((prev) => prev.filter((id) => id !== targetInvoice.id));
+      setToastMessage(`Invoice ${targetInvoice.invoiceNumber} has been approved.`);
+      setApprovingInvoice(null);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to approve invoice';
+      setToastMessage(`Error: ${msg}`);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleBatchApproveConfirm = async () => {
+    if (selectedIds.length === 0) return;
+    try {
+      setIsProcessing(true);
+      const count = selectedIds.length;
+      await Promise.all(
+        selectedIds.map((id) =>
+          updateStatus(
+            id,
+            'Approved',
+            'Batch approved via Approvals Queue',
+            currentUser?.name || currentUser?.id
+          )
+        )
+      );
+      setSelectedIds([]);
+      setIsBatchConfirmOpen(false);
+      setToastMessage(`${count} invoices have been approved.`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to batch approve invoices';
+      setToastMessage(`Error: ${msg}`);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleFlagConfirm = async (invoiceId: string, reason: string) => {
+    const targetInvoice = queueInvoices.find((i) => i.id === invoiceId);
+    await updateStatus(
+      invoiceId,
+      'Flagged',
+      reason,
+      currentUser?.name || currentUser?.id,
+      { flagReason: reason }
+    );
+    setToastMessage(
+      `Invoice ${targetInvoice?.invoiceNumber || invoiceId} has been flagged: ${reason}`
+    );
+    setFlaggingInvoice(null);
+  };
+
+  // DataTable columns definition
+  const columns: Column<Invoice>[] = useMemo(
+    () => [
+      {
+        key: 'invoiceNumber',
+        title: 'Invoice #',
+        sortable: true,
+        render: (inv) => (
+          <span
+            style={{
+              fontWeight: 600,
+              color: 'var(--spectrum-global-color-blue-600, #0d66d0)',
+            }}
+          >
+            {inv.invoiceNumber}
+          </span>
+        ),
+      },
+      {
+        key: 'vendorId',
+        title: 'Vendor Name',
+        sortable: true,
+        render: (inv) => vendorMap.get(inv.vendorId) || inv.vendorId,
+      },
+      {
+        key: 'amount',
+        title: 'Amount',
+        sortable: true,
+        align: 'right',
+        render: (inv) =>
+          `$${inv.amount.toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}`,
+      },
+      {
+        key: 'submittedDate',
+        title: 'Submitted Date',
+        sortable: true,
+        render: (inv) => inv.submittedDate,
+      },
+      {
+        key: 'dueDate',
+        title: 'Due Date',
+        sortable: true,
+        render: (inv) => inv.dueDate,
+      },
+      {
+        key: 'status',
+        title: 'Status',
+        sortable: true,
+        render: (inv) => (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <StatusBadge status={inv.status} />
+            {inv.status === 'Flagged' && inv.flagReason && (
+              <span
+                className="flag-reason-snippet"
+                title={inv.flagReason}
+                data-testid={`flag-reason-badge-${inv.id}`}
+              >
+                ⚠️ {inv.flagReason}
+              </span>
+            )}
+          </div>
+        ),
+      },
+      {
+        key: 'actions',
+        title: 'Actions',
+        align: 'center',
+        render: (inv) => (
+          <div className="approval-row-actions">
+            <Button
+              variant="accent"
+              size="s"
+              data-testid={`approve-btn-${inv.id}`}
+              onClick={(e: any) => {
+                e.stopPropagation();
+                setApprovingInvoice(inv);
+              }}
+              aria-label={`Approve invoice ${inv.invoiceNumber}`}
+            >
+              Approve
+            </Button>
+
+            <Button
+              variant="secondary"
+              size="s"
+              data-testid={`flag-btn-${inv.id}`}
+              onClick={(e: any) => {
+                e.stopPropagation();
+                setFlaggingInvoice(inv);
+              }}
+              aria-label={`Flag invoice ${inv.invoiceNumber}`}
+            >
+              Flag
+            </Button>
+
+            <Button
+              variant="secondary"
+              size="s"
+              data-testid={`view-btn-${inv.id}`}
+              onClick={(e: any) => {
+                e.stopPropagation();
+                navigate(`/invoices/${inv.id}`);
+              }}
+              aria-label={`View details for ${inv.invoiceNumber}`}
+            >
+              View
+            </Button>
+          </div>
+        ),
+      },
+    ],
+    [vendorMap, navigate]
+  );
+
+  return (
+    <main
+      className="approvals-page-container"
+      data-testid="page-approvals"
+      role="main"
+      aria-label="Approvals Triage Queue"
+    >
+      {/* Header */}
+      <header className="approvals-header">
+        <div className="approvals-header-left">
+          <h1 className="approvals-title">Approval Queue</h1>
+          <span
+            className="approvals-count-badge"
+            data-testid="approvals-count-badge"
+            aria-live="polite"
+            aria-label={`${filteredQueueInvoices.length} invoices in queue`}
+          >
+            {filteredQueueInvoices.length}{' '}
+            {filteredQueueInvoices.length === 1 ? 'Invoice' : 'Invoices'}
+          </span>
+        </div>
+      </header>
+
+      {/* Queue Metrics Bar */}
+      <section
+        className="approvals-metrics-grid"
+        aria-label="Queue Summary Metrics"
+      >
+        <div
+          className="approvals-metric-card metric-pending"
+          data-testid="metric-awaiting-approval"
+        >
+          <span className="approvals-metric-label">Total Awaiting Approval</span>
+          <span className="approvals-metric-value">{metrics.totalAwaiting}</span>
+        </div>
+
+        <div
+          className="approvals-metric-card metric-flagged"
+          data-testid="metric-flagged-count"
+        >
+          <span className="approvals-metric-label">Flagged Discrepancies</span>
+          <span className="approvals-metric-value">{metrics.flaggedCount}</span>
+        </div>
+
+        <div
+          className="approvals-metric-card metric-amount"
+          data-testid="metric-pending-amount"
+        >
+          <span className="approvals-metric-label">Total Amount Pending</span>
+          <span className="approvals-metric-value">
+            ${metrics.totalPendingAmount.toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </span>
+        </div>
+      </section>
+
+      {/* Toast Notification Banner */}
+      {toastMessage && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="approvals-toast"
+          data-testid="approvals-toast-message"
+        >
+          <div className="approvals-toast-content">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden="true"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <span>{toastMessage}</span>
+          </div>
+          <button
+            type="button"
+            className="approvals-toast-dismiss"
+            onClick={() => setToastMessage(null)}
+            aria-label="Dismiss notification"
+          >
+            &times;
+          </button>
+        </div>
+      )}
+
+      {/* Batch Approval Bar (appears when 1 or more invoices checked) */}
+      <BatchApprovalBar
+        selectedCount={selectedIds.length}
+        selectedIds={selectedIds}
+        onApproveSelected={() => setIsBatchConfirmOpen(true)}
+        onClearSelection={() => setSelectedIds([])}
+        loading={isProcessing}
+      />
+
+      {/* DataTable */}
+      <div className="approvals-table-card">
+        <DataTable
+          columns={columns}
+          data={filteredQueueInvoices}
+          loading={loading}
+          selectable={true}
+          selectedIds={selectedIds}
+          onSelectionChange={setSelectedIds}
+          getRowId={(inv) => inv.id}
+          searchable={true}
+          searchPlaceholder="Search queue by invoice, vendor, or discrepancy..."
+          searchValue={searchTerm}
+          onSearchChange={setSearchTerm}
+          pagination
+          pageSize={10}
+          emptyTitle="No Invoices Awaiting Approval"
+          emptyMessage={
+            searchTerm.trim()
+              ? 'No queue invoices matched your search filter.'
+              : 'All submitted and flagged invoices have been triaged and approved.'
+          }
+          emptyActionLabel={searchTerm.trim() ? 'Clear Search' : undefined}
+          onEmptyAction={searchTerm.trim() ? () => setSearchTerm('') : undefined}
+          ariaLabel="Approvals Triage Queue Table"
+        />
+      </div>
+
+      {/* Inline Approve Confirmation Dialog */}
+      <ConfirmDialog
+        open={!!approvingInvoice}
+        title={`Approve Invoice ${approvingInvoice?.invoiceNumber || ''}`}
+        message={
+          <div>
+            <p style={{ margin: 0 }}>
+              Are you sure you want to approve invoice{' '}
+              <strong>{approvingInvoice?.invoiceNumber}</strong> for{' '}
+              <strong>
+                ${approvingInvoice?.amount.toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </strong>
+              ?
+            </p>
+            <p
+              style={{
+                marginTop: '8px',
+                fontSize: '12px',
+                color: 'var(--spectrum-global-color-gray-600, #8e8e8e)',
+              }}
+            >
+              This will transition the invoice from {approvingInvoice?.status} to Approved status and queue it for payment disbursement.
+            </p>
+          </div>
+        }
+        confirmLabel={isProcessing ? 'Approving...' : 'Approve Invoice'}
+        cancelLabel="Cancel"
+        variant="accent"
+        confirmDisabled={isProcessing}
+        onConfirm={handleSingleApproveConfirm}
+        onCancel={() => setApprovingInvoice(null)}
+      />
+
+      {/* Batch Approval Confirmation Dialog */}
+      <ConfirmDialog
+        open={isBatchConfirmOpen}
+        title={`Approve ${selectedIds.length} Selected Invoices`}
+        message={
+          <div>
+            <p style={{ margin: 0 }}>
+              Are you sure you want to batch approve all{' '}
+              <strong>{selectedIds.length}</strong> selected invoices?
+            </p>
+            <p
+              style={{
+                marginTop: '8px',
+                fontSize: '12px',
+                color: 'var(--spectrum-global-color-gray-600, #8e8e8e)',
+              }}
+            >
+              All selected invoices will be moved to Approved status in the ledger.
+            </p>
+          </div>
+        }
+        confirmLabel={isProcessing ? 'Processing...' : 'Confirm Batch Approval'}
+        cancelLabel="Cancel"
+        variant="accent"
+        confirmDisabled={isProcessing}
+        onConfirm={handleBatchApproveConfirm}
+        onCancel={() => setIsBatchConfirmOpen(false)}
+      />
+
+      {/* Flag Discrepancy Modal */}
+      <FlagModal
+        open={!!flaggingInvoice}
+        invoice={flaggingInvoice}
+        onClose={() => setFlaggingInvoice(null)}
+        onConfirm={handleFlagConfirm}
+      />
+    </main>
+  );
+};
