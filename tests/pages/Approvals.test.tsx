@@ -117,6 +117,46 @@ describe('ApprovalsPage', () => {
     });
   });
 
+  describe('Queue Search & Filter', () => {
+    it('filters queue by vendor name without secondary double-filtering bug', async () => {
+      renderApprovalsPage('Approver');
+
+      await waitFor(() => {
+        expect(screen.getByText('INV-2026-001')).toBeDefined();
+      });
+
+      const searchInput = screen.getByTestId('approvals-search-input');
+      fireEvent.change(searchInput, { target: { value: 'Northwest' } });
+
+      await waitFor(() => {
+        // Northwest Logistics invoices: INV-2026-002 and INV-2026-012
+        expect(screen.getByText('INV-2026-002')).toBeDefined();
+        expect(screen.getByText('INV-2026-012')).toBeDefined();
+        // Apex and ByteForce should be filtered out
+        expect(screen.queryByText('INV-2026-001')).toBeNull();
+        expect(screen.queryByText('INV-2026-003')).toBeNull();
+      });
+    });
+
+    it('filters queue by flag reason text', async () => {
+      renderApprovalsPage('Approver');
+
+      await waitFor(() => {
+        expect(screen.getByText('INV-2026-001')).toBeDefined();
+      });
+
+      const searchInput = screen.getByTestId('approvals-search-input');
+      // INV-2026-011 flagReason contains "exceeds PO rate"
+      fireEvent.change(searchInput, { target: { value: 'exceeds PO rate' } });
+
+      await waitFor(() => {
+        expect(screen.getByText('INV-2026-011')).toBeDefined();
+        expect(screen.queryByText('INV-2026-001')).toBeNull();
+        expect(screen.queryByText('INV-2026-002')).toBeNull();
+      });
+    });
+  });
+
   describe('Inline Actions', () => {
     it('approves an invoice after confirmation and displays success notification', async () => {
       renderApprovalsPage('Approver');
@@ -214,6 +254,33 @@ describe('ApprovalsPage', () => {
       await waitFor(() => {
         expect(screen.getByText('INV-2026-001')).toBeDefined();
       });
+    });
+
+    it('preserves entered flag reason across parent re-renders', async () => {
+      renderApprovalsPage('Approver');
+
+      await waitFor(() => {
+        expect(screen.getByTestId('flag-btn-inv-1')).toBeDefined();
+      });
+
+      fireEvent.click(screen.getByTestId('flag-btn-inv-1'));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('flag-modal-dialog')).toBeDefined();
+      });
+
+      const reasonInput = screen.getByTestId('flag-reason-input') as HTMLTextAreaElement;
+      fireEvent.change(reasonInput, {
+        target: { value: 'Draft discrepancy note that must not be lost' },
+      });
+      expect(reasonInput.value).toBe('Draft discrepancy note that must not be lost');
+
+      // Trigger a parent state update (e.g., typing in the search input)
+      const searchInput = screen.getByTestId('approvals-search-input');
+      fireEvent.change(searchInput, { target: { value: 'Apex' } });
+
+      // Reason text in open modal should remain unchanged
+      expect(reasonInput.value).toBe('Draft discrepancy note that must not be lost');
     });
 
     it('navigates to /invoices/:id when View action button is clicked', async () => {

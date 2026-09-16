@@ -15,6 +15,7 @@ export interface FlagModalProps {
 /**
  * Accessible FlagModal wrapping @swc-react/dialog and FormField.
  * Requires a reason before confirming the transition to 'Flagged' status.
+ * Resets reason strictly on open transitions to avoid clearing text on parent re-renders.
  */
 export const FlagModal: React.FC<FlagModalProps> = ({
   open,
@@ -27,7 +28,24 @@ export const FlagModal: React.FC<FlagModalProps> = ({
   const [submitting, setSubmitting] = useState<boolean>(false);
   const previousActiveElement = useRef<HTMLElement | null>(null);
 
-  // Reset internal state and handle keyboard dismiss
+  // Store onClose in a ref to avoid recreating event handlers or effects when parent re-renders
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  // Track previous open state so form is initialized strictly when the dialog opens (false -> true)
+  const prevOpenRef = useRef(false);
+  useEffect(() => {
+    if (open && !prevOpenRef.current) {
+      setReason(invoice?.flagReason || '');
+      setValidationError(undefined);
+      setSubmitting(false);
+    }
+    prevOpenRef.current = open;
+  }, [open, invoice?.flagReason]);
+
+  // Keyboard navigation & focus restoration
   useEffect(() => {
     if (!open) return;
 
@@ -35,14 +53,10 @@ export const FlagModal: React.FC<FlagModalProps> = ({
       previousActiveElement.current = document.activeElement as HTMLElement | null;
     }
 
-    setReason(invoice?.flagReason || '');
-    setValidationError(undefined);
-    setSubmitting(false);
-
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.preventDefault();
-        onClose();
+        onCloseRef.current();
       }
     };
 
@@ -53,7 +67,7 @@ export const FlagModal: React.FC<FlagModalProps> = ({
         previousActiveElement.current.focus();
       }
     };
-  }, [open, invoice, onClose]);
+  }, [open]);
 
   if (!open || !invoice) return null;
 
@@ -67,7 +81,7 @@ export const FlagModal: React.FC<FlagModalProps> = ({
     try {
       setSubmitting(true);
       await onConfirm(invoice.id, trimmedReason);
-      onClose();
+      onCloseRef.current();
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : 'Failed to flag invoice';
       setValidationError(errMsg);
@@ -79,7 +93,7 @@ export const FlagModal: React.FC<FlagModalProps> = ({
   const handleCancel = () => {
     setReason('');
     setValidationError(undefined);
-    onClose();
+    onCloseRef.current();
   };
 
   return (

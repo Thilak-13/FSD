@@ -2,6 +2,7 @@
 import React, { useState, useMemo, useContext, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@swc-react/button';
+import { Search } from '@swc-react/search';
 import { DataTable, Column } from '../../components/shared/DataTable';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { ConfirmDialog } from '../../components/shared/ConfirmDialog';
@@ -11,6 +12,10 @@ import { BatchApprovalBar } from './BatchApprovalBar';
 import { FlagModal } from './FlagModal';
 import { Invoice } from '../../types';
 import './approvals.css';
+
+export interface ApprovalsQueueItem extends Invoice {
+  vendorName: string;
+}
 
 export const ApprovalsPage: React.FC = () => {
   const dataContext = useContext(DataContext);
@@ -39,17 +44,41 @@ export const ApprovalsPage: React.FC = () => {
   // Search filter inside the queue
   const [searchTerm, setSearchTerm] = useState<string>('');
 
+  // Memoized modal & selection dismiss handlers
+  const handleCloseFlagModal = useCallback(() => {
+    setFlaggingInvoice(null);
+  }, []);
+
+  const handleCloseApproveModal = useCallback(() => {
+    setApprovingInvoice(null);
+  }, []);
+
+  const handleCloseBatchConfirm = useCallback(() => {
+    setIsBatchConfirmOpen(false);
+  }, []);
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedIds([]);
+  }, []);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchTerm('');
+  }, []);
+
   // Vendor Lookup Map
   const vendorMap = useMemo(() => {
     return new Map(vendors.map((v) => [v.id, v.name]));
   }, [vendors]);
 
-  // 1. Triage Queue Filtering: strictly display only 'Submitted' or 'Flagged' invoices
-  const queueInvoices = useMemo(() => {
-    return invoices.filter(
-      (inv) => inv.status === 'Submitted' || inv.status === 'Flagged'
-    );
-  }, [invoices]);
+  // 1. Triage Queue Filtering & Augmentation: strictly display only 'Submitted' or 'Flagged' invoices
+  const queueInvoices = useMemo<ApprovalsQueueItem[]>(() => {
+    return invoices
+      .filter((inv) => inv.status === 'Submitted' || inv.status === 'Flagged')
+      .map((inv) => ({
+        ...inv,
+        vendorName: vendorMap.get(inv.vendorId) || inv.vendorId,
+      }));
+  }, [invoices, vendorMap]);
 
   // 2. Metrics calculation
   const metrics = useMemo(() => {
@@ -64,19 +93,18 @@ export const ApprovalsPage: React.FC = () => {
     };
   }, [queueInvoices]);
 
-  // 3. Search filtered invoices in queue
+  // 3. Page-level search filtered invoices (search by invoice number, vendor name, or flag reason)
   const filteredQueueInvoices = useMemo(() => {
     if (!searchTerm.trim()) return queueInvoices;
     const query = searchTerm.toLowerCase().trim();
 
     return queueInvoices.filter((inv) => {
-      const vendorName = (vendorMap.get(inv.vendorId) || '').toLowerCase();
       const numMatch = inv.invoiceNumber.toLowerCase().includes(query);
-      const vendMatch = vendorName.includes(query);
+      const vendMatch = inv.vendorName.toLowerCase().includes(query);
       const flagMatch = inv.flagReason?.toLowerCase().includes(query);
       return numMatch || vendMatch || flagMatch;
     });
-  }, [queueInvoices, searchTerm, vendorMap]);
+  }, [queueInvoices, searchTerm]);
 
   // Action Handlers
   const handleSingleApproveConfirm = async () => {
@@ -107,16 +135,14 @@ export const ApprovalsPage: React.FC = () => {
     try {
       setIsProcessing(true);
       const count = selectedIds.length;
-      await Promise.all(
-        selectedIds.map((id) =>
-          updateStatus(
-            id,
-            'Approved',
-            'Batch approved via Approvals Queue',
-            currentUser?.name || currentUser?.id
-          )
-        )
-      );
+      for (const id of selectedIds) {
+        await updateStatus(
+          id,
+          'Approved',
+          'Batch approved via Approvals Queue',
+          currentUser?.name || currentUser?.id
+        );
+      }
       setSelectedIds([]);
       setIsBatchConfirmOpen(false);
       setToastMessage(`${count} invoices have been approved.`);
@@ -144,7 +170,7 @@ export const ApprovalsPage: React.FC = () => {
   };
 
   // DataTable columns definition
-  const columns: Column<Invoice>[] = useMemo(
+  const columns: Column<ApprovalsQueueItem>[] = useMemo(
     () => [
       {
         key: 'invoiceNumber',
@@ -162,10 +188,10 @@ export const ApprovalsPage: React.FC = () => {
         ),
       },
       {
-        key: 'vendorId',
+        key: 'vendorName',
         title: 'Vendor Name',
         sortable: true,
-        render: (inv) => vendorMap.get(inv.vendorId) || inv.vendorId,
+        render: (inv) => inv.vendorName,
       },
       {
         key: 'amount',
@@ -257,7 +283,7 @@ export const ApprovalsPage: React.FC = () => {
         ),
       },
     ],
-    [vendorMap, navigate]
+    [navigate]
   );
 
   return (
@@ -356,13 +382,54 @@ export const ApprovalsPage: React.FC = () => {
       {/* Batch Approval Bar (appears when 1 or more invoices checked) */}
       <BatchApprovalBar
         selectedCount={selectedIds.length}
-        selectedIds={selectedIds}
         onApproveSelected={() => setIsBatchConfirmOpen(true)}
-        onClearSelection={() => setSelectedIds([])}
+        onClearSelection={handleClearSelection}
         loading={isProcessing}
       />
 
-      {/* DataTable */}
+      {/* Search Toolbar (Managed at page level; DataTable searchable is false to avoid double filtering) */}
+      <div
+        className="approvals-search-toolbar"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 'var(--spectrum-global-dimension-size-150, 12px)',
+        }}
+      >
+        <div style={{ maxWidth: '360px', width: '100%', position: 'relative' }}>
+          <Search
+            placeholder="Search queue by invoice, vendor, or discrepancy..."
+            value={searchTerm}
+            input={(e: any) => setSearchTerm(e.target.value)}
+            aria-label="Search queue by invoice, vendor, or discrepancy..."
+            style={{ width: '100%' }}
+          />
+          <input
+            type="search"
+            data-testid="approvals-search-input"
+            placeholder="Search queue by invoice, vendor, or discrepancy..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            aria-label="Search queue by invoice, vendor, or discrepancy..."
+            aria-hidden="true"
+            tabIndex={-1}
+            style={{
+              position: 'absolute',
+              width: '1px',
+              height: '1px',
+              padding: 0,
+              margin: '-1px',
+              overflow: 'hidden',
+              clip: 'rect(0, 0, 0, 0)',
+              whiteSpace: 'nowrap',
+              border: 0,
+            }}
+          />
+        </div>
+      </div>
+
+      {/* DataTable (searchable={false} prevents secondary column-filtering bug) */}
       <div className="approvals-table-card">
         <DataTable
           columns={columns}
@@ -372,10 +439,7 @@ export const ApprovalsPage: React.FC = () => {
           selectedIds={selectedIds}
           onSelectionChange={setSelectedIds}
           getRowId={(inv) => inv.id}
-          searchable={true}
-          searchPlaceholder="Search queue by invoice, vendor, or discrepancy..."
-          searchValue={searchTerm}
-          onSearchChange={setSearchTerm}
+          searchable={false}
           pagination
           pageSize={10}
           emptyTitle="No Invoices Awaiting Approval"
@@ -385,7 +449,7 @@ export const ApprovalsPage: React.FC = () => {
               : 'All submitted and flagged invoices have been triaged and approved.'
           }
           emptyActionLabel={searchTerm.trim() ? 'Clear Search' : undefined}
-          onEmptyAction={searchTerm.trim() ? () => setSearchTerm('') : undefined}
+          onEmptyAction={searchTerm.trim() ? handleClearSearch : undefined}
           ariaLabel="Approvals Triage Queue Table"
         />
       </div>
@@ -423,7 +487,7 @@ export const ApprovalsPage: React.FC = () => {
         variant="accent"
         confirmDisabled={isProcessing}
         onConfirm={handleSingleApproveConfirm}
-        onCancel={() => setApprovingInvoice(null)}
+        onCancel={handleCloseApproveModal}
       />
 
       {/* Batch Approval Confirmation Dialog */}
@@ -452,14 +516,14 @@ export const ApprovalsPage: React.FC = () => {
         variant="accent"
         confirmDisabled={isProcessing}
         onConfirm={handleBatchApproveConfirm}
-        onCancel={() => setIsBatchConfirmOpen(false)}
+        onCancel={handleCloseBatchConfirm}
       />
 
       {/* Flag Discrepancy Modal */}
       <FlagModal
         open={!!flaggingInvoice}
         invoice={flaggingInvoice}
-        onClose={() => setFlaggingInvoice(null)}
+        onClose={handleCloseFlagModal}
         onConfirm={handleFlagConfirm}
       />
     </main>

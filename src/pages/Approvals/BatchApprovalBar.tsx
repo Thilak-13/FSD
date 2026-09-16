@@ -4,7 +4,6 @@ import { Button } from '@swc-react/button';
 
 export interface BatchApprovalBarProps {
   selectedCount: number;
-  selectedIds: string[];
   onApproveSelected: () => void;
   onClearSelection: () => void;
   loading?: boolean;
