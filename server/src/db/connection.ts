@@ -2,6 +2,9 @@ import mongoose from 'mongoose';
 import { config } from '../config/env';
 
 export const connectDB = async (uri?: string): Promise<typeof mongoose> => {
+  if (mongoose.connection.readyState === 1) {
+    return mongoose;
+  }
   const dbUri = uri || config.mongodbUri;
   try {
     const conn = await mongoose.connect(dbUri);
