@@ -80,12 +80,7 @@ const getMe = async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const userObj = user.toJSON();
-    delete userObj.passwordHash;
-    delete userObj._id;
-    delete userObj.__v;
-
-    return res.status(200).json({ user: userObj });
+    return res.status(200).json({ user: user.toJSON() });
   } catch (error) {
     console.error('Error fetching current user:', error);
     return res.status(500).json({ error: 'Internal server error' });
@@ -99,15 +94,7 @@ const getMe = async (req, res) => {
 const getUsers = async (req, res) => {
   try {
     const users = await User.find().select('-passwordHash');
-    return res.status(200).json(
-      users.map((u) => {
-        const obj = u.toJSON();
-        delete obj.passwordHash;
-        delete obj._id;
-        delete obj.__v;
-        return obj;
-      })
-    );
+    return res.status(200).json(users.map((u) => u.toJSON()));
   } catch (error) {
     console.error('Error fetching users:', error);
     return res.status(500).json({ error: 'Internal server error' });
@@ -124,11 +111,7 @@ const getUserById = async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    const obj = user.toJSON();
-    delete obj.passwordHash;
-    delete obj._id;
-    delete obj.__v;
-    return res.status(200).json(obj);
+    return res.status(200).json(user.toJSON());
   } catch (error) {
     console.error('Error fetching user by id:', error);
     return res.status(500).json({ error: 'Internal server error' });

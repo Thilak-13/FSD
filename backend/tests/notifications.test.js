@@ -329,21 +329,21 @@ describe('Notifications Integration & Unit Tests', () => {
     });
 
     it('rejects request with spoofed role header and no token with 401', async () => {
-      const forgedHeader = ['x', 'user', 'role'].join('-');
       const res = await request(app)
         .get('/api/notifications')
-        .set(forgedHeader, 'Admin');
+        .set('x-user-role', 'Admin')
+        .set('x-user-id', adminUser._id.toString());
 
       expect(res.status).toBe(401);
       expect(res.body).toHaveProperty('error');
     });
 
     it('ensures a Requester token plus spoofed role header is still scoped as a Requester', async () => {
-      const forgedHeader = ['x', 'user', 'role'].join('-');
       const res = await request(app)
         .get('/api/notifications')
         .set('Authorization', `Bearer ${requesterToken}`)
-        .set(forgedHeader, 'Admin');
+        .set('x-user-role', 'Admin')
+        .set('x-user-id', adminUser._id.toString());
 
       expect(res.status).toBe(200);
       // Scoped strictly to Requester's 2 invoices, not Admin's 4
@@ -382,13 +382,74 @@ describe('Notifications Integration & Unit Tests', () => {
       expect(resPost.status).toBe(200);
     });
 
-    it('marks all notifications as read via POST /api/notifications/read-all', async () => {
-      const res = await request(app)
+    it('returns 404 when attempting to mark read an arbitrary or nonexistent notification id', async () => {
+      const nonExistentId = 'notif-nonexistent-12345';
+
+      // PATCH /api/notifications/:id/read returns 404
+      const patchRes = await request(app)
+        .patch(`/api/notifications/${nonExistentId}/read`)
+        .set('Authorization', `Bearer ${requesterToken}`);
+      expect(patchRes.status).toBe(404);
+      expect(patchRes.body).toEqual({ error: 'Notification not found' });
+
+      // POST /api/notifications/:id/read returns 404
+      const postRes = await request(app)
+        .post(`/api/notifications/${nonExistentId}/read`)
+        .set('Authorization', `Bearer ${requesterToken}`);
+      expect(postRes.status).toBe(404);
+      expect(postRes.body).toEqual({ error: 'Notification not found' });
+
+      // Requester attempts to mark another user's notification as read (not in Alice's derived notifications)
+      const bobsNotifId = `notif-pending-${
+        pendingInvoice.id || pendingInvoice._id.toString()
+      }`;
+      const crossRes = await request(app)
+        .patch(`/api/notifications/${bobsNotifId}/read`)
+        .set('Authorization', `Bearer ${requesterToken}`);
+      expect(crossRes.status).toBe(404);
+      expect(crossRes.body).toEqual({ error: 'Notification not found' });
+
+      // Verify no NotificationRead records were persisted for nonexistent ID
+      const nonExistentCount = await NotificationRead.countDocuments({
+        notificationKey: nonExistentId,
+      });
+      expect(nonExistentCount).toBe(0);
+    });
+
+    it('marks all notifications as read via POST /api/notifications/read-all and verifies only derived notifications are marked', async () => {
+      const aliceId = requesterUser.id || requesterUser._id.toString();
+
+      // Alice calls read-all (Alice has 2 derived notifications: overdueInvoice, dueSoonInvoice)
+      const aliceRes = await request(app)
+        .post('/api/notifications/read-all')
+        .set('Authorization', `Bearer ${requesterToken}`);
+
+      expect(aliceRes.status).toBe(200);
+      expect(aliceRes.body).toEqual({ success: true });
+
+      // Verify only Alice's derived notifications are marked in MongoDB
+      const aliceReadDocs = await NotificationRead.find({ userId: aliceId });
+      expect(aliceReadDocs.length).toBe(2);
+      const aliceKeys = aliceReadDocs.map((d) => d.notificationKey);
+      expect(aliceKeys).toContain(
+        `notif-overdue-${overdueInvoice.id || overdueInvoice._id.toString()}`
+      );
+      expect(aliceKeys).toContain(
+        `notif-duesoon-${dueSoonInvoice.id || dueSoonInvoice._id.toString()}`
+      );
+
+      // Verify other user's (Bob) notifications were not marked
+      const bobId = otherRequester.id || otherRequester._id.toString();
+      const bobReadDocs = await NotificationRead.find({ userId: bobId });
+      expect(bobReadDocs.length).toBe(0);
+
+      // Admin calls read-all: marks Admin's derived notifications
+      const adminRes = await request(app)
         .post('/api/notifications/read-all')
         .set('Authorization', `Bearer ${adminToken}`);
 
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual({ success: true });
+      expect(adminRes.status).toBe(200);
+      expect(adminRes.body).toEqual({ success: true });
 
       const getRes = await request(app)
         .get('/api/notifications')

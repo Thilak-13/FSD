@@ -16,8 +16,12 @@ const resetReadNotifications = async () => {
  * @param {string} [userId='default_user'] - User ID
  */
 const markNotificationAsRead = async (id, userId = 'default_user') => {
+  const uid =
+    userId && typeof userId === 'object'
+      ? userId.id || userId.userId || userId._id
+      : userId;
   await NotificationRead.updateOne(
-    { userId: String(userId), notificationKey: String(id) },
+    { userId: String(uid || 'default_user'), notificationKey: String(id) },
     { $setOnInsert: { readAt: new Date() } },
     { upsert: true }
   );
@@ -26,20 +30,44 @@ const markNotificationAsRead = async (id, userId = 'default_user') => {
 /**
  * Marks all active notifications for a given user context as read in MongoDB.
  *
- * @param {string} userId - User ID
- * @param {string} userRole - User Role
+ * @param {string|object} userIdOrUser - User ID or user object
+ * @param {string|Date} [userRole] - User Role or refDate if userIdOrUser is user object
  * @param {Date} [refDate=new Date()] - Reference date
  */
 const markAllNotificationsAsRead = async (
-  userId,
+  userIdOrUser,
   userRole,
   refDate = new Date()
 ) => {
-  const notifs = await getDerivedNotifications(userId, userRole, refDate);
-  const targetUserId = String(userId || 'default_user');
+  let targetUserId = userIdOrUser;
+  let role = userRole;
+  let referenceDate = refDate;
+
+  if (
+    userIdOrUser &&
+    typeof userIdOrUser === 'object' &&
+    !(userIdOrUser instanceof Date)
+  ) {
+    targetUserId = userIdOrUser.id || userIdOrUser.userId || userIdOrUser._id;
+    role = userIdOrUser.role || role;
+    if (userRole instanceof Date) {
+      referenceDate = userRole;
+    } else if (refDate instanceof Date) {
+      referenceDate = refDate;
+    }
+  }
+
+  const notifs = await getDerivedNotifications(
+    userIdOrUser && typeof userIdOrUser === 'object' && !(userIdOrUser instanceof Date)
+      ? userIdOrUser
+      : targetUserId,
+    role,
+    referenceDate
+  );
+  const uid = String(targetUserId || 'default_user');
   const operations = notifs.map((n) => ({
     updateOne: {
-      filter: { userId: targetUserId, notificationKey: String(n.id) },
+      filter: { userId: uid, notificationKey: String(n.id) },
       update: { $setOnInsert: { readAt: new Date() } },
       upsert: true,
     },
@@ -86,6 +114,8 @@ const getDerivedNotifications = async (
     role = userIdOrUser.role || role;
     if (userRole instanceof Date) {
       referenceDate = userRole;
+    } else if (refDate instanceof Date) {
+      referenceDate = refDate;
     }
   } else if (userIdOrUser instanceof Date) {
     referenceDate = userIdOrUser;

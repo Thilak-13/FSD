@@ -20,6 +20,13 @@ const daysFromNow = (days) => {
 };
 
 /**
+ * Asserts that the serialized payload contains no internal MongoDB keys or sensitive fields
+ */
+function assertNoInternalLeak(body) {
+  expect(JSON.stringify(body)).not.toMatch(/"passwordHash"|"_id"|"__v"/);
+}
+
+/**
  * Shape parity validator mirrored directly from src/types/index.ts
  */
 function assertShapeParity(obj, requiredKeys, optionalKeys, entityName) {
@@ -31,6 +38,7 @@ function assertShapeParity(obj, requiredKeys, optionalKeys, entityName) {
   expect(obj).not.toHaveProperty('passwordHash');
   expect(obj).not.toHaveProperty('_id');
   expect(obj).not.toHaveProperty('__v');
+  assertNoInternalLeak(obj);
 
   const actualKeys = Object.keys(obj);
   const allowedKeys = new Set([...requiredKeys, ...optionalKeys]);
@@ -188,6 +196,32 @@ describe('Mechanical Shape-Parity Contract Tests (src/types/index.ts vs Backend 
     }
   });
 
+  it('User model serializes via toJSON() and JSON.stringify() with id and no passwordHash, _id, or __v', async () => {
+    const user = await User.create({
+      name: 'Serialization Unit User',
+      email: 'serialization@payverify.local',
+      passwordHash: 'secret_hashed_password',
+      role: 'Requester',
+    });
+
+    // 1. Serialization via toJSON()
+    const json = user.toJSON();
+    expect(json.id).toBeDefined();
+    expect(typeof json.id).toBe('string');
+    expect(json).not.toHaveProperty('passwordHash');
+    expect(json).not.toHaveProperty('_id');
+    expect(json).not.toHaveProperty('__v');
+
+    // 2. Serialization via JSON.stringify()
+    const rawString = JSON.stringify(user);
+    expect(rawString).not.toMatch(/"passwordHash"|"_id"|"__v"/);
+    const parsed = JSON.parse(rawString);
+    expect(parsed.id).toBe(user.id || user._id.toString());
+    expect(parsed).not.toHaveProperty('passwordHash');
+    expect(parsed).not.toHaveProperty('_id');
+    expect(parsed).not.toHaveProperty('__v');
+  });
+
   it('verifies User shape in POST /api/auth/login matches User interface', async () => {
     const res = await request(app)
       .post('/api/auth/login')
@@ -196,6 +230,7 @@ describe('Mechanical Shape-Parity Contract Tests (src/types/index.ts vs Backend 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('token');
     expect(res.body).toHaveProperty('user');
+    assertNoInternalLeak(res.body);
 
     // User interface: id, name, email, role (optional: avatarUrl, department)
     assertShapeParity(
@@ -213,6 +248,7 @@ describe('Mechanical Shape-Parity Contract Tests (src/types/index.ts vs Backend 
 
     expect(res.status).toBe(200);
     expect(res.body.length).toBeGreaterThan(0);
+    assertNoInternalLeak(res.body);
 
     // Vendor interface: id, name, contactEmail, paymentTerms, address, taxId, status, totalInvoices
     assertShapeParity(
@@ -230,6 +266,7 @@ describe('Mechanical Shape-Parity Contract Tests (src/types/index.ts vs Backend 
 
     expect(res.status).toBe(200);
     expect(res.body.length).toBeGreaterThan(0);
+    assertNoInternalLeak(res.body);
 
     // PurchaseOrder: id, poNumber, vendorId, amount, description, items, createdDate, status
     assertShapeParity(
@@ -247,6 +284,7 @@ describe('Mechanical Shape-Parity Contract Tests (src/types/index.ts vs Backend 
 
     expect(res.status).toBe(200);
     expect(res.body.length).toBeGreaterThan(0);
+    assertNoInternalLeak(res.body);
 
     // Invoice: id, invoiceNumber, vendorId, amount, dueDate, submittedDate, status, submittedBy, items
     assertShapeParity(
@@ -278,6 +316,7 @@ describe('Mechanical Shape-Parity Contract Tests (src/types/index.ts vs Backend 
       });
 
     expect(postRes.status).toBe(201);
+    assertNoInternalLeak(postRes.body);
     assertShapeParity(
       postRes.body,
       ['id', 'invoiceNumber', 'vendorId', 'amount', 'dueDate', 'submittedDate', 'status', 'submittedBy', 'items'],
@@ -299,6 +338,7 @@ describe('Mechanical Shape-Parity Contract Tests (src/types/index.ts vs Backend 
   it('verifies Reports Summary shape in GET /api/reports/summary matches KPI card contracts', async () => {
     const res = await request(app).get('/api/reports/summary');
     expect(res.status).toBe(200);
+    assertNoInternalLeak(res.body);
 
     assertShapeParity(
       res.body,
@@ -320,6 +360,7 @@ describe('Mechanical Shape-Parity Contract Tests (src/types/index.ts vs Backend 
     const res = await request(app).get('/api/reports/vendor-breakdown');
     expect(res.status).toBe(200);
     expect(res.body.length).toBeGreaterThan(0);
+    assertNoInternalLeak(res.body);
 
     assertShapeParity(
       res.body[0],
@@ -347,6 +388,7 @@ describe('Mechanical Shape-Parity Contract Tests (src/types/index.ts vs Backend 
 
     expect(res.status).toBe(200);
     expect(res.body.length).toBeGreaterThan(0);
+    assertNoInternalLeak(res.body);
 
     assertShapeParity(
       res.body[0],
@@ -364,6 +406,7 @@ describe('Mechanical Shape-Parity Contract Tests (src/types/index.ts vs Backend 
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
     expect(res.body.length).toBeGreaterThan(0);
+    assertNoInternalLeak(res.body);
 
     // Notification interface: id, type, invoiceId, message, read, createdAt (optional: userId)
     assertShapeParity(
@@ -375,30 +418,45 @@ describe('Mechanical Shape-Parity Contract Tests (src/types/index.ts vs Backend 
   });
 
   it('verifies notification mark-read response shapes (PATCH /:id/read, POST /:id/read, POST /read-all)', async () => {
+    // Retrieve real derived notification first
+    const getRes = await request(app)
+      .get('/api/notifications')
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    expect(getRes.status).toBe(200);
+    expect(Array.isArray(getRes.body)).toBe(true);
+    expect(getRes.body.length).toBeGreaterThan(0);
+    assertNoInternalLeak(getRes.body);
+
+    const notifId = getRes.body[0].id;
+    expect(notifId).toBeDefined();
+
     // 1. PATCH /api/notifications/:id/read
     const patchRes = await request(app)
-      .patch('/api/notifications/notif-flagged-contract-test/read')
+      .patch(`/api/notifications/${notifId}/read`)
       .set('Authorization', `Bearer ${adminToken}`);
 
     expect(patchRes.status).toBe(200);
     expect(patchRes.body).toEqual({
       success: true,
-      id: 'notif-flagged-contract-test',
+      id: notifId,
     });
+    assertNoInternalLeak(patchRes.body);
     expect(patchRes.body).not.toHaveProperty('passwordHash');
     expect(patchRes.body).not.toHaveProperty('_id');
     expect(patchRes.body).not.toHaveProperty('__v');
 
     // 2. POST /api/notifications/:id/read
     const postRes = await request(app)
-      .post('/api/notifications/notif-flagged-contract-test/read')
+      .post(`/api/notifications/${notifId}/read`)
       .set('Authorization', `Bearer ${adminToken}`);
 
     expect(postRes.status).toBe(200);
     expect(postRes.body).toEqual({
       success: true,
-      id: 'notif-flagged-contract-test',
+      id: notifId,
     });
+    assertNoInternalLeak(postRes.body);
     expect(postRes.body).not.toHaveProperty('passwordHash');
     expect(postRes.body).not.toHaveProperty('_id');
     expect(postRes.body).not.toHaveProperty('__v');
@@ -410,6 +468,7 @@ describe('Mechanical Shape-Parity Contract Tests (src/types/index.ts vs Backend 
 
     expect(readAllRes.status).toBe(200);
     expect(readAllRes.body).toEqual({ success: true });
+    assertNoInternalLeak(readAllRes.body);
     expect(readAllRes.body).not.toHaveProperty('passwordHash');
     expect(readAllRes.body).not.toHaveProperty('_id');
     expect(readAllRes.body).not.toHaveProperty('__v');
@@ -422,6 +481,7 @@ describe('Mechanical Shape-Parity Contract Tests (src/types/index.ts vs Backend 
 
     expect(res.status).toBe(200);
     expect(res.body).toHaveProperty('user');
+    assertNoInternalLeak(res.body);
 
     // User interface: id, name, email, role (optional: avatarUrl, department)
     assertShapeParity(
@@ -441,6 +501,7 @@ describe('Mechanical Shape-Parity Contract Tests (src/types/index.ts vs Backend 
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
     expect(res.body.length).toBeGreaterThan(0);
+    assertNoInternalLeak(res.body);
     assertShapeParity(
       res.body[0],
       ['id', 'name', 'email', 'role'],
@@ -454,6 +515,7 @@ describe('Mechanical Shape-Parity Contract Tests (src/types/index.ts vs Backend 
       .set('Authorization', `Bearer ${requesterToken}`);
 
     expect(nonAdminRes.status).toBe(403);
+    assertNoInternalLeak(nonAdminRes.body);
     expect(nonAdminRes.body).toEqual({
       error: 'Forbidden: Insufficient permissions',
     });
@@ -465,6 +527,7 @@ describe('Mechanical Shape-Parity Contract Tests (src/types/index.ts vs Backend 
       .set('Authorization', `Bearer ${adminToken}`);
 
     expect(res.status).toBe(200);
+    assertNoInternalLeak(res.body);
     assertShapeParity(
       res.body,
       ['id', 'name', 'email', 'role'],
@@ -477,6 +540,7 @@ describe('Mechanical Shape-Parity Contract Tests (src/types/index.ts vs Backend 
       .set('Authorization', `Bearer ${requesterToken}`);
 
     expect(nonAdminRes.status).toBe(403);
+    assertNoInternalLeak(nonAdminRes.body);
     expect(nonAdminRes.body).toEqual({
       error: 'Forbidden: Insufficient permissions',
     });

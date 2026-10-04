@@ -5,11 +5,24 @@ const dotenv = require('dotenv');
 dotenv.config();
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-const isTest = process.env.NODE_ENV === 'test';
+const nodeEnv = process.env.NODE_ENV;
+const isTest = nodeEnv === 'test';
+const isDev = nodeEnv === 'development';
+const isProductionLike = !isTest && !isDev;
 
 // Fail-fast guard: JWT_SECRET must be explicitly set outside test environment with no fallback default
 if (!isTest && (!process.env.JWT_SECRET || process.env.JWT_SECRET.trim() === '')) {
   throw new Error('FATAL: JWT_SECRET environment variable is required outside the test environment.');
+}
+
+// Production hardening: disallow default placeholder and require >= 32 characters in any non-test/non-dev environment
+if (isProductionLike) {
+  if (process.env.JWT_SECRET === 'supersecret_dev_jwt_key_change_in_production') {
+    throw new Error('FATAL: JWT_SECRET cannot be the default placeholder "supersecret_dev_jwt_key_change_in_production" in production.');
+  }
+  if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
+    throw new Error(`FATAL: JWT_SECRET must be at least 32 characters in production (received ${process.env.JWT_SECRET.length}).`);
+  }
 }
 
 const PORT = parseInt(process.env.PORT, 10) || 5000;

@@ -14,7 +14,10 @@ const startServer = async () => {
     console.log('MongoDB connected successfully.');
 
     // 2. Seed database demo data if gate passes
-    if (process.env.NODE_ENV !== 'production' || process.env.SEED_DEMO_DATA === 'true') {
+    if (process.env.SEED_DEMO_DATA === 'true') {
+      if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'development') {
+        console.warn('WARNING: SEED_DEMO_DATA is enabled in production! Demo credentials will be active.');
+      }
       console.log('Seeding demo database...');
       await seedDatabase();
       console.log('Demo database seeded successfully.');

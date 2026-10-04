@@ -291,16 +291,18 @@ const DEMO_PURCHASE_ORDERS = [
  * Idempotent: checks for existence before creating records.
  *
  * @param {Object} [options]
- * @param {boolean} [options.clear=false] If true, drops existing documents in these collections first.
- * @returns {Promise<{ usersCount: number, vendorsCount: number, posCount: number }>}
+ * @param {boolean} [options.force=false] If true, forces seeding even if users exist.
+ * @returns {Promise<{ usersCreated: number, vendorsCreated: number, posCreated: number }>}
  */
 async function seedDatabase(options = {}) {
-  const { clear = false } = options;
-
-  if (clear) {
-    await PurchaseOrder.deleteMany({});
-    await Vendor.deleteMany({});
-    await User.deleteMany({});
+  const count = await User.countDocuments();
+  if (count > 0 && !options.force) {
+    console.log('Users exist; skipping seeding');
+    return {
+      usersCreated: 0,
+      vendorsCreated: 0,
+      posCreated: 0,
+    };
   }
 
   // 1. Seed Demo Users
