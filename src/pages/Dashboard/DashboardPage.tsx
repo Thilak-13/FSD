@@ -5,6 +5,8 @@ import { DataContext } from '../../context/DataContext';
 import { AuthContext } from '../../context/AuthContext';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { DataTable, Column } from '../../components/shared/DataTable';
+import { Card } from '@swc-react/card';
+import { ActionButton } from '@swc-react/action-button';
 import { SummaryCard } from './SummaryCard';
 import { VolumeChart } from './VolumeChart';
 import { StatusBreakdownChart } from './StatusBreakdownChart';
@@ -120,8 +122,8 @@ export const DashboardPage: React.FC = () => {
         title: 'Actions',
         sortable: false,
         render: (inv) => (
-          <button
-            type="button"
+          <ActionButton
+            size="s"
             className="quick-link-btn"
             style={{ padding: '4px 10px', fontSize: '12px' }}
             onClick={(e) => {
@@ -130,9 +132,10 @@ export const DashboardPage: React.FC = () => {
             }}
             data-testid={`recent-view-${inv.id}`}
             aria-label={`View invoice ${inv.invoiceNumber}`}
+            role="button"
           >
             View
-          </button>
+          </ActionButton>
         ),
       },
     ],
@@ -151,12 +154,28 @@ export const DashboardPage: React.FC = () => {
         </div>
         <div className="dashboard-user-badge">
           <span>Active Role:</span>
-          <StatusBadge status={currentRole === 'Admin' ? 'Approved' : currentRole === 'Approver' ? 'Under Verification' : 'Submitted'} />
+          <StatusBadge label={currentRole} variant={currentRole === 'Admin' ? 'positive' : currentRole === 'Approver' ? 'info' : 'notice'} />
           <span>{currentUser?.name || currentRole}</span>
         </div>
       </div>
 
       {/* KPI Metric Cards */}
+      <h2
+        className="visually-hidden"
+        style={{
+          position: 'absolute',
+          width: '1px',
+          height: '1px',
+          padding: 0,
+          margin: '-1px',
+          overflow: 'hidden',
+          clip: 'rect(0, 0, 0, 0)',
+          whiteSpace: 'nowrap',
+          border: 0,
+        }}
+      >
+        Key Performance Indicators
+      </h2>
       <div className="kpi-grid">
         <SummaryCard
           id="kpi-spend-pending"
@@ -189,66 +208,83 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Charts Grid */}
+      <h2
+        className="visually-hidden"
+        style={{
+          position: 'absolute',
+          width: '1px',
+          height: '1px',
+          padding: 0,
+          margin: '-1px',
+          overflow: 'hidden',
+          clip: 'rect(0, 0, 0, 0)',
+          whiteSpace: 'nowrap',
+          border: 0,
+        }}
+      >
+        Financial Analytics
+      </h2>
       <div className="charts-grid">
         <VolumeChart invoices={invoices} />
         <StatusBreakdownChart invoices={invoices} />
       </div>
 
       {/* Quick Action Navigation */}
-      <div className="quick-actions-card">
-        <h3 className="quick-actions-title">Quick Actions & Workflows</h3>
+      <Card className="quick-actions-card">
+        <h2 className="quick-actions-title">Quick Actions & Workflows</h2>
         <div className="quick-actions-grid">
           {(currentRole === 'Admin' || currentRole === 'Approver') && (
-            <button
-              type="button"
+            <ActionButton
               className="quick-link-btn"
               data-testid="quick-link-approvals"
+              role="button"
               onClick={() => navigate('/approvals')}
             >
               Go to Approvals Queue
-            </button>
+            </ActionButton>
           )}
-          <button
-            type="button"
+          <ActionButton
             className="quick-link-btn"
             data-testid="quick-link-invoices"
+            role="button"
             onClick={() => navigate('/invoices')}
           >
             Invoices Directory
-          </button>
+          </ActionButton>
           {(currentRole === 'Admin' || currentRole === 'Approver') && (
-            <button
-              type="button"
+            <ActionButton
               className="quick-link-btn"
               data-testid="quick-link-payments"
+              role="button"
               onClick={() => navigate('/payments')}
             >
               Payments & Disbursements
-            </button>
+            </ActionButton>
           )}
-          <button
-            type="button"
+          <ActionButton
             className="quick-link-btn"
             data-testid="quick-link-vendors"
+            role="button"
             onClick={() => navigate('/vendors')}
           >
             Vendor Directory
-          </button>
+          </ActionButton>
         </div>
-      </div>
+      </Card>
 
       {/* Recent Invoices Table */}
-      <div className="recent-invoices-card">
+      <Card className="recent-invoices-card">
         <div className="recent-invoices-header">
-          <h3 className="recent-invoices-title">Recent Invoices</h3>
-          <button
-            type="button"
+          <h2 className="recent-invoices-title">Recent Invoices</h2>
+          <ActionButton
+            size="s"
             className="quick-link-btn"
             style={{ fontSize: '12px', padding: '6px 12px' }}
+            role="button"
             onClick={() => navigate('/invoices')}
           >
             View All Invoices
-          </button>
+          </ActionButton>
         </div>
         <DataTable
           columns={recentColumns}
@@ -257,7 +293,7 @@ export const DashboardPage: React.FC = () => {
           onRowClick={(inv) => navigate(`/invoices/${inv.id}`)}
           emptyMessage="No recent invoices found"
         />
-      </div>
+      </Card>
     </div>
   );
 };

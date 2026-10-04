@@ -3,6 +3,8 @@ import React, { useState, useRef, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search as SpSearch } from '@swc-react/search';
 import { Badge as SpBadge } from '@swc-react/badge';
+import { ActionButton } from '@swc-react/action-button';
+import { Button } from '@swc-react/button';
 import { useAuth } from '../../context/AuthContext';
 import { DataContext } from '../../context/DataContext';
 import { Role } from '../../types';
@@ -85,10 +87,12 @@ export const TopBar: React.FC<TopBarProps> = ({
   return (
     <header className="top-bar" role="banner">
       <div className="top-bar-left">
-        <button
-          type="button"
+        <ActionButton
+          quiet
           className="hamburger-btn"
           aria-label="Toggle navigation"
+          role="button"
+          ref={(el: any) => el?.setAttribute('role', 'button')}
           onClick={onToggleSidebar}
         >
           <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -96,7 +100,7 @@ export const TopBar: React.FC<TopBarProps> = ({
             <rect y="9" width="20" height="2" rx="1" />
             <rect y="15" width="20" height="2" rx="1" />
           </svg>
-        </button>
+        </ActionButton>
 
         <div className="global-search-container">
           <SpSearch
@@ -112,8 +116,8 @@ export const TopBar: React.FC<TopBarProps> = ({
       <div className="top-bar-right">
         {/* Notification Bell with Live Badge */}
         <div className="notification-bell-container">
-          <button
-            type="button"
+          <ActionButton
+            quiet
             className="icon-btn"
             aria-label={
               unreadCount > 0
@@ -121,6 +125,8 @@ export const TopBar: React.FC<TopBarProps> = ({
                 : 'Notifications'
             }
             aria-expanded={isNotificationOpen}
+            role="button"
+            ref={(el: any) => el?.setAttribute('role', 'button')}
             onClick={() => setIsNotificationOpen((prev) => !prev)}
           >
             <svg
@@ -144,7 +150,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                 </SpBadge>
               )}
             </span>
-          </button>
+          </ActionButton>
 
           <NotificationPanel
             isOpen={isNotificationOpen}
@@ -153,8 +159,8 @@ export const TopBar: React.FC<TopBarProps> = ({
         </div>
 
         {/* Light / Dark Mode Toggle */}
-        <button
-          type="button"
+        <ActionButton
+          quiet
           className="icon-btn"
           aria-label={
             localTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
@@ -162,6 +168,8 @@ export const TopBar: React.FC<TopBarProps> = ({
           title={
             localTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
           }
+          role="button"
+          ref={(el: any) => el?.setAttribute('role', 'button')}
           onClick={handleToggleTheme}
         >
           {localTheme === 'dark' ? (
@@ -201,34 +209,36 @@ export const TopBar: React.FC<TopBarProps> = ({
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
             </svg>
           )}
-        </button>
+        </ActionButton>
 
         {/* Fast Role Switcher */}
         <div className="role-switcher-container" ref={roleMenuRef}>
-          <button
-            type="button"
+          <ActionButton
             className="role-switcher-trigger"
             aria-label={`Role: ${currentRole}`}
             aria-haspopup="true"
             aria-expanded={isRoleMenuOpen}
+            role="button"
+            ref={(el: any) => el?.setAttribute('role', 'button')}
             onClick={() => setIsRoleMenuOpen((prev) => !prev)}
           >
             Role: {currentRole} ▾
-          </button>
+          </ActionButton>
 
           {isRoleMenuOpen && (
             <div className="role-dropdown-menu" aria-label="Role selector">
               {roles.map((role) => (
-                <button
+                <ActionButton
                   key={role}
-                  type="button"
                   aria-label={`Switch to ${role} role`}
                   className={`role-dropdown-item ${currentRole === role ? 'active' : ''}`}
+                  role="button"
+                  ref={(el: any) => el?.setAttribute('role', 'button')}
                   onClick={() => handleRoleChange(role)}
                 >
                   <span>{role}</span>
                   {currentRole === role && <span>✓</span>}
-                </button>
+                </ActionButton>
               ))}
             </div>
           )}
@@ -247,14 +257,17 @@ export const TopBar: React.FC<TopBarProps> = ({
             <span className="user-name-label">{currentUser?.name || 'User'}</span>
             <span className="user-role-label">{currentRole}</span>
           </div>
-          <button
-            type="button"
+          <Button
+            variant="secondary"
+            size="s"
             className="logout-btn"
             aria-label="Log out"
+            role="button"
+            ref={(el: any) => el?.setAttribute('role', 'button')}
             onClick={handleLogout}
           >
             Log out
-          </button>
+          </Button>
         </div>
       </div>
     </header>

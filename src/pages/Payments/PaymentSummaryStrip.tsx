@@ -1,5 +1,6 @@
 // src/pages/Payments/PaymentSummaryStrip.tsx
 import React, { useMemo, useContext } from 'react';
+import { Card } from '@swc-react/card';
 import { DataContext } from '../../context/DataContext';
 import { Invoice } from '../../types';
 
@@ -64,52 +65,58 @@ export const PaymentSummaryStrip: React.FC<PaymentSummaryStripProps> = ({
       aria-label="Payment Summary Metrics"
     >
       {/* 1. Scheduled Disbursements Total */}
-      <div
+      <Card
         className="payments-metric-card metric-scheduled"
         data-testid="metric-scheduled-total"
       >
-        <div className="payments-metric-header">
+        <div slot="heading" className="payments-metric-header">
           <span className="payments-metric-label">Scheduled Total</span>
         </div>
-        <span className="payments-metric-value">
-          ${metrics.scheduledDisbursements.toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}
-        </span>
-        <span className="payments-metric-sub">Scheduled Disbursements</span>
-      </div>
+        <div slot="subheading">
+          <span className="payments-metric-value">
+            ${metrics.scheduledDisbursements.toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </span>
+        </div>
+        <span slot="description" className="payments-metric-sub">Scheduled Disbursements</span>
+      </Card>
 
       {/* 2. Paid Month-to-Date */}
-      <div
+      <Card
         className="payments-metric-card metric-paid"
         data-testid="metric-paid-mtd"
       >
-        <div className="payments-metric-header">
+        <div slot="heading" className="payments-metric-header">
           <span className="payments-metric-label">Paid Month-to-Date</span>
         </div>
-        <span className="payments-metric-value">
-          ${metrics.paidMtd.toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}
-        </span>
-        <span className="payments-metric-sub">Settled Disbursements</span>
-      </div>
+        <div slot="subheading">
+          <span className="payments-metric-value">
+            ${metrics.paidMtd.toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </span>
+        </div>
+        <span slot="description" className="payments-metric-sub">Settled Disbursements</span>
+      </Card>
 
       {/* 3. Overdue Invoices Count */}
-      <div
+      <Card
         className="payments-metric-card metric-overdue"
         data-testid="metric-overdue-count"
       >
-        <div className="payments-metric-header">
+        <div slot="heading" className="payments-metric-header">
           <span className="payments-metric-label">Overdue Invoices</span>
         </div>
-        <span className="payments-metric-value">{metrics.overdue}</span>
-        <span className="payments-metric-sub">
+        <div slot="subheading">
+          <span className="payments-metric-value">{metrics.overdue}</span>
+        </div>
+        <span slot="description" className="payments-metric-sub">
           {metrics.overdue === 1 ? 'Requires attention' : 'Require attention'}
         </span>
-      </div>
+      </Card>
     </section>
   );
 };

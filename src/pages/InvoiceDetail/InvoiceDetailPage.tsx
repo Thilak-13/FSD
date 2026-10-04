@@ -2,6 +2,7 @@
 import React, { useContext, useState, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@swc-react/button';
+import { ActionButton } from '@swc-react/action-button';
 import { DataContext } from '../../context/DataContext';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { LoadingSkeleton } from '../../components/shared/LoadingSkeleton';
@@ -179,14 +180,16 @@ export const InvoiceDetailPage: React.FC = () => {
             </svg>
             <span>{toastMessage}</span>
           </div>
-          <button
-            type="button"
+          <ActionButton
+            quiet
+            size="s"
             className="invoice-detail-toast-dismiss"
             onClick={() => setToastMessage(null)}
             aria-label="Dismiss notification"
+            role="button"
           >
             &times;
-          </button>
+          </ActionButton>
         </div>
       )}
 

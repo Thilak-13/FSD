@@ -1,5 +1,6 @@
 // src/pages/Reports/VendorBreakdownTable.tsx
 import React, { useMemo } from 'react';
+import { Card } from '@swc-react/card';
 import { DataTable, Column } from '../../components/shared/DataTable';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { VendorReportRow } from './ExportButtons';
@@ -77,7 +78,7 @@ export const VendorBreakdownTable: React.FC<VendorBreakdownTableProps> = ({ rows
   );
 
   return (
-    <div className="reports-table-card" data-testid="vendor-breakdown-table">
+    <Card className="reports-table-card" data-testid="vendor-breakdown-table">
       <div className="reports-table-header">
         <h3 className="reports-table-title">Vendor Spend Breakdown</h3>
       </div>
@@ -88,6 +89,6 @@ export const VendorBreakdownTable: React.FC<VendorBreakdownTableProps> = ({ rows
         searchable={true}
         emptyMessage="No vendor reporting data found"
       />
-    </div>
+    </Card>
   );
 };

@@ -2,6 +2,7 @@
 import React from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { SideNav as SpSideNav, SideNavItem as SpSideNavItem } from '@swc-react/sidenav';
+import { ActionButton } from '@swc-react/action-button';
 import { Logo } from '../../assets/brand/Logo';
 import { useAuth } from '../../context/AuthContext';
 import { Role } from '../../types';
@@ -80,14 +81,16 @@ export const SideNav: React.FC<SideNavProps> = ({
         >
           <Logo size={32} showText />
         </Link>
-        <button
-          type="button"
+        <ActionButton
+          quiet
+          size="s"
           className="sidebar-close-btn"
           aria-label="Close navigation"
+          role="button"
           onClick={onClose}
         >
           ✕
-        </button>
+        </ActionButton>
       </div>
 
       <nav className="sidebar-nav-content" aria-label="Main Navigation">
@@ -98,7 +101,6 @@ export const SideNav: React.FC<SideNavProps> = ({
               <SpSideNavItem
                 key={item.path}
                 href={item.path}
-                label={item.label}
                 value={item.path}
                 role="link"
                 selected={active}

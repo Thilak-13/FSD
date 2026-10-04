@@ -1,5 +1,6 @@
 // src/pages/Dashboard/SummaryCard.tsx
 import React from 'react';
+import { Card } from '@swc-react/card';
 
 export interface SummaryCardProps {
   id: string;
@@ -23,39 +24,42 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
   const getTrendColor = () => {
     switch (trendType) {
       case 'positive':
-        return 'var(--spectrum-global-color-green-700, #2680eb)';
+        return 'var(--spectrum-positive-visual-color, #008132)';
       case 'negative':
-        return 'var(--spectrum-global-color-red-600, #d7373f)';
+        return 'var(--spectrum-negative-visual-color, #d7373f)';
       case 'notice':
-        return 'var(--spectrum-global-color-orange-700, #e68619)';
+        return 'var(--spectrum-notice-visual-color, #e68619)';
       default:
         return 'var(--spectrum-global-color-gray-600, #747474)';
     }
   };
 
   return (
-    <div className="summary-card" data-testid={id}>
-      <div className="summary-card-header">
-        <h3 className="summary-card-title">{title}</h3>
-        {icon && <div aria-hidden="true">{icon}</div>}
+    <Card
+      heading={title}
+      className="summary-card"
+      data-testid={id}
+    >
+      <div className="summary-card-body">
+        {icon && <div className="summary-card-icon" aria-hidden="true">{icon}</div>}
+        <div className="summary-card-value">{value}</div>
+        {(subtitle || trend) && (
+          <div className="summary-card-sub">
+            {trend && (
+              <span
+                style={{
+                  color: getTrendColor(),
+                  fontWeight: 600,
+                  marginRight: '6px',
+                }}
+              >
+                {trend}
+              </span>
+            )}
+            {subtitle}
+          </div>
+        )}
       </div>
-      <div className="summary-card-value">{value}</div>
-      {(subtitle || trend) && (
-        <div className="summary-card-sub">
-          {trend && (
-            <span
-              style={{
-                color: getTrendColor(),
-                fontWeight: 600,
-                marginRight: '6px',
-              }}
-            >
-              {trend}
-            </span>
-          )}
-          {subtitle}
-        </div>
-      )}
-    </div>
+    </Card>
   );
 };

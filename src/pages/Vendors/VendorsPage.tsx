@@ -2,6 +2,8 @@
 import React, { useState, useMemo, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@swc-react/button';
+import { ActionButton } from '@swc-react/action-button';
+import { Card } from '@swc-react/card';
 import { DataTable, Column } from '../../components/shared/DataTable';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { AuthContext } from '../../context/AuthContext';
@@ -177,19 +179,21 @@ export const VendorsPage: React.FC = () => {
             </svg>
             <span>{toastMessage}</span>
           </div>
-          <button
-            type="button"
+          <ActionButton
+            quiet
+            size="s"
             className="vendors-toast-dismiss"
             onClick={() => setToastMessage(null)}
             aria-label="Dismiss notification"
+            role="button"
           >
             &times;
-          </button>
+          </ActionButton>
         </div>
       )}
 
       {/* Search Toolbar */}
-      <div className="vendors-search-card">
+      <Card className="vendors-search-card">
         <input
           type="search"
           data-testid="vendor-search-input"
@@ -210,10 +214,10 @@ export const VendorsPage: React.FC = () => {
             Clear
           </Button>
         )}
-      </div>
+      </Card>
 
       {/* Vendors DataTable */}
-      <div className="vendors-table-card">
+      <Card className="vendors-table-card">
         <DataTable
           columns={columns}
           data={filteredVendors}
@@ -231,7 +235,7 @@ export const VendorsPage: React.FC = () => {
           onEmptyAction={searchTerm ? () => setSearchTerm('') : undefined}
           ariaLabel="Vendors Directory Table"
         />
-      </div>
+      </Card>
 
       {/* Add Vendor Form Dialog */}
       <VendorFormDialog

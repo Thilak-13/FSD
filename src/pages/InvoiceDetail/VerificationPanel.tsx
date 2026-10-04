@@ -1,5 +1,14 @@
 // src/pages/InvoiceDetail/VerificationPanel.tsx
 import React, { useMemo } from 'react';
+import {
+  Table,
+  TableHead,
+  TableRow,
+  TableHeadCell,
+  TableBody,
+  TableCell,
+} from '@swc-react/table';
+import { Card } from '@swc-react/card';
 import { Invoice, PurchaseOrder, InvoiceLineItem, PurchaseOrderItem } from '../../types';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 
@@ -86,7 +95,7 @@ export const VerificationPanel: React.FC<VerificationPanelProps> = ({
 
       {/* Linked PO Details */}
       {linkedPo ? (
-        <div className="verification-po-card" data-testid="verification-po-details">
+        <Card className="verification-po-card" data-testid="verification-po-details">
           <div className="invoice-detail-meta-item">
             <span className="invoice-detail-meta-label">Linked Purchase Order</span>
             <span className="invoice-detail-meta-value" data-testid="verification-po-number">
@@ -111,7 +120,7 @@ export const VerificationPanel: React.FC<VerificationPanelProps> = ({
               <StatusBadge status={linkedPo.status || 'Open'} />
             </span>
           </div>
-        </div>
+        </Card>
       ) : (
         <div
           className="status-stepper-flagged-warning"
@@ -125,34 +134,34 @@ export const VerificationPanel: React.FC<VerificationPanelProps> = ({
 
       {/* Side-by-side line item comparison table */}
       <div className="verification-table-wrapper">
-        <table
+        <Table
           className="verification-table"
           aria-label="3-Way Match Line Item Comparison Table"
           data-testid="verification-table"
         >
-          <thead>
-            <tr>
-              <th scope="col">Item Description</th>
-              <th scope="col" className="align-right">Invoice Qty</th>
-              <th scope="col" className="align-right">PO Qty</th>
-              <th scope="col" className="align-right">Invoice Unit Price</th>
-              <th scope="col" className="align-right">PO Unit Price</th>
-              <th scope="col" className="align-right">Line Total</th>
-              <th scope="col">Match Verification</th>
-            </tr>
-          </thead>
-          <tbody>
+          <TableHead>
+            <TableRow>
+              <TableHeadCell>Item Description</TableHeadCell>
+              <TableHeadCell className="align-right">Invoice Qty</TableHeadCell>
+              <TableHeadCell className="align-right">PO Qty</TableHeadCell>
+              <TableHeadCell className="align-right">Invoice Unit Price</TableHeadCell>
+              <TableHeadCell className="align-right">PO Unit Price</TableHeadCell>
+              <TableHeadCell className="align-right">Line Total</TableHeadCell>
+              <TableHeadCell>Match Verification</TableHeadCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
             {comparisons.map((comp, idx) => {
               const { invoiceItem, poItem, priceMismatch, quantityMismatch, isMatched } = comp;
               const hasMismatch = priceMismatch || quantityMismatch;
 
               return (
-                <tr
+                <TableRow
                   key={invoiceItem.id || idx}
                   className={hasMismatch ? 'has-mismatch' : undefined}
                   data-testid={`verification-row-${idx}`}
                 >
-                  <td>
+                  <TableCell>
                     <strong style={{ display: 'block' }}>{invoiceItem.description}</strong>
                     {poItem && poItem.description !== invoiceItem.description && (
                       <span
@@ -164,27 +173,27 @@ export const VerificationPanel: React.FC<VerificationPanelProps> = ({
                         PO Item: {poItem.description}
                       </span>
                     )}
-                  </td>
-                  <td className="align-right" data-testid={`row-${idx}-inv-qty`}>
+                  </TableCell>
+                  <TableCell className="align-right" data-testid={`row-${idx}-inv-qty`}>
                     {invoiceItem.quantity}
-                  </td>
-                  <td className="align-right" data-testid={`row-${idx}-po-qty`}>
+                  </TableCell>
+                  <TableCell className="align-right" data-testid={`row-${idx}-po-qty`}>
                     {poItem ? poItem.quantity : '—'}
-                  </td>
-                  <td className="align-right" data-testid={`row-${idx}-inv-price`}>
+                  </TableCell>
+                  <TableCell className="align-right" data-testid={`row-${idx}-inv-price`}>
                     ${invoiceItem.unitPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </td>
-                  <td className="align-right" data-testid={`row-${idx}-po-price`}>
+                  </TableCell>
+                  <TableCell className="align-right" data-testid={`row-${idx}-po-price`}>
                     {poItem
                       ? `$${poItem.unitPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                       : '—'}
-                  </td>
-                  <td className="align-right" data-testid={`row-${idx}-total`}>
+                  </TableCell>
+                  <TableCell className="align-right" data-testid={`row-${idx}-total`}>
                     <strong>
                       ${invoiceItem.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </strong>
-                  </td>
-                  <td data-testid={`row-${idx}-status`}>
+                  </TableCell>
+                  <TableCell data-testid={`row-${idx}-status`}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                       {priceMismatch && (
                         <span data-testid="badge-price-mismatch">
@@ -219,12 +228,12 @@ export const VerificationPanel: React.FC<VerificationPanelProps> = ({
                         </span>
                       )}
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               );
             })}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       {/* Overall verification summary */}

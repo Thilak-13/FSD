@@ -1,6 +1,9 @@
-// src/pages/Invoices/InvoiceFilters.tsx
 import React from 'react';
 import { Button } from '@swc-react/button';
+import { Card } from '@swc-react/card';
+import { Picker } from '@swc-react/picker';
+import { MenuItem } from '@swc-react/menu';
+import '@spectrum-web-components/menu/sp-menu-item.js';
 import { FormField } from '../../components/shared/FormField';
 import { Vendor, InvoiceStatus } from '../../types';
 
@@ -37,7 +40,7 @@ export const InvoiceFilters: React.FC<InvoiceFiltersProps> = ({
   hasActiveFilters,
 }) => {
   return (
-    <section
+    <Card
       className="invoices-filters-card"
       aria-label="Invoice Filters"
       role="search"
@@ -68,21 +71,31 @@ export const InvoiceFilters: React.FC<InvoiceFiltersProps> = ({
         htmlFor="invoice-status-filter"
         className="invoice-filter-select-group"
       >
-        <select
+        <Picker
           id="invoice-status-filter"
           data-testid="invoice-status-filter"
           className="invoice-filter-select"
           value={status}
-          onChange={(e) => onStatusChange(e.target.value)}
+          change={(e: any) => onStatusChange(e.target?.value !== undefined ? e.target.value : (e.target as any)?.value)}
+          ref={(node: any) => {
+            if (node && !node.__hasChangeListener) {
+              node.__hasChangeListener = true;
+              node.addEventListener('change', (e: any) => {
+                const val = e.target?.value !== undefined ? e.target.value : (node.value || '');
+                onStatusChange(val);
+              });
+            }
+          }}
           aria-label="Filter by invoice status"
+          label="Status"
         >
-          <option value="all">All Statuses</option>
+          <MenuItem value="all">All Statuses</MenuItem>
           {INVOICE_STATUSES.map((st) => (
-            <option key={st} value={st}>
+            <MenuItem key={st} value={st}>
               {st}
-            </option>
+            </MenuItem>
           ))}
-        </select>
+        </Picker>
       </FormField>
 
       {/* Vendor Filter Dropdown */}
@@ -91,21 +104,31 @@ export const InvoiceFilters: React.FC<InvoiceFiltersProps> = ({
         htmlFor="invoice-vendor-filter"
         className="invoice-filter-select-group"
       >
-        <select
+        <Picker
           id="invoice-vendor-filter"
           data-testid="invoice-vendor-filter"
           className="invoice-filter-select"
           value={vendorId}
-          onChange={(e) => onVendorChange(e.target.value)}
+          change={(e: any) => onVendorChange(e.target?.value !== undefined ? e.target.value : (e.target as any)?.value)}
+          ref={(node: any) => {
+            if (node && !node.__hasChangeListener) {
+              node.__hasChangeListener = true;
+              node.addEventListener('change', (e: any) => {
+                const val = e.target?.value !== undefined ? e.target.value : (node.value || '');
+                onVendorChange(val);
+              });
+            }
+          }}
           aria-label="Filter by vendor"
+          label="Vendor"
         >
-          <option value="all">All Vendors</option>
+          <MenuItem value="all">All Vendors</MenuItem>
           {vendors.map((v) => (
-            <option key={v.id} value={v.id}>
+            <MenuItem key={v.id} value={v.id}>
               {v.name}
-            </option>
+            </MenuItem>
           ))}
-        </select>
+        </Picker>
       </FormField>
 
       {/* Clear Filters Button */}
@@ -120,6 +143,6 @@ export const InvoiceFilters: React.FC<InvoiceFiltersProps> = ({
           Clear Filters
         </Button>
       </div>
-    </section>
+    </Card>
   );
 };

@@ -2,6 +2,11 @@
 import React, { useState, useMemo, useContext, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@swc-react/button';
+import { ActionButton } from '@swc-react/action-button';
+import { Card } from '@swc-react/card';
+import { Picker } from '@swc-react/picker';
+import { MenuItem } from '@swc-react/menu';
+import '@spectrum-web-components/menu/sp-menu-item.js';
 import { DataTable, Column } from '../../components/shared/DataTable';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { ConfirmDialog } from '../../components/shared/ConfirmDialog';
@@ -315,14 +320,16 @@ export const PaymentsPage: React.FC = () => {
             </svg>
             <span>{toastMessage}</span>
           </div>
-          <button
-            type="button"
+          <ActionButton
+            quiet
+            size="s"
             className="payments-toast-dismiss"
             onClick={() => setToastMessage(null)}
             aria-label="Dismiss notification"
+            role="button"
           >
             &times;
-          </button>
+          </ActionButton>
         </div>
       )}
 
@@ -357,19 +364,32 @@ export const PaymentsPage: React.FC = () => {
             htmlFor="payments-status-filter"
             className="payments-filter-select-group"
           >
-            <select
+            <Picker
               id="payments-status-filter"
               data-testid="payments-status-filter"
               className="payments-filter-select"
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              label="Payment Status"
               aria-label="Filter by payment status"
+              change={(e: any) => {
+                const val = e.target?.value !== undefined ? e.target.value : (e.detail?.value || '');
+                setStatusFilter(val || '');
+              }}
+              ref={(node: any) => {
+                if (node && !node.__hasChangeListener) {
+                  node.__hasChangeListener = true;
+                  node.addEventListener('change', (e: any) => {
+                    const val = e.target?.value !== undefined ? e.target.value : (node.value || '');
+                    setStatusFilter(val || '');
+                  });
+                }
+              }}
             >
-              <option value="all">All Payments</option>
-              <option value="Approved">Approved (Awaiting Scheduling)</option>
-              <option value="Payment Scheduled">Payment Scheduled</option>
-              <option value="Paid">Paid</option>
-            </select>
+              <MenuItem value="all">All Payments</MenuItem>
+              <MenuItem value="Approved">Approved (Awaiting Scheduling)</MenuItem>
+              <MenuItem value="Payment Scheduled">Payment Scheduled</MenuItem>
+              <MenuItem value="Paid">Paid</MenuItem>
+            </Picker>
           </FormField>
 
           {/* Clear Filters Button */}
@@ -389,7 +409,7 @@ export const PaymentsPage: React.FC = () => {
       </section>
 
       {/* DataTable */}
-      <div className="payments-table-card">
+      <Card className="payments-table-card">
         <DataTable
           columns={columns}
           data={filteredInvoices}
@@ -408,7 +428,7 @@ export const PaymentsPage: React.FC = () => {
           onEmptyAction={hasActiveFilters ? handleClearFilters : undefined}
           ariaLabel="Vendor Payments Table"
         />
-      </div>
+      </Card>
 
       {/* Schedule Payment Modal */}
       <SchedulePaymentModal

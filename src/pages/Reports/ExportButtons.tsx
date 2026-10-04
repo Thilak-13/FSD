@@ -1,5 +1,6 @@
 // src/pages/Reports/ExportButtons.tsx
 import React from 'react';
+import { Button } from '@swc-react/button';
 
 export interface VendorReportRow {
   vendorId: string;
@@ -71,22 +72,26 @@ export const ExportButtons: React.FC<ExportButtonsProps> = ({ rows, onNotify }) 
 
   return (
     <div className="reports-export-group">
-      <button
-        type="button"
+      <Button
+        variant="accent"
+        treatment="fill"
         className="reports-btn reports-btn-primary"
         data-testid="export-csv-btn"
         onClick={handleExportCSV}
+        role="button"
       >
         Export CSV
-      </button>
-      <button
-        type="button"
+      </Button>
+      <Button
+        variant="secondary"
+        treatment="outline"
         className="reports-btn reports-btn-secondary"
         data-testid="export-pdf-btn"
         onClick={handleExportPDF}
+        role="button"
       >
         Export PDF (Stub)
-      </button>
+      </Button>
     </div>
   );
 };

@@ -2,6 +2,8 @@
 import React, { useContext, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@swc-react/button';
+import { ActionButton } from '@swc-react/action-button';
+import { Card } from '@swc-react/card';
 import { DataContext } from '../../context/DataContext';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { DataTable, Column } from '../../components/shared/DataTable';
@@ -175,15 +177,16 @@ export const VendorDetailPage: React.FC = () => {
         role="main"
         aria-label="Vendor Not Found"
       >
-        <button
-          type="button"
+        <ActionButton
+          quiet
           className="vendor-detail-back-btn"
           data-testid="vendor-back-button"
           onClick={() => navigate('/vendors')}
           aria-label="Back to vendors directory"
+          role="button"
         >
           &larr; Back to Vendors
-        </button>
+        </ActionButton>
         <EmptyState
           title="Vendor Not Found"
           message={`No vendor could be found with ID "${id}".`}
@@ -202,19 +205,20 @@ export const VendorDetailPage: React.FC = () => {
       aria-label={`Vendor Profile: ${vendor.name}`}
     >
       {/* Back Link */}
-      <button
-        type="button"
+      <ActionButton
+        quiet
         className="vendor-detail-back-btn"
         data-testid="vendor-back-button"
         onClick={() => navigate('/vendors')}
         aria-label="Back to vendors directory"
+        role="button"
       >
         &larr; Back to Vendors
-      </button>
+      </ActionButton>
 
       {/* Vendor Profile Header Card */}
-      <div className="vendor-detail-card" data-testid="vendor-detail-header">
-        <div className="vendor-detail-header-main">
+      <Card className="vendor-detail-card" data-testid="vendor-detail-header">
+        <div slot="heading" className="vendor-detail-header-main">
           <div className="vendor-detail-name-group">
             <h1 className="vendor-detail-name" data-testid="vendor-name">
               {vendor.name}
@@ -224,7 +228,7 @@ export const VendorDetailPage: React.FC = () => {
         </div>
 
         {/* Metadata Grid */}
-        <div className="vendor-detail-meta-grid">
+        <div slot="description" className="vendor-detail-meta-grid">
           <div className="vendor-detail-meta-item">
             <span className="vendor-detail-meta-label">Payment Terms</span>
             <span className="vendor-detail-meta-value" data-testid="vendor-payment-terms">
@@ -268,49 +272,49 @@ export const VendorDetailPage: React.FC = () => {
             </span>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Tabs Switcher */}
       <div className="vendor-tabs-bar" role="tablist" aria-label="Vendor related records">
-        <button
-          type="button"
+        <ActionButton
           role="tab"
           aria-selected={activeTab === 'all'}
+          selected={activeTab === 'all'}
           className={`vendor-tab-btn ${activeTab === 'all' ? 'active' : ''}`}
           data-testid="tab-all"
           onClick={() => setActiveTab('all')}
         >
           Overview
-        </button>
-        <button
-          type="button"
+        </ActionButton>
+        <ActionButton
           role="tab"
           aria-selected={activeTab === 'pos'}
+          selected={activeTab === 'pos'}
           className={`vendor-tab-btn ${activeTab === 'pos' ? 'active' : ''}`}
           data-testid="tab-pos"
           onClick={() => setActiveTab('pos')}
         >
           Purchase Orders
           <span className="vendor-tab-count">{vendorPOs.length}</span>
-        </button>
-        <button
-          type="button"
+        </ActionButton>
+        <ActionButton
           role="tab"
           aria-selected={activeTab === 'invoices'}
+          selected={activeTab === 'invoices'}
           className={`vendor-tab-btn ${activeTab === 'invoices' ? 'active' : ''}`}
           data-testid="tab-invoices"
           onClick={() => setActiveTab('invoices')}
         >
           Invoices
           <span className="vendor-tab-count">{vendorInvoices.length}</span>
-        </button>
+        </ActionButton>
       </div>
 
       {/* Sections Breakdown */}
       <div className="vendor-sections-container">
         {/* Section 1: Active Purchase Orders */}
         {(activeTab === 'all' || activeTab === 'pos') && (
-          <section
+          <Card
             className="vendor-section-card"
             data-testid="vendor-pos-section"
             aria-labelledby="heading-active-pos"
@@ -331,12 +335,12 @@ export const VendorDetailPage: React.FC = () => {
               emptyMessage="There are no active purchase orders for this vendor."
               ariaLabel="Active Purchase Orders Table"
             />
-          </section>
+          </Card>
         )}
 
         {/* Section 2: Invoices History */}
         {(activeTab === 'all' || activeTab === 'invoices') && (
-          <section
+          <Card
             className="vendor-section-card"
             data-testid="vendor-invoices-section"
             aria-labelledby="heading-invoices-history"
@@ -358,7 +362,7 @@ export const VendorDetailPage: React.FC = () => {
               emptyMessage="There is no invoice history for this vendor."
               ariaLabel="Vendor Invoices History Table"
             />
-          </section>
+          </Card>
         )}
       </div>
     </main>

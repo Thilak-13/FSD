@@ -328,80 +328,89 @@ export function DataTable<T extends Record<string, any>>({
             style={{ width: '100%' }}
           >
             <TableHead>
-              <TableRow>
-                {selectable && (
-                  <TableCheckboxCell
-                    ref={(el: any) => {
-                      if (el?.setAttribute) {
-                        el.setAttribute('role', 'checkbox');
-                        el.setAttribute('aria-checked', isAllSelected ? 'true' : isSomeSelected ? 'mixed' : 'false');
-                      }
-                    }}
-                    role="checkbox"
+              {selectable && (
+                <TableCheckboxCell
+                  headCell
+                  label="Select all rows"
+                  checked={isAllSelected}
+                  indeterminate={isSomeSelected}
+                  onClick={(e: any) => {
+                    e.stopPropagation();
+                    handleToggleSelectAll();
+                  }}
+                >
+                  <input
+                    type="checkbox"
                     checked={isAllSelected}
-                    indeterminate={isSomeSelected}
                     aria-label="Select all rows"
-                    aria-checked={isAllSelected ? 'true' : isSomeSelected ? 'mixed' : 'false'}
-                    onClick={(e: any) => {
-                      e.stopPropagation();
-                      handleToggleSelectAll();
+                    onChange={handleToggleSelectAll}
+                    style={{
+                      position: 'absolute',
+                      width: '1px',
+                      height: '1px',
+                      padding: 0,
+                      margin: '-1px',
+                      overflow: 'hidden',
+                      clip: 'rect(0, 0, 0, 0)',
+                      whiteSpace: 'nowrap',
+                      border: 0,
                     }}
                   />
-                )}
+                </TableCheckboxCell>
+              )}
 
-                {columns.map((col) => {
-                  const isSorted = currentSortCol === col.key;
-                  const sortDirAttr = isSorted ? currentSortDir : undefined;
-                  const ariaSort = isSorted
-                    ? currentSortDir === 'asc'
-                      ? 'ascending'
-                      : 'descending'
-                    : col.sortable
-                    ? 'none'
-                    : undefined;
+              {columns.map((col) => {
+                const isSorted = currentSortCol === col.key;
+                const sortDirAttr = isSorted ? currentSortDir : undefined;
+                const ariaSort = isSorted
+                  ? currentSortDir === 'asc'
+                    ? 'ascending'
+                    : 'descending'
+                  : col.sortable
+                  ? 'none'
+                  : undefined;
 
-                  return (
-                    <TableHeadCell
-                      key={col.key}
-                      sort-direction={sortDirAttr}
-                      aria-sort={ariaSort}
-                      sortable={col.sortable}
-                      onClick={() => handleSortClick(col.key, col.sortable)}
+                return (
+                  <TableHeadCell
+                    key={col.key}
+                    sort-direction={sortDirAttr}
+                    aria-sort={ariaSort}
+                    sortable={col.sortable}
+                    onClick={() => handleSortClick(col.key, col.sortable)}
+                    style={{
+                      cursor: col.sortable ? 'pointer' : 'default',
+                      userSelect: 'none',
+                      width: col.width,
+                      textAlign: col.align || 'left',
+                      fontFamily: 'var(--spectrum-alias-body-text-font-family, "Adobe Clean", sans-serif)',
+                      fontWeight: 600,
+                      color: 'var(--spectrum-global-color-gray-800, #4b4b4b)',
+                      backgroundColor: 'var(--spectrum-global-color-gray-100, #fafafa)',
+                    }}
+                  >
+                    <div
                       style={{
-                        cursor: col.sortable ? 'pointer' : 'default',
-                        userSelect: 'none',
-                        width: col.width,
-                        textAlign: col.align || 'left',
-                        fontFamily: 'var(--spectrum-alias-body-text-font-family, "Adobe Clean", sans-serif)',
-                        fontWeight: 600,
-                        color: 'var(--spectrum-global-color-gray-800, #4b4b4b)',
-                        backgroundColor: 'var(--spectrum-global-color-gray-100, #fafafa)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 'var(--spectrum-global-dimension-size-50, 4px)',
+                        justifyContent:
+                          col.align === 'right'
+                            ? 'flex-end'
+                            : col.align === 'center'
+                            ? 'center'
+                            : 'flex-start',
                       }}
                     >
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 'var(--spectrum-global-dimension-size-50, 4px)',
-                          justifyContent:
-                            col.align === 'right'
-                              ? 'flex-end'
-                              : col.align === 'center'
-                              ? 'center'
-                              : 'flex-start',
-                        }}
-                      >
-                        <span>{col.title}</span>
-                        {col.sortable && isSorted && (
-                          <span aria-hidden="true" style={{ fontSize: '10px' }}>
-                            {currentSortDir === 'asc' ? '▲' : '▼'}
-                          </span>
-                        )}
-                      </div>
-                    </TableHeadCell>
-                  );
-                })}
-              </TableRow>
+                      <span>{col.title}</span>
+                      {col.sortable && isSorted && (
+                        <span aria-hidden="true" style={{ fontSize: '10px' }}>
+                          {currentSortDir === 'asc' ? '▲' : '▼'}
+                        </span>
+                      )}
+                    </div>
+                  </TableHeadCell>
+                );
+              })}
             </TableHead>
 
             <TableBody>
@@ -435,21 +444,31 @@ export function DataTable<T extends Record<string, any>>({
                   >
                     {selectable && (
                       <TableCheckboxCell
-                        ref={(el: any) => {
-                          if (el?.setAttribute) {
-                            el.setAttribute('role', 'checkbox');
-                            el.setAttribute('aria-checked', isSelected ? 'true' : 'false');
-                          }
-                        }}
-                        role="checkbox"
+                        label={`Select row ${actualIndex + 1}`}
                         checked={isSelected}
-                        aria-label={`Select row ${actualIndex + 1}`}
-                        aria-checked={isSelected ? 'true' : 'false'}
                         onClick={(e: any) => {
                           e.stopPropagation();
                           handleToggleSelectRow(rowId);
                         }}
-                      />
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          aria-label={`Select row ${actualIndex + 1}`}
+                          onChange={() => handleToggleSelectRow(rowId)}
+                          style={{
+                            position: 'absolute',
+                            width: '1px',
+                            height: '1px',
+                            padding: 0,
+                            margin: '-1px',
+                            overflow: 'hidden',
+                            clip: 'rect(0, 0, 0, 0)',
+                            whiteSpace: 'nowrap',
+                            border: 0,
+                          }}
+                        />
+                      </TableCheckboxCell>
                     )}
 
                     {columns.map((col) => {

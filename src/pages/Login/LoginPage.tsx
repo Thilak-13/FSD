@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Card } from '@swc-react/card';
 import { Button } from '@swc-react/button';
+import { ActionButton } from '@swc-react/action-button';
 import { Textfield } from '@swc-react/textfield';
 import { Logo } from '../../assets/brand/Logo';
 import { FormField } from '../../components/shared/FormField';
@@ -217,154 +218,156 @@ export const LoginPage: React.FC = () => {
 
   return (
     <main className="login-page-container" data-testid="page-login" role="main">
-      <div className="login-card-wrapper">
-        <Card heading="Sign In to Invoice Platform" className="login-card">
-          <div className="login-card-body">
-            {/* Logo and Title Header */}
-            <div className="login-header">
-              <div className="login-logo-wrapper">
-                <Logo size={40} showText={false} />
-              </div>
-              <h1 className="login-title">Sign In to Invoice Platform</h1>
-              <p className="login-subtitle">
-                Select a demo role or sign in with your enterprise credentials
-              </p>
+      <Card heading="Sign In to Invoice Platform" className="login-card-wrapper login-card">
+        <div className="login-card-body">
+          {/* Logo and Title Header */}
+          <div className="login-header">
+            <div className="login-logo-wrapper">
+              <Logo size={40} showText={false} />
             </div>
+            <h1 className="login-title">Sign In to Invoice Platform</h1>
+            <p className="login-subtitle">
+              Select a demo role or sign in with your enterprise credentials
+            </p>
+          </div>
 
-            {/* Redirect / Security Notice Banner */}
-            {bannerNotice && (
+          {/* Redirect / Security Notice Banner */}
+          {bannerNotice && (
+            <div
+              role="alert"
+              aria-live="polite"
+              className="login-redirect-banner"
+              data-testid="login-redirect-banner"
+            >
+              <div className="login-banner-content">
+                <svg
+                  className="login-banner-icon"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span className="login-banner-text">{bannerNotice}</span>
+              </div>
+              <ActionButton
+                quiet
+                size="s"
+                className="login-banner-dismiss"
+                onClick={handleDismissBanner}
+                aria-label="Dismiss security notice"
+              >
+                &times;
+              </ActionButton>
+            </div>
+          )}
+
+          {/* 1-Click Quick-Role Demo Accounts */}
+          <section
+            className="quick-role-section"
+            aria-label="1-Click Demo Accounts"
+          >
+            <div className="quick-role-header">
+              <h2 className="quick-role-heading">1-Click Demo Accounts</h2>
+              <span className="quick-role-hint">Instant role sign-in</span>
+            </div>
+            <div className="quick-role-list">
+              {DEMO_ACCOUNTS.map((account) => (
+                <ActionButton
+                  key={account.role}
+                  data-testid={`quick-login-${account.role}`}
+                  className={`quick-login-btn quick-login-btn-${account.role.toLowerCase()}`}
+                  onClick={() => handleQuickLogin(account)}
+                  aria-label={`Sign in as ${account.role}: ${account.name}`}
+                >
+                  <div className="quick-login-avatar" aria-hidden="true">
+                    {account.initials}
+                  </div>
+                  <div className="quick-login-info">
+                    <div className="quick-login-header">
+                      <span className="quick-login-name">{account.name}</span>
+                      <StatusBadge variant={account.badgeVariant} size="s">
+                        {account.role}
+                      </StatusBadge>
+                    </div>
+                    <span className="quick-login-email">{account.email}</span>
+                    <span className="quick-login-desc">{account.description}</span>
+                  </div>
+                </ActionButton>
+              ))}
+            </div>
+          </section>
+
+          {/* Visual Divider */}
+          <div className="login-divider" role="separator" aria-label="Divider">
+            <span className="login-divider-text">Or sign in with email</span>
+          </div>
+
+          {/* Credentials Form */}
+          <form
+            onSubmit={handleFormSubmit}
+            noValidate
+            className="login-form"
+            aria-label="Enterprise Login Form"
+          >
+            {errors.general && (
               <div
                 role="alert"
                 aria-live="polite"
-                className="login-redirect-banner"
-                data-testid="login-redirect-banner"
+                className="login-form-error"
               >
-                <div className="login-banner-content">
-                  <svg
-                    className="login-banner-icon"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  <span className="login-banner-text">{bannerNotice}</span>
-                </div>
-                <button
-                  type="button"
-                  className="login-banner-dismiss"
-                  onClick={handleDismissBanner}
-                  aria-label="Dismiss security notice"
-                >
-                  &times;
-                </button>
+                {errors.general}
               </div>
             )}
 
-            {/* 1-Click Quick-Role Demo Accounts */}
-            <section
-              className="quick-role-section"
-              aria-label="1-Click Demo Accounts"
-            >
-              <div className="quick-role-header">
-                <h2 className="quick-role-heading">1-Click Demo Accounts</h2>
-                <span className="quick-role-hint">Instant role sign-in</span>
+            {/* Pre-fill Helper Buttons */}
+            <div className="login-prefill-helper">
+              <span className="prefill-helper-label">Demo Pre-fill:</span>
+              <div className="prefill-buttons">
+                <ActionButton
+                  quiet
+                  size="s"
+                  className="prefill-btn"
+                  data-testid="prefill-admin"
+                  onClick={() => handlePrefill('Admin')}
+                  aria-label="Pre-fill Admin demo credentials"
+                >
+                  Alex
+                </ActionButton>
+                <ActionButton
+                  quiet
+                  size="s"
+                  className="prefill-btn"
+                  data-testid="prefill-approver"
+                  onClick={() => handlePrefill('Approver')}
+                  aria-label="Pre-fill Approver demo credentials"
+                >
+                  Sarah
+                </ActionButton>
+                <ActionButton
+                  quiet
+                  size="s"
+                  className="prefill-btn"
+                  data-testid="prefill-requester"
+                  onClick={() => handlePrefill('Requester')}
+                  aria-label="Pre-fill Requester demo credentials"
+                >
+                  Jordan
+                </ActionButton>
               </div>
-              <div className="quick-role-list">
-                {DEMO_ACCOUNTS.map((account) => (
-                  <button
-                    type="button"
-                    key={account.role}
-                    data-testid={`quick-login-${account.role}`}
-                    className={`quick-login-btn quick-login-btn-${account.role.toLowerCase()}`}
-                    onClick={() => handleQuickLogin(account)}
-                    aria-label={`Sign in as ${account.role}: ${account.name}`}
-                  >
-                    <div className="quick-login-avatar" aria-hidden="true">
-                      {account.initials}
-                    </div>
-                    <div className="quick-login-info">
-                      <div className="quick-login-header">
-                        <span className="quick-login-name">{account.name}</span>
-                        <StatusBadge variant={account.badgeVariant} size="s">
-                          {account.role}
-                        </StatusBadge>
-                      </div>
-                      <span className="quick-login-email">{account.email}</span>
-                      <span className="quick-login-desc">{account.description}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </section>
-
-            {/* Visual Divider */}
-            <div className="login-divider" role="separator" aria-label="Divider">
-              <span className="login-divider-text">Or sign in with email</span>
             </div>
 
-            {/* Credentials Form */}
-            <form
-              onSubmit={handleFormSubmit}
-              noValidate
-              className="login-form"
-              aria-label="Enterprise Login Form"
+            {/* Email FormField */}
+            <FormField
+              label="Work Email"
+              htmlFor="login-email"
+              error={errors.email}
+              required
             >
-              {errors.general && (
-                <div
-                  role="alert"
-                  aria-live="polite"
-                  className="login-form-error"
-                >
-                  {errors.general}
-                </div>
-              )}
-
-              {/* Pre-fill Helper Buttons */}
-              <div className="login-prefill-helper">
-                <span className="prefill-helper-label">Demo Pre-fill:</span>
-                <div className="prefill-buttons">
-                  <button
-                    type="button"
-                    className="prefill-btn"
-                    data-testid="prefill-admin"
-                    onClick={() => handlePrefill('Admin')}
-                    aria-label="Pre-fill Admin demo credentials"
-                  >
-                    Alex
-                  </button>
-                  <button
-                    type="button"
-                    className="prefill-btn"
-                    data-testid="prefill-approver"
-                    onClick={() => handlePrefill('Approver')}
-                    aria-label="Pre-fill Approver demo credentials"
-                  >
-                    Sarah
-                  </button>
-                  <button
-                    type="button"
-                    className="prefill-btn"
-                    data-testid="prefill-requester"
-                    onClick={() => handlePrefill('Requester')}
-                    aria-label="Pre-fill Requester demo credentials"
-                  >
-                    Jordan
-                  </button>
-                </div>
-              </div>
-
-              {/* Email FormField */}
-              <FormField
-                label="Work Email"
-                htmlFor="login-email"
-                error={errors.email}
-                required
-              >
                 <Textfield
                   ref={emailRef}
                   id="login-email"
@@ -453,7 +456,6 @@ export const LoginPage: React.FC = () => {
             </form>
           </div>
         </Card>
-      </div>
     </main>
   );
 };

@@ -8,6 +8,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { Card } from '@swc-react/card';
 import { Invoice, InvoiceStatus } from '../../types';
 
 export interface StatusBreakdownChartProps {
@@ -21,12 +22,12 @@ interface StatusSlice {
 }
 
 const STATUS_COLORS: Record<InvoiceStatus, string> = {
-  Approved: 'var(--spectrum-global-color-green-600, #2d9d78)',
-  Submitted: 'var(--spectrum-global-color-orange-600, #e68619)',
-  Flagged: 'var(--spectrum-global-color-red-600, #d7373f)',
-  Paid: 'var(--spectrum-global-color-seafoam-700, #028688)',
-  'Payment Scheduled': 'var(--spectrum-global-color-blue-600, #1473e6)',
-  'Under Verification': 'var(--spectrum-global-color-purple-600, #7c51a1)',
+  Approved: 'var(--spectrum-positive-visual-color, #15a46e)',
+  Submitted: 'var(--spectrum-notice-visual-color, #e68619)',
+  Flagged: 'var(--spectrum-negative-visual-color, #d7373f)',
+  Paid: 'var(--spectrum-seafoam-visual-color, #00a19a)',
+  'Payment Scheduled': 'var(--spectrum-informative-visual-color, #1473e6)',
+  'Under Verification': 'var(--spectrum-indigo-visual-color, #686df4)',
 };
 
 export const StatusBreakdownChart: React.FC<StatusBreakdownChartProps> = ({ invoices }) => {
@@ -53,7 +54,7 @@ export const StatusBreakdownChart: React.FC<StatusBreakdownChartProps> = ({ invo
   }, [invoices]);
 
   return (
-    <div className="chart-card" data-testid="dashboard-status-chart">
+    <Card className="chart-card" data-testid="dashboard-status-chart">
       <div className="chart-header">
         <h3 className="chart-title">Invoice Distribution by Status</h3>
       </div>
@@ -88,6 +89,6 @@ export const StatusBreakdownChart: React.FC<StatusBreakdownChartProps> = ({ invo
           </PieChart>
         </ResponsiveContainer>
       </div>
-    </div>
+    </Card>
   );
 };

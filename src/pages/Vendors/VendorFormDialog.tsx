@@ -1,6 +1,9 @@
-// src/pages/Vendors/VendorFormDialog.tsx
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@swc-react/button';
+import { ActionButton } from '@swc-react/action-button';
+import { Picker } from '@swc-react/picker';
+import { MenuItem } from '@swc-react/menu';
+import '@spectrum-web-components/menu/sp-menu-item.js';
 import { FormField } from '../../components/shared/FormField';
 import { useData } from '../../context/DataContext';
 import { Vendor, NewVendorInput, PaymentTerms } from '../../types';
@@ -157,15 +160,16 @@ export const VendorFormDialog: React.FC<VendorFormDialogProps> = ({
           <h2 id="new-vendor-heading" className="vendor-dialog-title">
             Add New Vendor
           </h2>
-          <button
-            type="button"
+          <ActionButton
+            quiet
+            size="s"
             className="vendor-dialog-close-btn"
             onClick={onClose}
             aria-label="Close dialog"
             data-testid="close-vendor-dialog"
           >
             &times;
-          </button>
+          </ActionButton>
         </div>
 
         {/* Form Body */}
@@ -213,6 +217,7 @@ export const VendorFormDialog: React.FC<VendorFormDialogProps> = ({
                   setErrors((prev) => ({ ...prev, name: undefined }));
                 }
               }}
+              aria-label="Company Name"
               aria-required="true"
               aria-invalid={Boolean(errors.name)}
             />
@@ -239,6 +244,7 @@ export const VendorFormDialog: React.FC<VendorFormDialogProps> = ({
                     setErrors((prev) => ({ ...prev, contactEmail: undefined }));
                   }
                 }}
+                aria-label="Contact Email"
                 aria-required="true"
                 aria-invalid={Boolean(errors.contactEmail)}
               />
@@ -263,6 +269,7 @@ export const VendorFormDialog: React.FC<VendorFormDialogProps> = ({
                     setErrors((prev) => ({ ...prev, taxId: undefined }));
                   }
                 }}
+                aria-label="Tax ID"
                 aria-required="true"
                 aria-invalid={Boolean(errors.taxId)}
               />
@@ -275,19 +282,20 @@ export const VendorFormDialog: React.FC<VendorFormDialogProps> = ({
               label="Payment Terms"
               htmlFor="vendor-payment-terms-select"
             >
-              <select
+              <Picker
                 id="vendor-payment-terms-select"
                 data-testid="vendor-payment-terms-select"
                 className="vendor-form-select"
                 value={paymentTerms}
-                onChange={(e) => setPaymentTerms(e.target.value as PaymentTerms)}
+                label="Payment Terms"
                 aria-label="Payment Terms"
+                change={(e: any) => setPaymentTerms(e.target?.value as PaymentTerms)}
               >
-                <option value="Net 15">Net 15</option>
-                <option value="Net 30">Net 30</option>
-                <option value="Net 45">Net 45</option>
-                <option value="Net 60">Net 60</option>
-              </select>
+                <MenuItem value="Net 15">Net 15</MenuItem>
+                <MenuItem value="Net 30">Net 30</MenuItem>
+                <MenuItem value="Net 45">Net 45</MenuItem>
+                <MenuItem value="Net 60">Net 60</MenuItem>
+              </Picker>
             </FormField>
 
             <FormField
@@ -302,6 +310,7 @@ export const VendorFormDialog: React.FC<VendorFormDialogProps> = ({
                 placeholder="+1 (555) 000-0000"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
+                aria-label="Phone (Optional)"
               />
             </FormField>
           </div>
@@ -320,6 +329,7 @@ export const VendorFormDialog: React.FC<VendorFormDialogProps> = ({
               placeholder="e.g. 100 Main St, Suite 200, San Francisco, CA 94105"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
+              aria-label="Business Address"
             />
           </FormField>
 
@@ -331,6 +341,7 @@ export const VendorFormDialog: React.FC<VendorFormDialogProps> = ({
               data-testid="cancel-vendor-button"
               onClick={onClose}
               disabled={isSubmitting}
+              aria-label="Cancel"
             >
               Cancel
             </Button>
@@ -339,6 +350,7 @@ export const VendorFormDialog: React.FC<VendorFormDialogProps> = ({
               type="submit"
               data-testid="submit-vendor-button"
               disabled={isSubmitting}
+              aria-label={isSubmitting ? 'Adding...' : 'Add Vendor'}
               onClick={(e: any) => {
                 if (e.target?.closest?.('form')) {
                   handleSubmit(e);

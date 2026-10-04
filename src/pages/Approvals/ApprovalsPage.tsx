@@ -2,6 +2,8 @@
 import React, { useState, useMemo, useContext, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@swc-react/button';
+import { ActionButton } from '@swc-react/action-button';
+import { Card } from '@swc-react/card';
 import { Search } from '@swc-react/search';
 import { DataTable, Column } from '../../components/shared/DataTable';
 import { StatusBadge } from '../../components/shared/StatusBadge';
@@ -314,34 +316,46 @@ export const ApprovalsPage: React.FC = () => {
         className="approvals-metrics-grid"
         aria-label="Queue Summary Metrics"
       >
-        <div
+        <Card
           className="approvals-metric-card metric-pending"
           data-testid="metric-awaiting-approval"
         >
-          <span className="approvals-metric-label">Total Awaiting Approval</span>
-          <span className="approvals-metric-value">{metrics.totalAwaiting}</span>
-        </div>
+          <div slot="heading">
+            <span className="approvals-metric-label">Total Awaiting Approval</span>
+          </div>
+          <div slot="subheading">
+            <span className="approvals-metric-value">{metrics.totalAwaiting}</span>
+          </div>
+        </Card>
 
-        <div
+        <Card
           className="approvals-metric-card metric-flagged"
           data-testid="metric-flagged-count"
         >
-          <span className="approvals-metric-label">Flagged Discrepancies</span>
-          <span className="approvals-metric-value">{metrics.flaggedCount}</span>
-        </div>
+          <div slot="heading">
+            <span className="approvals-metric-label">Flagged Discrepancies</span>
+          </div>
+          <div slot="subheading">
+            <span className="approvals-metric-value">{metrics.flaggedCount}</span>
+          </div>
+        </Card>
 
-        <div
+        <Card
           className="approvals-metric-card metric-amount"
           data-testid="metric-pending-amount"
         >
-          <span className="approvals-metric-label">Total Amount Pending</span>
-          <span className="approvals-metric-value">
-            ${metrics.totalPendingAmount.toLocaleString('en-US', {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </span>
-        </div>
+          <div slot="heading">
+            <span className="approvals-metric-label">Total Amount Pending</span>
+          </div>
+          <div slot="subheading">
+            <span className="approvals-metric-value">
+              ${metrics.totalPendingAmount.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </span>
+          </div>
+        </Card>
       </section>
 
       {/* Toast Notification Banner */}
@@ -368,14 +382,16 @@ export const ApprovalsPage: React.FC = () => {
             </svg>
             <span>{toastMessage}</span>
           </div>
-          <button
-            type="button"
+          <ActionButton
+            quiet
+            size="s"
             className="approvals-toast-dismiss"
             onClick={() => setToastMessage(null)}
             aria-label="Dismiss notification"
+            role="button"
           >
             &times;
-          </button>
+          </ActionButton>
         </div>
       )}
 
@@ -430,7 +446,7 @@ export const ApprovalsPage: React.FC = () => {
       </div>
 
       {/* DataTable (searchable={false} prevents secondary column-filtering bug) */}
-      <div className="approvals-table-card">
+      <Card className="approvals-table-card">
         <DataTable
           columns={columns}
           data={filteredQueueInvoices}
@@ -452,7 +468,7 @@ export const ApprovalsPage: React.FC = () => {
           onEmptyAction={searchTerm.trim() ? handleClearSearch : undefined}
           ariaLabel="Approvals Triage Queue Table"
         />
-      </div>
+      </Card>
 
       {/* Inline Approve Confirmation Dialog */}
       <ConfirmDialog

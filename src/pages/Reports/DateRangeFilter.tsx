@@ -1,5 +1,8 @@
 // src/pages/Reports/DateRangeFilter.tsx
 import React from 'react';
+import { Picker } from '@swc-react/picker';
+import { MenuItem } from '@swc-react/menu';
+import '@spectrum-web-components/menu/sp-menu-item.js';
 
 export interface DateRangeFilterProps {
   value: string;
@@ -12,19 +15,28 @@ export const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ value, onChang
       <label htmlFor="date-range-filter-select" className="reports-filter-label">
         Date Range:
       </label>
-      <select
+      <Picker
         id="date-range-filter-select"
         data-testid="date-range-filter-select"
         className="reports-filter-select"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        label="Date Range"
         aria-label="Filter report by date range"
+        ref={(node: any) => {
+          if (node && !node._hasChangeListener) {
+            node._hasChangeListener = true;
+            node.addEventListener('change', (e: any) => {
+              onChange(e.target?.value || '');
+            });
+          }
+        }}
+        change={(e: any) => onChange(e.target?.value || '')}
       >
-        <option value="all">All Time</option>
-        <option value="30d">Last 30 Days</option>
-        <option value="quarter">Last Quarter</option>
-        <option value="ytd">Year to Date (YTD)</option>
-      </select>
+        <MenuItem value="all">All Time</MenuItem>
+        <MenuItem value="30d">Last 30 Days</MenuItem>
+        <MenuItem value="quarter">Last Quarter</MenuItem>
+        <MenuItem value="ytd">Year to Date (YTD)</MenuItem>
+      </Picker>
     </div>
   );
 };

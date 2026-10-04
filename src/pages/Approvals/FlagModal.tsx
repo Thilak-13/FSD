@@ -119,6 +119,7 @@ export const FlagModal: React.FC<FlagModalProps> = ({
       <div
         role="alertdialog"
         aria-modal="true"
+        aria-label={`Flag Invoice ${invoice.invoiceNumber}`}
         aria-labelledby="flag-dialog-heading"
         aria-describedby="flag-dialog-message"
         data-testid="flag-modal-dialog"
@@ -128,7 +129,12 @@ export const FlagModal: React.FC<FlagModalProps> = ({
           outline: 'none',
         }}
       >
-        <Dialog size="m" dismissable close={handleCancel}>
+        <Dialog
+          size="m"
+          dismissable
+          close={handleCancel}
+          aria-label={`Flag Invoice ${invoice.invoiceNumber}`}
+        >
           <h2
             slot="heading"
             id="flag-dialog-heading"

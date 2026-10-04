@@ -2,6 +2,8 @@
 import React, { useState, useMemo, useContext, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@swc-react/button';
+import { ActionButton } from '@swc-react/action-button';
+import { Card } from '@swc-react/card';
 import { DataTable, Column } from '../../components/shared/DataTable';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { useAuth } from '../../context/AuthContext';
@@ -173,7 +175,6 @@ export const InvoicesPage: React.FC = () => {
     <main
       className="invoices-page-container"
       data-testid="page-invoices"
-      role="main"
       aria-label="Invoices Management"
     >
       {/* Header */}
@@ -181,6 +182,7 @@ export const InvoicesPage: React.FC = () => {
         <div className="invoices-header-left">
           <h1 className="invoices-title">Invoices</h1>
           <span
+            role="status"
             className="invoices-count-badge"
             data-testid="invoices-count-badge"
             aria-live="polite"
@@ -226,14 +228,15 @@ export const InvoicesPage: React.FC = () => {
             </svg>
             <span>{toastMessage}</span>
           </div>
-          <button
-            type="button"
+          <ActionButton
+            quiet
+            size="s"
             className="invoices-toast-dismiss"
             onClick={() => setToastMessage(null)}
             aria-label="Dismiss notification"
           >
             &times;
-          </button>
+          </ActionButton>
         </div>
       )}
 
@@ -251,7 +254,7 @@ export const InvoicesPage: React.FC = () => {
       />
 
       {/* Invoices DataTable */}
-      <div className="invoices-table-card">
+      <Card className="invoices-table-card">
         <DataTable
           columns={columns}
           data={filteredInvoices}
@@ -269,7 +272,7 @@ export const InvoicesPage: React.FC = () => {
           onEmptyAction={hasActiveFilters ? handleClearFilters : undefined}
           ariaLabel="Invoices Directory Table"
         />
-      </div>
+      </Card>
 
       {/* Invoice Form Dialog */}
       <InvoiceFormDialog

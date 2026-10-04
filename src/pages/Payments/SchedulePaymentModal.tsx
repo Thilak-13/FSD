@@ -131,6 +131,7 @@ export const SchedulePaymentModal: React.FC<SchedulePaymentModalProps> = ({
       <div
         role="alertdialog"
         aria-modal="true"
+        aria-label="Schedule Payment"
         aria-labelledby="schedule-payment-heading"
         aria-describedby="schedule-payment-desc"
         data-testid="schedule-payment-modal-dialog"
@@ -140,7 +141,12 @@ export const SchedulePaymentModal: React.FC<SchedulePaymentModalProps> = ({
           outline: 'none',
         }}
       >
-        <Dialog size="m" dismissable close={handleCancel}>
+        <Dialog
+          size="m"
+          dismissable
+          close={handleCancel}
+          aria-label="Schedule Payment"
+        >
           <h2
             slot="heading"
             id="schedule-payment-heading"

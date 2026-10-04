@@ -100,6 +100,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
       <div
         role="alertdialog"
         aria-modal="true"
+        aria-label={title}
         aria-labelledby="confirm-dialog-heading"
         aria-describedby="confirm-dialog-message"
         className={className}
@@ -113,6 +114,7 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           size="m"
           dismissable
           close={onCancel}
+          aria-label={title}
         >
           <h2
             slot="heading"

@@ -10,6 +10,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { Card } from '@swc-react/card';
 import { Invoice } from '../../types';
 
 export interface VolumeChartProps {
@@ -67,7 +68,7 @@ export const VolumeChart: React.FC<VolumeChartProps> = ({ invoices }) => {
   }, [invoices]);
 
   return (
-    <div className="chart-card" data-testid="dashboard-volume-chart">
+    <Card className="chart-card" data-testid="dashboard-volume-chart">
       <div className="chart-header">
         <h3 className="chart-title">Monthly Spend & Invoice Volume</h3>
       </div>
@@ -83,20 +84,20 @@ export const VolumeChart: React.FC<VolumeChartProps> = ({ invoices }) => {
             />
             <XAxis
               dataKey="month"
-              stroke="var(--spectrum-global-color-gray-700, #505050)"
+              stroke="var(--spectrum-neutral-visual-color, #505050)"
               fontSize={12}
             />
             <YAxis
               yAxisId="left"
               orientation="left"
-              stroke="var(--spectrum-global-color-blue-700, #1473e6)"
+              stroke="var(--spectrum-indigo-visual-color, #686df4)"
               fontSize={12}
               tickFormatter={(val) => `$${(val / 1000).toFixed(0)}k`}
             />
             <YAxis
               yAxisId="right"
               orientation="right"
-              stroke="var(--spectrum-global-color-seafoam-700, #028688)"
+              stroke="var(--spectrum-seafoam-visual-color, #00a19a)"
               fontSize={12}
             />
             <Tooltip
@@ -112,19 +113,19 @@ export const VolumeChart: React.FC<VolumeChartProps> = ({ invoices }) => {
               yAxisId="left"
               dataKey="spend"
               name="Spend ($)"
-              fill="var(--spectrum-global-color-blue-600, #1473e6)"
+              fill="var(--spectrum-indigo-visual-color, #686df4)"
               radius={[4, 4, 0, 0]}
             />
             <Bar
               yAxisId="right"
               dataKey="count"
               name="Invoices (#)"
-              fill="var(--spectrum-global-color-seafoam-600, #028688)"
+              fill="var(--spectrum-seafoam-visual-color, #00a19a)"
               radius={[4, 4, 0, 0]}
             />
           </BarChart>
         </ResponsiveContainer>
       </div>
-    </div>
+    </Card>
   );
 };
