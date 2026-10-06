@@ -11,10 +11,7 @@ const NotificationRead = require('../models/NotificationRead');
  */
 const getNotifications = async (req, res, next) => {
   try {
-    const userId = req.user.id;
-    const role = req.user.role;
-
-    const notifications = await getDerivedNotifications(userId, role);
+    const notifications = await getDerivedNotifications(req.user);
 
     return res.status(200).json(notifications);
   } catch (error) {

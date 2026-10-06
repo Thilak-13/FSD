@@ -5,9 +5,9 @@ const { requireAuth } = require('../middleware/auth');
 const { requireRole } = require('../middleware/roleGuard');
 const upload = require('../middleware/upload');
 
-// Public or general read endpoints
-router.get('/', invoiceController.getInvoices);
-router.get('/:id', invoiceController.getInvoiceById);
+// Protected read endpoints
+router.get('/', requireAuth, invoiceController.getInvoices);
+router.get('/:id', requireAuth, invoiceController.getInvoiceById);
 
 // Protected mutation endpoints
 router.post('/', requireAuth, invoiceController.createInvoice);
@@ -19,6 +19,7 @@ router.patch(
 );
 router.post(
   '/:id/attachment',
+  requireAuth,
   upload.single('file'),
   invoiceController.uploadAttachment
 );

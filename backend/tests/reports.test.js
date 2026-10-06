@@ -1,9 +1,12 @@
 const express = require('express');
 const request = require('supertest');
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const Invoice = require('../src/models/Invoice');
 const Vendor = require('../src/models/Vendor');
+const User = require('../src/models/User');
+const { JWT_SECRET } = require('../src/config/env');
 const reportsRouter = require('../src/routes/reports.routes');
 
 const daysFromNow = (days) => {
@@ -15,8 +18,15 @@ const app = express();
 app.use(express.json());
 app.use('/api/reports', reportsRouter);
 
+// Global Error Handler
+app.use((err, req, res, next) => {
+  res.status(err.status || 500).json({ error: err.message });
+});
+
 describe('Reports & Spend Analytics Integration Tests', () => {
   let mongoServer;
+  let adminUser, approverUser, requesterUser, otherRequesterUser;
+  let adminToken, approverToken, requesterToken, otherRequesterToken;
 
   beforeAll(async () => {
     mongoServer = await MongoMemoryServer.create();
@@ -45,6 +55,51 @@ describe('Reports & Spend Analytics Integration Tests', () => {
   let vendor3;
 
   beforeEach(async () => {
+    adminUser = await User.create({
+      name: 'Admin User',
+      email: 'admin@payverify.local',
+      passwordHash: 'dummyhash',
+      role: 'Admin',
+    });
+
+    approverUser = await User.create({
+      name: 'Approver User',
+      email: 'approver@payverify.local',
+      passwordHash: 'dummyhash',
+      role: 'Approver',
+    });
+
+    requesterUser = await User.create({
+      name: 'Requester Alice',
+      email: 'alice@payverify.local',
+      passwordHash: 'dummyhash',
+      role: 'Requester',
+    });
+
+    otherRequesterUser = await User.create({
+      name: 'Requester Bob',
+      email: 'bob@payverify.local',
+      passwordHash: 'dummyhash',
+      role: 'Requester',
+    });
+
+    adminToken = jwt.sign(
+      { id: adminUser._id.toString(), role: 'Admin', email: adminUser.email },
+      JWT_SECRET
+    );
+    approverToken = jwt.sign(
+      { id: approverUser._id.toString(), role: 'Approver', email: approverUser.email },
+      JWT_SECRET
+    );
+    requesterToken = jwt.sign(
+      { id: requesterUser._id.toString(), role: 'Requester', email: requesterUser.email },
+      JWT_SECRET
+    );
+    otherRequesterToken = jwt.sign(
+      { id: otherRequesterUser._id.toString(), role: 'Requester', email: otherRequesterUser.email },
+      JWT_SECRET
+    );
+
     vendor1 = await Vendor.create({
       name: 'Acme Corp',
       contactEmail: 'contact@acme.com',
@@ -72,8 +127,8 @@ describe('Reports & Spend Analytics Integration Tests', () => {
       status: 'Inactive',
     });
 
-    const user1Id = new mongoose.Types.ObjectId();
-    const user2Id = new mongoose.Types.ObjectId();
+    const user1Id = requesterUser._id;
+    const user2Id = otherRequesterUser._id;
 
     await Invoice.create([
       {
@@ -137,9 +192,25 @@ describe('Reports & Spend Analytics Integration Tests', () => {
     ]);
   });
 
-  describe('GET /api/reports/summary', () => {
-    it('should compute overall high-level summary KPIs correctly without filters', async () => {
+  describe('Unauthenticated access control (401)', () => {
+    it('returns 401 for unauthenticated GET /api/reports/summary', async () => {
       const res = await request(app).get('/api/reports/summary');
+      expect(res.status).toBe(401);
+      expect(res.body).toHaveProperty('error');
+    });
+
+    it('returns 401 for unauthenticated GET /api/reports/vendor-breakdown', async () => {
+      const res = await request(app).get('/api/reports/vendor-breakdown');
+      expect(res.status).toBe(401);
+      expect(res.body).toHaveProperty('error');
+    });
+  });
+
+  describe('GET /api/reports/summary', () => {
+    it('should compute overall high-level summary KPIs correctly for Admin without filters', async () => {
+      const res = await request(app)
+        .get('/api/reports/summary')
+        .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual({
@@ -153,10 +224,11 @@ describe('Reports & Spend Analytics Integration Tests', () => {
       });
     });
 
-    it('should filter summary KPIs by date range (from and to)', async () => {
+    it('should filter summary KPIs by date range (from and to) for Admin', async () => {
       // Excludes INV-REP-006 which was 50 days ago
       const res = await request(app)
         .get('/api/reports/summary')
+        .set('Authorization', `Bearer ${adminToken}`)
         .query({ from: daysFromNow(-30), to: daysFromNow(0) });
 
       expect(res.status).toBe(200);
@@ -174,6 +246,7 @@ describe('Reports & Spend Analytics Integration Tests', () => {
     it('should return zero metrics when date range matches no invoices', async () => {
       const res = await request(app)
         .get('/api/reports/summary')
+        .set('Authorization', `Bearer ${adminToken}`)
         .query({ from: daysFromNow(100), to: daysFromNow(120) });
 
       expect(res.status).toBe(200);
@@ -187,11 +260,65 @@ describe('Reports & Spend Analytics Integration Tests', () => {
         scheduledDisbursements: 0,
       });
     });
+
+    it('scopes summary metrics strictly to invoices submitted by Requester', async () => {
+      // Alice submitted: INV-REP-001 ($1000 Paid), INV-REP-002 ($500 Submitted), INV-REP-005 ($800 Under Verification)
+      const res = await request(app)
+        .get('/api/reports/summary')
+        .set('Authorization', `Bearer ${requesterToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({
+        totalBilled: 2300,
+        totalPaid: 1000,
+        pendingBalance: 1300,
+        spendPending: 1300,
+        requiresApprovalCount: 1,
+        flaggedCount: 0,
+        scheduledDisbursements: 0,
+      });
+
+      // Bob submitted: INV-REP-003 ($250 Flagged), INV-REP-004 ($2000 Payment Scheduled), INV-REP-006 ($1200 Paid)
+      const resBob = await request(app)
+        .get('/api/reports/summary')
+        .set('Authorization', `Bearer ${otherRequesterToken}`);
+
+      expect(resBob.status).toBe(200);
+      expect(resBob.body).toEqual({
+        totalBilled: 3450,
+        totalPaid: 1200,
+        pendingBalance: 2250,
+        spendPending: 250,
+        requiresApprovalCount: 0,
+        flaggedCount: 1,
+        scheduledDisbursements: 2000,
+      });
+    });
   });
 
   describe('GET /api/reports/vendor-breakdown', () => {
-    it('should return per-vendor breakdown rows including cycle times and balances', async () => {
-      const res = await request(app).get('/api/reports/vendor-breakdown');
+    it('rejects Requester with 403 on GET /api/reports/vendor-breakdown', async () => {
+      const res = await request(app)
+        .get('/api/reports/vendor-breakdown')
+        .set('Authorization', `Bearer ${requesterToken}`);
+
+      expect(res.status).toBe(403);
+      expect(res.body).toEqual({ error: 'Forbidden: Insufficient permissions' });
+    });
+
+    it('allows Approver to access GET /api/reports/vendor-breakdown', async () => {
+      const res = await request(app)
+        .get('/api/reports/vendor-breakdown')
+        .set('Authorization', `Bearer ${approverToken}`);
+
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body)).toBe(true);
+    });
+
+    it('should return per-vendor breakdown rows including cycle times and balances for Admin', async () => {
+      const res = await request(app)
+        .get('/api/reports/vendor-breakdown')
+        .set('Authorization', `Bearer ${adminToken}`);
 
       expect(res.status).toBe(200);
       expect(Array.isArray(res.body)).toBe(true);
@@ -231,6 +358,7 @@ describe('Reports & Spend Analytics Integration Tests', () => {
     it('should apply date range filter to vendor breakdown', async () => {
       const res = await request(app)
         .get('/api/reports/vendor-breakdown')
+        .set('Authorization', `Bearer ${adminToken}`)
         .query({ from: daysFromNow(-30), to: daysFromNow(0) });
 
       expect(res.status).toBe(200);

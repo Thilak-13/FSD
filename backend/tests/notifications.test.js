@@ -203,8 +203,7 @@ describe('Notifications Integration & Unit Tests', () => {
   describe('Notification Derivation Logic', () => {
     it('correctly derives overdue, due_soon, pending_approval, and flagged notifications for Admin', async () => {
       const notifications = await getDerivedNotifications(
-        adminUser._id.toString(),
-        'Admin',
+        { id: adminUser._id.toString(), role: 'Admin' },
         now
       );
 
@@ -251,8 +250,7 @@ describe('Notifications Integration & Unit Tests', () => {
 
     it('derives all notifications across all invoices for Approver role', async () => {
       const notifications = await getDerivedNotifications(
-        approverUser._id.toString(),
-        'Approver',
+        { id: approverUser._id.toString(), role: 'Approver' },
         now
       );
 
@@ -262,8 +260,7 @@ describe('Notifications Integration & Unit Tests', () => {
     it('scopes notifications for Requester to only invoices they submitted', async () => {
       const aliceId = requesterUser.id || requesterUser._id.toString();
       const aliceNotifs = await getDerivedNotifications(
-        aliceId,
-        'Requester',
+        { id: aliceId, role: 'Requester' },
         now
       );
 
@@ -287,11 +284,20 @@ describe('Notifications Integration & Unit Tests', () => {
 
       // Verify Bob's notifications only show Bob's invoices
       const bobId = otherRequester.id || otherRequester._id.toString();
-      const bobNotifs = await getDerivedNotifications(bobId, 'Requester', now);
+      const bobNotifs = await getDerivedNotifications(
+        { id: bobId, role: 'Requester' },
+        now
+      );
       expect(bobNotifs.length).toBe(2);
       bobNotifs.forEach((n) => {
         expect(bobInvoiceIds).toContain(n.invoiceId);
       });
+    });
+
+    it('supports backward compatibility when string id is passed directly', async () => {
+      const aliceId = requesterUser.id || requesterUser._id.toString();
+      const stringIdNotifs = await getDerivedNotifications(aliceId, now);
+      expect(Array.isArray(stringIdNotifs)).toBe(true);
     });
   });
 

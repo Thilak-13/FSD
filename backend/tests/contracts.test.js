@@ -336,7 +336,9 @@ describe('Mechanical Shape-Parity Contract Tests (src/types/index.ts vs Backend 
   });
 
   it('verifies Reports Summary shape in GET /api/reports/summary matches KPI card contracts', async () => {
-    const res = await request(app).get('/api/reports/summary');
+    const res = await request(app)
+      .get('/api/reports/summary')
+      .set('Authorization', `Bearer ${adminToken}`);
     expect(res.status).toBe(200);
     assertNoInternalLeak(res.body);
 
@@ -357,7 +359,9 @@ describe('Mechanical Shape-Parity Contract Tests (src/types/index.ts vs Backend 
   });
 
   it('verifies Vendor Breakdown shape in GET /api/reports/vendor-breakdown matches contract', async () => {
-    const res = await request(app).get('/api/reports/vendor-breakdown');
+    const res = await request(app)
+      .get('/api/reports/vendor-breakdown')
+      .set('Authorization', `Bearer ${adminToken}`);
     expect(res.status).toBe(200);
     expect(res.body.length).toBeGreaterThan(0);
     assertNoInternalLeak(res.body);

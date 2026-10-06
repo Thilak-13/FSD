@@ -58,10 +58,7 @@ const markAllNotificationsAsRead = async (
   }
 
   const notifs = await getDerivedNotifications(
-    userIdOrUser && typeof userIdOrUser === 'object' && !(userIdOrUser instanceof Date)
-      ? userIdOrUser
-      : targetUserId,
-    role,
+    { id: targetUserId, role },
     referenceDate
   );
   const uid = String(targetUserId || 'default_user');
@@ -91,34 +88,43 @@ const markAllNotificationsAsRead = async (
  * Read state:
  * - Persisted in MongoDB NotificationRead collection keyed by (userId, notificationKey).
  *
- * @param {string|object} userIdOrUser - User ID string or user object { id, role }
- * @param {string} [userRole] - Role of the user ('Admin', 'Approver', 'Requester')
- * @param {Date} [refDate] - Reference date for date math (defaults to new Date())
+ * @param {object|string} user - User object { id, role } or user ID string
+ * @param {Date|string} [refDate=new Date()] - Reference date for date math
+ * @param {Date} [legacyRefDate] - Legacy 3rd parameter if called as (userId, role, refDate)
  * @returns {Promise<Array>} Array of derived notification objects
  */
 const getDerivedNotifications = async (
-  userIdOrUser,
-  userRole,
-  refDate = new Date()
+  user,
+  refDate = new Date(),
+  legacyRefDate
 ) => {
-  let userId = userIdOrUser;
-  let role = userRole;
+  let userId;
+  let role;
   let referenceDate = refDate;
 
-  if (
-    userIdOrUser &&
-    typeof userIdOrUser === 'object' &&
-    !(userIdOrUser instanceof Date)
+  if (user && typeof user === 'object' && !(user instanceof Date)) {
+    userId = user.id || user.userId || user._id;
+    role = user.role;
+    referenceDate =
+      refDate instanceof Date ||
+      (typeof refDate === 'string' &&
+        !['Admin', 'Approver', 'Requester'].includes(refDate))
+        ? refDate
+        : new Date();
+  } else if (
+    typeof user === 'string' &&
+    typeof refDate === 'string' &&
+    ['Admin', 'Approver', 'Requester'].includes(refDate)
   ) {
-    userId = userIdOrUser.id || userIdOrUser.userId || userIdOrUser._id;
-    role = userIdOrUser.role || role;
-    if (userRole instanceof Date) {
-      referenceDate = userRole;
-    } else if (refDate instanceof Date) {
-      referenceDate = refDate;
-    }
-  } else if (userIdOrUser instanceof Date) {
-    referenceDate = userIdOrUser;
+    userId = user;
+    role = refDate;
+    referenceDate = legacyRefDate || new Date();
+  } else if (typeof user === 'string') {
+    userId = user;
+    role = undefined;
+    referenceDate = refDate || new Date();
+  } else if (user instanceof Date) {
+    referenceDate = user;
     userId = undefined;
     role = undefined;
   }

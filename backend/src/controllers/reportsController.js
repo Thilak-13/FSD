@@ -34,9 +34,25 @@ const isInvoiceInDateRange = (submittedDate, dueDate, from, to) => {
 const getReportsSummary = async (req, res) => {
   try {
     const { from, to } = req.query;
-    const allInvoices = await Invoice.find().lean();
+    const query = {};
+    if (req.user && req.user.role === 'Requester') {
+      query.submittedBy = req.user.id;
+    }
+    const allInvoices = await Invoice.find(query).lean();
 
-    const filteredInvoices = allInvoices.filter((inv) =>
+    let invoicesToProcess = allInvoices;
+    if (req.user && req.user.role === 'Requester') {
+      invoicesToProcess = invoicesToProcess.filter((inv) => {
+        const sId = inv.submittedBy?._id
+          ? inv.submittedBy._id.toString()
+          : inv.submittedBy?.toString
+          ? inv.submittedBy.toString()
+          : String(inv.submittedBy);
+        return sId === String(req.user.id);
+      });
+    }
+
+    const filteredInvoices = invoicesToProcess.filter((inv) =>
       isInvoiceInDateRange(inv.submittedDate, inv.dueDate, from, to)
     );
 

@@ -183,31 +183,41 @@ describe('Invoices Integration & Verification Tests', () => {
         });
 
       // 1. List all
-      const resAll = await request(app).get('/api/invoices');
+      const resAll = await request(app)
+        .get('/api/invoices')
+        .set('Authorization', `Bearer ${adminToken}`);
       expect(resAll.status).toBe(200);
       expect(Array.isArray(resAll.body)).toBe(true);
       expect(resAll.body.length).toBe(2);
 
       // 2. Filter by status: Under Verification vs Submitted
-      const resUnderVerif = await request(app).get('/api/invoices?status=Under Verification');
+      const resUnderVerif = await request(app)
+        .get('/api/invoices?status=Under Verification')
+        .set('Authorization', `Bearer ${adminToken}`);
       expect(resUnderVerif.status).toBe(200);
       expect(resUnderVerif.body.length).toBe(1);
       expect(resUnderVerif.body[0].invoiceNumber).toBe('INV-2026-001');
 
-      const resSubmitted = await request(app).get('/api/invoices?status=Submitted');
+      const resSubmitted = await request(app)
+        .get('/api/invoices?status=Submitted')
+        .set('Authorization', `Bearer ${adminToken}`);
       expect(resSubmitted.status).toBe(200);
       expect(resSubmitted.body.length).toBe(1);
       expect(resSubmitted.body[0].invoiceNumber).toBe('INV-2026-002');
 
       // 3. Filter by vendor
-      const resVendor = await request(app).get(`/api/invoices?vendor=${testVendor._id}`);
+      const resVendor = await request(app)
+        .get(`/api/invoices?vendor=${testVendor._id}`)
+        .set('Authorization', `Bearer ${adminToken}`);
       expect(resVendor.status).toBe(200);
       expect(resVendor.body.length).toBe(2);
 
       // 4. Filter by date range (from / to) using relative window
       const fromDate = daysFromNow(-10);
       const toDate = daysFromNow(0);
-      const resDateFiltered = await request(app).get(`/api/invoices?from=${fromDate}&to=${toDate}`);
+      const resDateFiltered = await request(app)
+        .get(`/api/invoices?from=${fromDate}&to=${toDate}`)
+        .set('Authorization', `Bearer ${adminToken}`);
       expect(resDateFiltered.status).toBe(200);
       expect(resDateFiltered.body.length).toBe(1);
       expect(resDateFiltered.body[0].invoiceNumber).toBe('INV-2026-002');
@@ -226,12 +236,16 @@ describe('Invoices Integration & Verification Tests', () => {
 
       const invId = createRes.body._id || createRes.body.id;
 
-      const getRes = await request(app).get(`/api/invoices/${invId}`);
+      const getRes = await request(app)
+        .get(`/api/invoices/${invId}`)
+        .set('Authorization', `Bearer ${adminToken}`);
       expect(getRes.status).toBe(200);
       expect(getRes.body.invoiceNumber).toBe('INV-2026-003');
 
       const fakeId = new mongoose.Types.ObjectId().toString();
-      const notFoundRes = await request(app).get(`/api/invoices/${fakeId}`);
+      const notFoundRes = await request(app)
+        .get(`/api/invoices/${fakeId}`)
+        .set('Authorization', `Bearer ${adminToken}`);
       expect(notFoundRes.status).toBe(404);
       expect(notFoundRes.body.message).toContain('Invoice not found');
     });
@@ -538,6 +552,18 @@ describe('Invoices Integration & Verification Tests', () => {
   });
 
   describe('Unauthenticated requests rejected with 401', () => {
+    it('rejects GET /api/invoices without auth token with 401', async () => {
+      const res = await request(app).get('/api/invoices');
+      expect(res.status).toBe(401);
+      expect(res.body).toHaveProperty('error');
+    });
+
+    it('rejects GET /api/invoices/:id without auth token with 401', async () => {
+      const res = await request(app).get('/api/invoices/some-id');
+      expect(res.status).toBe(401);
+      expect(res.body).toHaveProperty('error');
+    });
+
     it('rejects POST /api/invoices without auth token with 401', async () => {
       const res = await request(app)
         .post('/api/invoices')
@@ -560,6 +586,15 @@ describe('Invoices Integration & Verification Tests', () => {
       expect(res.body).toHaveProperty('error');
     });
 
+    it('rejects POST /api/invoices/:id/attachment without auth token with 401', async () => {
+      const res = await request(app)
+        .post('/api/invoices/some-id/attachment')
+        .attach('file', Buffer.from('test'), 'test.pdf');
+
+      expect(res.status).toBe(401);
+      expect(res.body).toHaveProperty('error');
+    });
+
     it('rejects requests with invalid or expired token with 401', async () => {
       const res = await request(app)
         .post('/api/invoices')
@@ -575,8 +610,143 @@ describe('Invoices Integration & Verification Tests', () => {
     });
   });
 
+  describe('Requester authorization scoping & permissions', () => {
+    let aliceInvoice, bobInvoice, bobUser, bobToken;
+
+    beforeEach(async () => {
+      bobUser = await User.create({
+        name: 'Requester Bob',
+        email: 'bob@payverify.local',
+        passwordHash: 'dummyhash',
+        role: 'Requester',
+      });
+
+      bobToken = jwt.sign(
+        { id: bobUser._id.toString(), role: 'Requester', email: bobUser.email },
+        JWT_SECRET
+      );
+
+      // Alice (requesterUser) invoice
+      aliceInvoice = await Invoice.create({
+        invoiceNumber: 'INV-ALICE-001',
+        vendorId: testVendor._id,
+        amount: 1500,
+        dueDate: daysFromNow(30),
+        status: 'Submitted',
+        submittedBy: requesterUser._id,
+      });
+
+      // Bob invoice
+      bobInvoice = await Invoice.create({
+        invoiceNumber: 'INV-BOB-001',
+        vendorId: testVendor._id,
+        amount: 2500,
+        dueDate: daysFromNow(30),
+        status: 'Submitted',
+        submittedBy: bobUser._id,
+      });
+    });
+
+    it('Requester sees only their own invoices in GET /api/invoices while Admin and Approver see all', async () => {
+      // Alice sees only Alice's invoice
+      const aliceRes = await request(app)
+        .get('/api/invoices')
+        .set('Authorization', `Bearer ${requesterToken}`);
+      expect(aliceRes.status).toBe(200);
+      expect(aliceRes.body.length).toBe(1);
+      expect(aliceRes.body[0].invoiceNumber).toBe('INV-ALICE-001');
+
+      // Bob sees only Bob's invoice
+      const bobRes = await request(app)
+        .get('/api/invoices')
+        .set('Authorization', `Bearer ${bobToken}`);
+      expect(bobRes.status).toBe(200);
+      expect(bobRes.body.length).toBe(1);
+      expect(bobRes.body[0].invoiceNumber).toBe('INV-BOB-001');
+
+      // Admin sees both
+      const adminRes = await request(app)
+        .get('/api/invoices')
+        .set('Authorization', `Bearer ${adminToken}`);
+      expect(adminRes.status).toBe(200);
+      expect(adminRes.body.length).toBe(2);
+
+      // Approver sees both
+      const approverRes = await request(app)
+        .get('/api/invoices')
+        .set('Authorization', `Bearer ${approverToken}`);
+      expect(approverRes.status).toBe(200);
+      expect(approverRes.body.length).toBe(2);
+    });
+
+    it("Requester gets 404 on GET /api/invoices/:id for another user's invoice while Admin and Approver see it", async () => {
+      // Alice requesting Bob's invoice gets 404
+      const aliceOnBobRes = await request(app)
+        .get(`/api/invoices/${bobInvoice._id}`)
+        .set('Authorization', `Bearer ${requesterToken}`);
+      expect(aliceOnBobRes.status).toBe(404);
+      expect(aliceOnBobRes.body).toEqual({ error: 'Invoice not found' });
+
+      // Alice requesting Alice's invoice gets 200
+      const aliceOnAliceRes = await request(app)
+        .get(`/api/invoices/${aliceInvoice._id}`)
+        .set('Authorization', `Bearer ${requesterToken}`);
+      expect(aliceOnAliceRes.status).toBe(200);
+      expect(aliceOnAliceRes.body.invoiceNumber).toBe('INV-ALICE-001');
+
+      // Admin requesting Bob's invoice gets 200
+      const adminOnBobRes = await request(app)
+        .get(`/api/invoices/${bobInvoice._id}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+      expect(adminOnBobRes.status).toBe(200);
+      expect(adminOnBobRes.body.invoiceNumber).toBe('INV-BOB-001');
+
+      // Approver requesting Bob's invoice gets 200
+      const approverOnBobRes = await request(app)
+        .get(`/api/invoices/${bobInvoice._id}`)
+        .set('Authorization', `Bearer ${approverToken}`);
+      expect(approverOnBobRes.status).toBe(200);
+      expect(approverOnBobRes.body.invoiceNumber).toBe('INV-BOB-001');
+    });
+
+    it("Requester gets 403 on POST /api/invoices/:id/attachment for another user's invoice while owner, Admin, and Approver can upload", async () => {
+      const fileBuffer = Buffer.from('Dummy attachment content');
+
+      // Alice tries to upload to Bob's invoice -> 403 Forbidden
+      const aliceOnBobRes = await request(app)
+        .post(`/api/invoices/${bobInvoice._id}/attachment`)
+        .set('Authorization', `Bearer ${requesterToken}`)
+        .attach('file', fileBuffer, 'alice-attempt.pdf');
+      expect(aliceOnBobRes.status).toBe(403);
+      expect(aliceOnBobRes.body).toEqual({
+        error: 'Forbidden: Insufficient permissions to modify this invoice attachment',
+      });
+
+      // Bob (owner) uploads to Bob's invoice -> 200 OK
+      const bobOnBobRes = await request(app)
+        .post(`/api/invoices/${bobInvoice._id}/attachment`)
+        .set('Authorization', `Bearer ${bobToken}`)
+        .attach('file', fileBuffer, 'bob-receipt.pdf');
+      expect(bobOnBobRes.status).toBe(200);
+
+      // Approver uploads to Alice's invoice -> 200 OK
+      const approverOnAliceRes = await request(app)
+        .post(`/api/invoices/${aliceInvoice._id}/attachment`)
+        .set('Authorization', `Bearer ${approverToken}`)
+        .attach('file', fileBuffer, 'approver-doc.png');
+      expect(approverOnAliceRes.status).toBe(200);
+
+      // Admin uploads to Alice's invoice -> 200 OK
+      const adminOnAliceRes = await request(app)
+        .post(`/api/invoices/${aliceInvoice._id}/attachment`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .attach('file', fileBuffer, 'admin-doc.jpeg');
+      expect(adminOnAliceRes.status).toBe(200);
+    });
+  });
+
   describe('File upload attachment (POST /api/invoices/:id/attachment)', () => {
-    it('uploads a file and updates attachedDocumentPath on invoice', async () => {
+    it('uploads a file and updates attachedDocumentPath on invoice with generated filename', async () => {
       const createRes = await request(app)
         .post('/api/invoices')
         .set('Authorization', `Bearer ${requesterToken}`)
@@ -588,19 +758,21 @@ describe('Invoices Integration & Verification Tests', () => {
         });
 
       const invId = createRes.body._id || createRes.body.id;
-
       const fileBuffer = Buffer.from('PDF Mock File Content for Invoice Receipt');
 
       const uploadRes = await request(app)
         .post(`/api/invoices/${invId}/attachment`)
+        .set('Authorization', `Bearer ${requesterToken}`)
         .attach('file', fileBuffer, 'sample-receipt.pdf');
 
       expect(uploadRes.status).toBe(200);
-      expect(uploadRes.body.attachedDocumentPath).toMatch(/^\/uploads\/.*\.pdf$/);
+      expect(uploadRes.body.attachedDocumentPath).toMatch(/^\/uploads\/\d+-[a-f0-9]{32}\.pdf$/);
       expect(uploadRes.body.attachedDocumentName).toBe('sample-receipt.pdf');
 
       // Verify file exists on disk
       const uploadedFilename = path.basename(uploadRes.body.attachedDocumentPath);
+      // Ensure client original name was NOT used directly in the disk filename
+      expect(uploadedFilename).not.toContain('sample-receipt');
       const diskPath = path.join(__dirname, '../uploads', uploadedFilename);
       expect(fs.existsSync(diskPath)).toBe(true);
 
@@ -610,6 +782,32 @@ describe('Invoices Integration & Verification Tests', () => {
       } catch (err) {
         // ignore
       }
+    });
+
+    it('rejects file upload with invalid mime type with 400', async () => {
+      const createRes = await request(app)
+        .post('/api/invoices')
+        .set('Authorization', `Bearer ${requesterToken}`)
+        .send({
+          invoiceNumber: 'INV-BAD-MIME',
+          vendorId: testVendor._id.toString(),
+          amount: 800,
+          dueDate: daysFromNow(45),
+        });
+
+      const invId = createRes.body._id || createRes.body.id;
+      const fileBuffer = Buffer.from('alert("malicious script");');
+
+      const uploadRes = await request(app)
+        .post(`/api/invoices/${invId}/attachment`)
+        .set('Authorization', `Bearer ${requesterToken}`)
+        .attach('file', fileBuffer, {
+          filename: 'script.js',
+          contentType: 'application/javascript',
+        });
+
+      expect(uploadRes.status).toBe(400);
+      expect(uploadRes.body.error).toContain('Invalid file type');
     });
 
     it('returns 400 if no file is provided in attachment request', async () => {
@@ -625,7 +823,9 @@ describe('Invoices Integration & Verification Tests', () => {
 
       const invId = createRes.body._id || createRes.body.id;
 
-      const res = await request(app).post(`/api/invoices/${invId}/attachment`);
+      const res = await request(app)
+        .post(`/api/invoices/${invId}/attachment`)
+        .set('Authorization', `Bearer ${requesterToken}`);
       expect(res.status).toBe(400);
       expect(res.body.message).toContain('No file uploaded');
     });
