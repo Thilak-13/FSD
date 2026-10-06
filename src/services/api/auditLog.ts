@@ -8,12 +8,3 @@ export const getAuditLog = async (
   const query = invoiceId ? `?invoiceId=${encodeURIComponent(invoiceId)}` : '';
   return apiFetch<AuditEntry[]>(`/audit-log${query}`);
 };
-
-export const addAuditEntry = async (
-  entry: Omit<AuditEntry, 'id' | 'timestamp'> & { timestamp?: string }
-): Promise<AuditEntry> => {
-  return apiFetch<AuditEntry>('/audit-log', {
-    method: 'POST',
-    body: JSON.stringify(entry),
-  });
-};

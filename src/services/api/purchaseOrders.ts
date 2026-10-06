@@ -15,7 +15,10 @@ export const getPurchaseOrderById = async (
   try {
     return await apiFetch<PurchaseOrder>(`/purchase-orders/${id}`);
   } catch (err: unknown) {
-    if (err instanceof Error && err.message.includes('404')) {
+    if (
+      err instanceof Error &&
+      (err.message.includes('404') || err.message.toLowerCase().includes('not found'))
+    ) {
       return null;
     }
     throw err;

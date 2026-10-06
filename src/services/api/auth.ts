@@ -9,11 +9,11 @@ export interface LoginResponse {
 
 export const login = async (
   email: string,
-  password?: string
+  password: string
 ): Promise<LoginResponse> => {
   const res = await apiFetch<LoginResponse>('/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ email, password: password || 'password123' }),
+    body: JSON.stringify({ email, password }),
   });
   if (res?.token) {
     setStoredToken(res.token);

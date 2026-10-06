@@ -10,7 +10,10 @@ export const getVendorById = async (id: string): Promise<Vendor | null> => {
   try {
     return await apiFetch<Vendor>(`/vendors/${id}`);
   } catch (err: unknown) {
-    if (err instanceof Error && err.message.includes('404')) {
+    if (
+      err instanceof Error &&
+      (err.message.includes('404') || err.message.toLowerCase().includes('not found'))
+    ) {
       return null;
     }
     throw err;

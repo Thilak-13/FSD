@@ -10,8 +10,10 @@ export const getInvoices = async (
   if (filters?.vendorId && filters.vendorId !== 'all') params.append('vendorId', filters.vendorId);
   if (filters?.submittedBy) params.append('submittedBy', filters.submittedBy);
   if (filters?.search) params.append('search', filters.search);
-  if (filters?.startDate) params.append('startDate', filters.startDate);
-  if (filters?.endDate) params.append('endDate', filters.endDate);
+  const fromDate = filters?.startDate || (filters as any)?.from;
+  if (fromDate) params.append('from', fromDate);
+  const toDate = filters?.endDate || (filters as any)?.to;
+  if (toDate) params.append('to', toDate);
 
   const query = params.toString() ? `?${params.toString()}` : '';
   return apiFetch<Invoice[]>(`/invoices${query}`);
@@ -21,7 +23,10 @@ export const getInvoiceById = async (id: string): Promise<Invoice | null> => {
   try {
     return await apiFetch<Invoice>(`/invoices/${id}`);
   } catch (err: unknown) {
-    if (err instanceof Error && err.message.includes('404')) {
+    if (
+      err instanceof Error &&
+      (err.message.includes('404') || err.message.toLowerCase().includes('not found'))
+    ) {
       return null;
     }
     throw err;
@@ -66,9 +71,8 @@ export const uploadInvoiceAttachment = async (
   const formData = new FormData();
   formData.append('file', file);
 
-  const res = await apiFetch<{ invoice: Invoice }>(`/invoices/${id}/attachment`, {
+  return apiFetch<Invoice>(`/invoices/${id}/attachment`, {
     method: 'POST',
     body: formData,
   });
-  return res.invoice;
 };

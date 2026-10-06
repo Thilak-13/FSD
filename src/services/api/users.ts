@@ -7,10 +7,16 @@ export const getUsers = async (): Promise<User[]> => {
 };
 
 export const getUserById = async (id: string): Promise<User | null> => {
+  if (!id || !/^[0-9a-fA-F]{24}$/.test(id)) {
+    return null;
+  }
   try {
     return await apiFetch<User>(`/auth/users/${id}`);
   } catch (err: unknown) {
-    if (err instanceof Error && err.message.includes('404')) {
+    if (
+      err instanceof Error &&
+      (err.message.includes('404') || err.message.toLowerCase().includes('not found'))
+    ) {
       return null;
     }
     throw err;
