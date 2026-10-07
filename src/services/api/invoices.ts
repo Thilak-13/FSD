@@ -1,6 +1,6 @@
 // src/services/api/invoices.ts
 import { Invoice, NewInvoiceInput, InvoiceFilters, InvoiceStatus } from '../../types';
-import { apiFetch } from './client';
+import { apiFetch, ApiError, API_BASE_URL, getStoredToken } from './client';
 
 export const getInvoices = async (
   filters?: InvoiceFilters
@@ -23,10 +23,7 @@ export const getInvoiceById = async (id: string): Promise<Invoice | null> => {
   try {
     return await apiFetch<Invoice>(`/invoices/${id}`);
   } catch (err: unknown) {
-    if (
-      err instanceof Error &&
-      (err.message.includes('404') || err.message.toLowerCase().includes('not found'))
-    ) {
+    if (err instanceof ApiError && err.status === 404) {
       return null;
     }
     throw err;
@@ -75,4 +72,16 @@ export const uploadInvoiceAttachment = async (
     method: 'POST',
     body: formData,
   });
+};
+
+export const downloadInvoiceAttachment = async (id: string): Promise<Blob> => {
+  const url = `${API_BASE_URL}/invoices/${id}/attachment`;
+  const token = getStoredToken();
+  const headers: Record<string, string> = {};
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  const res = await fetch(url, { headers });
+  if (!res.ok) {
+    throw new ApiError(res.status, `Failed to download attachment: ${res.statusText}`);
+  }
+  return res.blob();
 };

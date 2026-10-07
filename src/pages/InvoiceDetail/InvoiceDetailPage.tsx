@@ -255,7 +255,7 @@ export const InvoiceDetailPage: React.FC = () => {
       {/* 1. Lifecycle Status Stepper */}
       <StatusStepper status={invoice.status} flagReason={invoice.flagReason} />
 
-      {/* 2. 3-Way Match Verification Panel */}
+      {/* 2. PO Match Verification Panel */}
       <VerificationPanel
         invoice={invoice}
         purchaseOrders={purchaseOrders}

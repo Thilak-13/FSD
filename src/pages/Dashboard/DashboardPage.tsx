@@ -195,7 +195,7 @@ export const DashboardPage: React.FC = () => {
           id="kpi-flagged-discrepancies"
           title="Flagged Invoices"
           value={String(flaggedCount)}
-          subtitle="3-way matching variances"
+          subtitle="PO matching variances"
           trendType="negative"
         />
         <SummaryCard

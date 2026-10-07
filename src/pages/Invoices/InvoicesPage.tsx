@@ -44,7 +44,7 @@ export const InvoicesPage: React.FC = () => {
   // - Approver / Admin: see all invoices
   const roleFilteredInvoices = useMemo(() => {
     if (currentRole === 'Requester') {
-      const currentUserId = currentUser?.id || 'user-3';
+      const currentUserId = currentUser?.id || '';
       return invoices.filter((inv) => inv.submittedBy === currentUserId);
     }
     return invoices;

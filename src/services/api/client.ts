@@ -1,7 +1,17 @@
 // src/services/api/client.ts
 const metaEnv = typeof import.meta !== 'undefined' && (import.meta as Record<string, any>).env;
-const API_BASE_URL = metaEnv?.VITE_API_URL || 'http://localhost:5000/api';
+export const API_BASE_URL = metaEnv?.VITE_API_URL || 'http://localhost:5000/api';
 const TOKEN_KEY = 'payverify_auth_token';
+
+export class ApiError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+    this.name = 'ApiError';
+    Object.setPrototypeOf(this, ApiError.prototype);
+  }
+}
 
 export const getStoredToken = (): string | null => {
   if (typeof window !== 'undefined' && window.sessionStorage) {
@@ -70,7 +80,14 @@ export const apiFetch = async <T>(
     } catch {
       // Fallback to status text
     }
-    throw new Error(errorMessage);
+
+    if (response.status === 401 && !endpoint.includes('/auth/login')) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('payverify:unauthorized'));
+      }
+    }
+
+    throw new ApiError(response.status, errorMessage);
   }
 
   return response.json() as Promise<T>;

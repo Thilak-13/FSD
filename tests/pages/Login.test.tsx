@@ -324,4 +324,29 @@ describe('LoginPage', () => {
       expect(screen.getByTestId('target-page')).toBeDefined();
     });
   });
+
+  it('displays server error message when login fails with invalid credentials', async () => {
+    render(
+      <MemoryRouter initialEntries={['/login']}>
+        <AuthProvider>
+          <LoginPage />
+        </AuthProvider>
+      </MemoryRouter>
+    );
+
+    const emailInput = screen.getByTestId('login-email-input');
+    const passwordInput = screen.getByTestId('login-password-input');
+    const submitBtn = screen.getByTestId('login-submit-button');
+
+    fireEvent.input(emailInput, { target: { value: 'unknown@apex.corp' } });
+    fireEvent.change(emailInput, { target: { value: 'unknown@apex.corp' } });
+    fireEvent.input(passwordInput, { target: { value: 'WrongPassword123' } });
+    fireEvent.change(passwordInput, { target: { value: 'WrongPassword123' } });
+
+    fireEvent.click(submitBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('Invalid email or password')).toBeDefined();
+    });
+  });
 });

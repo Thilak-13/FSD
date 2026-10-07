@@ -24,7 +24,7 @@ export const INITIAL_AUDIT_LOG: AuditEntry[] = [
     action: 'VERIFICATION',
     performedBy: 'System Auto-Matcher',
     timestamp: '2026-08-25T11:16:00Z',
-    details: '3-way match verified against PO-2026-003',
+    details: 'PO match verified against PO-2026-003',
   },
   {
     id: 'audit-4',

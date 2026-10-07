@@ -296,7 +296,7 @@ export const InvoiceFormDialog: React.FC<InvoiceFormDialogProps> = ({
         poId: poId || undefined,
         amount: aggregateAmount,
         dueDate,
-        submittedBy: currentUser?.id || 'user-3',
+        submittedBy: currentUser?.id || '',
         attachedDocumentName: attachedFileName || undefined,
         notes: notes.trim() || undefined,
         items: lineItems.map((item) => {

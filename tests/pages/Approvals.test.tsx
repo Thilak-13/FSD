@@ -66,14 +66,15 @@ describe('ApprovalsPage', () => {
 
       // In mock data:
       // Submitted: INV-2026-001 ($6500), INV-2026-002 ($4800), INV-2026-003 ($2600) -> 3
+      // Under Verification: INV-2026-004 ($7200), INV-2026-005 ($8000), INV-2026-006 ($14400) -> 3
       // Flagged: INV-2026-011 ($11000), INV-2026-012 ($6000), INV-2026-013 ($8400) -> 3
-      // Total in queue = 6. Total amount pending = $39,300.00
-      expect(screen.getByTestId('metric-awaiting-approval').textContent).toContain('6');
+      // Total in queue = 9. Total amount pending = $68,900.00
+      expect(screen.getByTestId('metric-awaiting-approval').textContent).toContain('9');
       expect(screen.getByTestId('metric-flagged-count').textContent).toContain('3');
-      expect(screen.getByTestId('metric-pending-amount').textContent).toContain('$39,300.00');
+      expect(screen.getByTestId('metric-pending-amount').textContent).toContain('$68,900.00');
     });
 
-    it('only displays invoices with status Submitted or Flagged', async () => {
+    it('only displays invoices with status Submitted, Under Verification, or Flagged', async () => {
       renderApprovalsPage('Approver');
 
       await waitFor(() => {
@@ -85,13 +86,17 @@ describe('ApprovalsPage', () => {
       expect(screen.getByText('INV-2026-002')).toBeDefined();
       expect(screen.getByText('INV-2026-003')).toBeDefined();
 
+      // Under Verification invoices should be present
+      expect(screen.getByText('INV-2026-004')).toBeDefined();
+      expect(screen.getByText('INV-2026-005')).toBeDefined();
+      expect(screen.getByText('INV-2026-006')).toBeDefined();
+
       // Flagged invoices should be present
       expect(screen.getByText('INV-2026-011')).toBeDefined();
       expect(screen.getByText('INV-2026-012')).toBeDefined();
       expect(screen.getByText('INV-2026-013')).toBeDefined();
 
-      // Under Verification (INV-2026-004), Approved (INV-2026-007), Payment Scheduled (INV-2026-014), Paid (INV-2026-017) MUST NOT be present
-      expect(screen.queryByText('INV-2026-004')).toBeNull();
+      // Approved (INV-2026-007), Payment Scheduled (INV-2026-014), Paid (INV-2026-017) MUST NOT be present
       expect(screen.queryByText('INV-2026-007')).toBeNull();
       expect(screen.queryByText('INV-2026-014')).toBeNull();
       expect(screen.queryByText('INV-2026-017')).toBeNull();
@@ -189,6 +194,40 @@ describe('ApprovalsPage', () => {
       // inv-1 is now Approved, so it disappears from the Submitted/Flagged triage queue
       await waitFor(() => {
         expect(screen.queryByText('INV-2026-001')).toBeNull();
+      });
+    });
+
+    it('approves an Under Verification invoice after confirmation and displays success notification', async () => {
+      renderApprovalsPage('Approver');
+
+      await waitFor(() => {
+        expect(screen.getByTestId('approve-btn-inv-4')).toBeDefined();
+      });
+
+      // Click Approve button on row for inv-4 (Under Verification)
+      const approveBtn = screen.getByTestId('approve-btn-inv-4');
+      fireEvent.click(approveBtn);
+
+      // Confirmation dialog should open
+      await waitFor(() => {
+        expect(screen.getByRole('alertdialog')).toBeDefined();
+        expect(screen.getByText(/Approve Invoice INV-2026-004/i)).toBeDefined();
+      });
+
+      // Click confirm inside alertdialog
+      const dialog = screen.getByRole('alertdialog');
+      const confirmBtn = within(dialog).getByRole('button', { name: 'Approve Invoice' });
+      fireEvent.click(confirmBtn);
+
+      // Toast should appear and inv-4 should be removed from the queue
+      await waitFor(() => {
+        expect(screen.getByTestId('approvals-toast-message')).toBeDefined();
+        expect(screen.getByText(/INV-2026-004.*approved/i)).toBeDefined();
+      });
+
+      // inv-4 is now Approved, so it disappears from the triage queue
+      await waitFor(() => {
+        expect(screen.queryByText('INV-2026-004')).toBeNull();
       });
     });
 

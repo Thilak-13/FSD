@@ -1,6 +1,6 @@
 // src/services/api/vendors.ts
 import { Vendor, NewVendorInput } from '../../types';
-import { apiFetch } from './client';
+import { apiFetch, ApiError } from './client';
 
 export const getVendors = async (): Promise<Vendor[]> => {
   return apiFetch<Vendor[]>('/vendors');
@@ -10,10 +10,7 @@ export const getVendorById = async (id: string): Promise<Vendor | null> => {
   try {
     return await apiFetch<Vendor>(`/vendors/${id}`);
   } catch (err: unknown) {
-    if (
-      err instanceof Error &&
-      (err.message.includes('404') || err.message.toLowerCase().includes('not found'))
-    ) {
+    if (err instanceof ApiError && err.status === 404) {
       return null;
     }
     throw err;

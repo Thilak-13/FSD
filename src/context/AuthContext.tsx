@@ -1,7 +1,15 @@
 // src/context/AuthContext.tsx
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from 'react';
 import { User, Role } from '../types';
 import { INITIAL_USERS } from '../services/mockApi/users';
+import { authApi } from '../services/dataSource';
+import { getStoredToken, clearStoredToken } from '../services/api/client';
 
 const ROLE_STORAGE_KEY = 'active_role';
 const USER_STORAGE_KEY = 'active_user';
@@ -10,8 +18,9 @@ export interface AuthContextType {
   currentUser: User | null;
   currentRole: Role;
   isAuthenticated: boolean;
+  loading: boolean;
   switchRole: (role: Role) => void;
-  login: (userOrRole?: User | Role | string, role?: Role) => void;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -75,6 +84,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
   const [currentUser, setCurrentUser] = useState<User | null>(() =>
     initialRole ? findUserForRole(initialRole) : getInitialUser(getInitialRole())
   );
+  const [loading, setLoading] = useState<boolean>(() => {
+    return Boolean(getStoredToken());
+  });
 
   // Sync role and user with session storage
   const saveSession = (role: Role, user: User | null) => {
@@ -92,7 +104,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     }
   };
 
-
   const switchRole = useCallback((role: Role) => {
     const user = findUserForRole(role);
     setCurrentRole(role);
@@ -100,94 +111,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     saveSession(role, user);
   }, []);
 
-  const login = useCallback(
-    (userOrRole?: User | Role | string, role?: Role) => {
-      if (!userOrRole) {
-        const defaultRole = getInitialRole();
-        const user = findUserForRole(defaultRole);
-        setCurrentRole(defaultRole);
-        setCurrentUser(user);
-        saveSession(defaultRole, user);
-        return;
-      }
-
-      if (typeof userOrRole === 'object' && 'role' in userOrRole) {
-        setCurrentUser(userOrRole);
-        setCurrentRole(userOrRole.role);
-        saveSession(userOrRole.role, userOrRole);
-        return;
-      }
-
-      if (
-        userOrRole === 'Admin' ||
-        userOrRole === 'Approver' ||
-        userOrRole === 'Requester'
-      ) {
-        switchRole(userOrRole);
-        return;
-      }
-
-      const query = userOrRole.toLowerCase().trim();
-      const demoMatch = DEMO_ACCOUNTS[query];
-
-      if (demoMatch) {
-        const targetRole = role || demoMatch.role;
-        const demoUser: User = {
-          id: `demo-${targetRole.toLowerCase()}`,
-          name: demoMatch.name,
-          email: demoMatch.email,
-          role: targetRole,
-          department:
-            targetRole === 'Admin'
-              ? 'Finance Operations'
-              : targetRole === 'Approver'
-              ? 'Procurement & Approvals'
-              : 'Engineering / Facilities',
-        };
-        setCurrentUser(demoUser);
-        setCurrentRole(targetRole);
-        saveSession(targetRole, demoUser);
-        return;
-      }
-
-      // Check if email match in INITIAL_USERS
-      const matched = INITIAL_USERS.find(
-        (u) =>
-          u.email.toLowerCase() === query ||
-          u.name.toLowerCase() === query
-      );
-
-      if (matched) {
-        const effectiveRole = role || matched.role;
-        const userToSet: User = { ...matched, role: effectiveRole };
-        setCurrentUser(userToSet);
-        setCurrentRole(effectiveRole);
-        saveSession(effectiveRole, userToSet);
-      } else if (role) {
-        const customUser: User = {
-          id: `user-${Date.now()}`,
-          name: query.includes('@') ? query.split('@')[0] : userOrRole,
-          email: query.includes('@') ? userOrRole : `${userOrRole}@apex.corp`,
-          role: role,
-          department:
-            role === 'Admin'
-              ? 'Finance Operations'
-              : role === 'Approver'
-              ? 'Procurement & Approvals'
-              : 'General Operations',
-        };
-        setCurrentUser(customUser);
-        setCurrentRole(role);
-        saveSession(role, customUser);
-      } else {
-        // Default to Requester
-        switchRole('Requester');
-      }
-    },
-    [switchRole]
-  );
-
   const logout = useCallback(() => {
+    authApi.logout().catch(() => {});
     setCurrentUser(null);
     setCurrentRole('Requester');
     if (typeof window !== 'undefined' && window.sessionStorage) {
@@ -198,7 +123,55 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
         // Ignore
       }
     }
+    clearStoredToken();
   }, []);
+
+  const login = useCallback(
+    async (email: string, password: string): Promise<void> => {
+      const res = await authApi.login(email, password);
+      setCurrentUser(res.user);
+      setCurrentRole(res.user.role);
+      saveSession(res.user.role, res.user);
+    },
+    []
+  );
+
+  // Session restore on app mount
+  useEffect(() => {
+    const token = getStoredToken();
+    if (token) {
+      setLoading(true);
+      authApi
+        .getCurrentUser()
+        .then((user) => {
+          if (user) {
+            setCurrentUser(user);
+            setCurrentRole(user.role);
+            saveSession(user.role, user);
+          } else {
+            logout();
+          }
+        })
+        .catch(() => {
+          logout();
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  }, [logout]);
+
+  // Listen for 'payverify:unauthorized' window event
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      logout();
+    };
+
+    window.addEventListener('payverify:unauthorized', handleUnauthorized);
+    return () => {
+      window.removeEventListener('payverify:unauthorized', handleUnauthorized);
+    };
+  }, [logout]);
 
   const isAuthenticated = currentUser !== null;
 
@@ -206,6 +179,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     currentUser,
     currentRole,
     isAuthenticated,
+    loading,
     switchRole,
     login,
     logout,

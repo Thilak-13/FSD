@@ -65,11 +65,15 @@ export const ApprovalActions: React.FC<ApprovalActionsProps> = ({
   const isPaid = invoice.status === 'Paid';
   const isApproved = invoice.status === 'Approved';
   const isPaymentScheduled = invoice.status === 'Payment Scheduled';
+  const canApprove =
+    invoice.status === 'Submitted' ||
+    invoice.status === 'Under Verification' ||
+    invoice.status === 'Flagged';
 
   const handleApproveConfirm = async () => {
     setIsSubmitting(true);
     try {
-      await onApprove('Invoice approved following 3-way match verification');
+      await onApprove('Invoice approved following PO match verification');
       setIsApproveOpen(false);
     } finally {
       setIsSubmitting(false);
@@ -135,7 +139,7 @@ export const ApprovalActions: React.FC<ApprovalActionsProps> = ({
         <div className="approval-actions-bar">
           <div className="approval-actions-buttons">
             {/* Approve Button */}
-            {!isApproved && !isPaymentScheduled && (
+            {canApprove && !isApproved && !isPaymentScheduled && (
               <Button
                 variant="accent"
                 onClick={() => setIsApproveOpen(true)}

@@ -249,7 +249,7 @@
   font-size: var(--spectrum-alias-font-size-default, 14px);
 }
 
-/* 3-Way Match Verification Panel */
+/* PO Match Verification Panel */
 .verification-panel-card {
   background-color: var(--spectrum-global-color-gray-50, #ffffff);
   border: 1px solid var(--spectrum-global-color-gray-200, #eaeaea);

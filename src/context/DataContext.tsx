@@ -17,7 +17,7 @@ import {
   NewVendorInput,
   InvoiceStatus,
 } from '../types';
-import * as mockApi from '../services/mockApi';
+import { dataApi } from '../services/dataSource';
 import { AuthContext } from './AuthContext';
 
 export interface DataContextType {
@@ -108,11 +108,11 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
 
     try {
       const [invs, vends, pos, audits, notifs] = await Promise.all([
-        mockApi.getInvoices(),
-        mockApi.getVendors(),
-        mockApi.getPurchaseOrders(),
-        mockApi.getAuditLog(),
-        mockApi.getNotifications(currentUser?.id),
+        dataApi.getInvoices(),
+        dataApi.getVendors(),
+        dataApi.getPurchaseOrders(),
+        dataApi.getAuditLog(),
+        dataApi.getNotifications(currentUser?.id),
       ]);
 
       setInvoices(invs);
@@ -144,13 +144,13 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
         submittedBy: input.submittedBy || currentUser?.id || 'Requester',
       };
 
-      const newInv = await mockApi.createInvoice(invoiceInput);
+      const newInv = await dataApi.createInvoice(invoiceInput);
       setInvoices((prev) => [newInv, ...prev.filter((i) => i.id !== newInv.id)]);
 
       // Refresh dynamic notifications and audit log
       const [updatedAudits, updatedNotifs] = await Promise.all([
-        mockApi.getAuditLog(),
-        mockApi.getNotifications(currentUser?.id),
+        dataApi.getAuditLog(),
+        dataApi.getNotifications(currentUser?.id),
       ]);
       setAuditLog(updatedAudits);
       setNotifications(updatedNotifs);
@@ -179,7 +179,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       const performer =
         performedBy || currentUser?.name || auth?.currentRole || 'Approver';
 
-      const updated = await mockApi.updateInvoiceStatus(
+      const updated = await dataApi.updateInvoiceStatus(
         id,
         status,
         comment,
@@ -192,8 +192,8 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
       );
 
       const [updatedAudits, updatedNotifs] = await Promise.all([
-        mockApi.getAuditLog(),
-        mockApi.getNotifications(currentUser?.id),
+        dataApi.getAuditLog(),
+        dataApi.getNotifications(currentUser?.id),
       ]);
       setAuditLog(updatedAudits);
       setNotifications(updatedNotifs);
@@ -246,7 +246,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
         throw new Error('Simulated network error: operation rejected');
       }
 
-      const newVend = await mockApi.createVendor(input);
+      const newVend = await dataApi.createVendor(input);
       setVendors((prev) => [newVend, ...prev.filter((v) => v.id !== newVend.id)]);
       return newVend;
     },
@@ -259,7 +259,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
         throw new Error('Simulated network error: operation rejected');
       }
 
-      await mockApi.markNotificationAsRead(id);
+      await dataApi.markNotificationAsRead(id);
       setNotifications((prev) =>
         prev.map((notif) => (notif.id === id ? { ...notif, read: true } : notif))
       );
@@ -273,7 +273,7 @@ export const DataProvider: React.FC<DataProviderProps> = ({ children }) => {
         throw new Error('Simulated network error: operation rejected');
       }
 
-      await mockApi.markAllNotificationsAsRead(userId || currentUser?.id);
+      await dataApi.markAllNotificationsAsRead(userId || currentUser?.id);
       setNotifications((prev) =>
         prev.map((notif) => ({ ...notif, read: true }))
       );

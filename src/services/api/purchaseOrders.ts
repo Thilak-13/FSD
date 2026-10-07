@@ -1,6 +1,6 @@
 // src/services/api/purchaseOrders.ts
 import { PurchaseOrder } from '../../types';
-import { apiFetch } from './client';
+import { apiFetch, ApiError } from './client';
 
 export const getPurchaseOrders = async (
   vendorId?: string
@@ -15,10 +15,7 @@ export const getPurchaseOrderById = async (
   try {
     return await apiFetch<PurchaseOrder>(`/purchase-orders/${id}`);
   } catch (err: unknown) {
-    if (
-      err instanceof Error &&
-      (err.message.includes('404') || err.message.toLowerCase().includes('not found'))
-    ) {
+    if (err instanceof ApiError && err.status === 404) {
       return null;
     }
     throw err;

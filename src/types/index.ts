@@ -92,7 +92,7 @@ export type InvoiceStatus =
   | 'Paid';
 
 /**
- * Invoice line item with 3-way matching annotations
+ * Invoice line item with PO match annotations
  */
 export interface InvoiceLineItem {
   id: string;

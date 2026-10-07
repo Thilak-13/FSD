@@ -6,7 +6,7 @@ import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { InvoicesPage } from '../../src/pages/Invoices/InvoicesPage';
 import { AuthProvider } from '../../src/context/AuthContext';
 import { DataProvider } from '../../src/context/DataContext';
-import { setMockDelayEnabled, resetInvoices } from '../../src/services/mockApi';
+import { setMockDelayEnabled, resetInvoices, INITIAL_INVOICES } from '../../src/services/mockApi';
 
 // Helper component to track navigation destination
 const LocationDisplay: React.FC = () => {
@@ -77,7 +77,7 @@ describe('InvoicesPage', () => {
     // Check data rows
     expect(screen.getAllByText('Apex Cloud Services').length).toBeGreaterThan(0);
     expect(screen.getByText('$6,500.00')).toBeDefined();
-    expect(screen.getByText('2026-09-02')).toBeDefined();
+    expect(screen.getAllByText(INITIAL_INVOICES[0].submittedDate).length).toBeGreaterThan(0);
   });
 
   describe('Role-Based Visibility', () => {

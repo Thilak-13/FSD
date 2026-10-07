@@ -72,10 +72,15 @@ export const ApprovalsPage: React.FC = () => {
     return new Map(vendors.map((v) => [v.id, v.name]));
   }, [vendors]);
 
-  // 1. Triage Queue Filtering & Augmentation: strictly display only 'Submitted' or 'Flagged' invoices
+  // 1. Triage Queue Filtering & Augmentation: display 'Submitted', 'Under Verification', or 'Flagged' invoices
   const queueInvoices = useMemo<ApprovalsQueueItem[]>(() => {
     return invoices
-      .filter((inv) => inv.status === 'Submitted' || inv.status === 'Flagged')
+      .filter(
+        (inv) =>
+          inv.status === 'Submitted' ||
+          inv.status === 'Under Verification' ||
+          inv.status === 'Flagged'
+      )
       .map((inv) => ({
         ...inv,
         vendorName: vendorMap.get(inv.vendorId) || inv.vendorId,

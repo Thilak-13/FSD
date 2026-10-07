@@ -44,15 +44,15 @@ export const VerificationPanel: React.FC<VerificationPanelProps> = ({
         (poi) => poi.id === it.matchedPoItemId || poi.description.toLowerCase() === it.description.toLowerCase()
       );
 
-      const priceMismatch = Boolean(
-        it.priceMismatch ||
-          (matchedPoItem && Math.abs(it.unitPrice - matchedPoItem.unitPrice) > 0.001)
-      );
+      const priceMismatch =
+        it.priceMismatch !== undefined
+          ? it.priceMismatch
+          : Boolean(matchedPoItem && Math.abs(it.unitPrice - matchedPoItem.unitPrice) > 0.01);
 
-      const quantityMismatch = Boolean(
-        it.quantityMismatch ||
-          (matchedPoItem && it.quantity > matchedPoItem.quantity)
-      );
+      const quantityMismatch =
+        it.quantityMismatch !== undefined
+          ? it.quantityMismatch
+          : Boolean(matchedPoItem && it.quantity > matchedPoItem.quantity);
 
       const isMatched = Boolean(matchedPoItem && !priceMismatch && !quantityMismatch);
 
@@ -82,11 +82,11 @@ export const VerificationPanel: React.FC<VerificationPanelProps> = ({
   return (
     <section
       className={`verification-panel-card ${className || ''}`.trim()}
-      aria-label="3-Way Match Verification"
+      aria-label="PO Match Verification"
       data-testid="verification-panel"
     >
       <div className="verification-header">
-        <h2 className="verification-heading">3-Way Match Verification</h2>
+        <h2 className="verification-heading">PO Match Verification</h2>
         <StatusBadge
           status={totalDiscrepancies === 0 ? 'Approved' : 'Flagged'}
           label={totalDiscrepancies === 0 ? 'Verification: Clean Match' : `Discrepancies: ${totalDiscrepancies} Detected`}
@@ -136,7 +136,7 @@ export const VerificationPanel: React.FC<VerificationPanelProps> = ({
       <div className="verification-table-wrapper">
         <Table
           className="verification-table"
-          aria-label="3-Way Match Line Item Comparison Table"
+          aria-label="PO Match Line Item Comparison Table"
           data-testid="verification-table"
         >
           <TableHead>

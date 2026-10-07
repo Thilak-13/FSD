@@ -10,6 +10,12 @@ import { simulateDelay } from './delay';
 import { addAuditEntry } from './auditLog';
 import { INITIAL_VENDORS } from './vendors';
 
+export const daysFromNow = (days: number): string => {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split('T')[0];
+};
+
 export const INITIAL_INVOICES: Invoice[] = [
   {
     id: 'inv-1',
@@ -17,8 +23,8 @@ export const INITIAL_INVOICES: Invoice[] = [
     vendorId: 'vendor-1', // Apex Cloud Services
     poId: 'po-1',
     amount: 6500,
-    dueDate: '2026-10-02',
-    submittedDate: '2026-09-02',
+    dueDate: daysFromNow(20),
+    submittedDate: daysFromNow(-2),
     status: 'Submitted',
     submittedBy: 'user-3',
     attachedDocumentName: 'INV-2026-001_Apex.pdf',
@@ -47,8 +53,8 @@ export const INITIAL_INVOICES: Invoice[] = [
     vendorId: 'vendor-2', // Northwest Logistics
     poId: 'po-4',
     amount: 4800,
-    dueDate: '2026-09-18',
-    submittedDate: '2026-09-10',
+    dueDate: daysFromNow(20),
+    submittedDate: daysFromNow(-2),
     status: 'Submitted',
     submittedBy: 'user-3',
     attachedDocumentName: 'INV-2026-002_Northwest.pdf',
@@ -69,8 +75,8 @@ export const INITIAL_INVOICES: Invoice[] = [
     vendorId: 'vendor-3', // ByteForce Technologies
     poId: 'po-6',
     amount: 2600,
-    dueDate: '2026-10-10',
-    submittedDate: '2026-09-14',
+    dueDate: daysFromNow(20),
+    submittedDate: daysFromNow(-2),
     status: 'Submitted',
     submittedBy: 'user-3',
     attachedDocumentName: 'INV-2026-003_ByteForce.pdf',
@@ -91,8 +97,8 @@ export const INITIAL_INVOICES: Invoice[] = [
     vendorId: 'vendor-1', // Apex Cloud Services
     poId: 'po-2',
     amount: 7200,
-    dueDate: '2026-09-28',
-    submittedDate: '2026-09-08',
+    dueDate: daysFromNow(20),
+    submittedDate: daysFromNow(-2),
     status: 'Under Verification',
     submittedBy: 'user-3',
     attachedDocumentName: 'INV-2026-004_Apex.pdf',
@@ -113,8 +119,8 @@ export const INITIAL_INVOICES: Invoice[] = [
     vendorId: 'vendor-2', // Northwest Logistics
     poId: 'po-3',
     amount: 8000,
-    dueDate: '2026-09-19',
-    submittedDate: '2026-09-09',
+    dueDate: daysFromNow(20),
+    submittedDate: daysFromNow(-2),
     status: 'Under Verification',
     submittedBy: 'user-3',
     attachedDocumentName: 'INV-2026-005_NWL.pdf',
@@ -135,8 +141,8 @@ export const INITIAL_INVOICES: Invoice[] = [
     vendorId: 'vendor-5', // Pioneer Industrial
     poId: 'po-8',
     amount: 14400,
-    dueDate: '2026-10-25',
-    submittedDate: '2026-09-11',
+    dueDate: daysFromNow(20),
+    submittedDate: daysFromNow(-2),
     status: 'Under Verification',
     submittedBy: 'user-1',
     attachedDocumentName: 'INV-2026-006_Pioneer.pdf',
@@ -157,8 +163,8 @@ export const INITIAL_INVOICES: Invoice[] = [
     vendorId: 'vendor-3', // ByteForce Technologies
     poId: 'po-5',
     amount: 14000,
-    dueDate: '2026-09-30',
-    submittedDate: '2026-08-28',
+    dueDate: daysFromNow(14),
+    submittedDate: daysFromNow(-15),
     status: 'Approved',
     submittedBy: 'user-3',
     attachedDocumentName: 'INV-2026-007_ByteForce.pdf',
@@ -179,8 +185,8 @@ export const INITIAL_INVOICES: Invoice[] = [
     vendorId: 'vendor-1', // Apex Cloud Services
     poId: 'po-2',
     amount: 1000,
-    dueDate: '2026-09-05', // overdue
-    submittedDate: '2026-08-15',
+    dueDate: daysFromNow(-10), // overdue
+    submittedDate: daysFromNow(-25),
     status: 'Approved',
     submittedBy: 'user-3',
     attachedDocumentName: 'INV-2026-008_Apex.pdf',
@@ -201,8 +207,8 @@ export const INITIAL_INVOICES: Invoice[] = [
     vendorId: 'vendor-2', // Northwest Logistics
     poId: 'po-4',
     amount: 1600,
-    dueDate: '2026-09-22',
-    submittedDate: '2026-08-30',
+    dueDate: daysFromNow(5),
+    submittedDate: daysFromNow(-15),
     status: 'Approved',
     submittedBy: 'user-3',
     attachedDocumentName: 'INV-2026-009_NWL.pdf',
@@ -223,8 +229,8 @@ export const INITIAL_INVOICES: Invoice[] = [
     vendorId: 'vendor-5', // Pioneer Industrial
     poId: 'po-8',
     amount: 8000,
-    dueDate: '2026-10-15',
-    submittedDate: '2026-09-01',
+    dueDate: daysFromNow(25),
+    submittedDate: daysFromNow(-10),
     status: 'Approved',
     submittedBy: 'user-1',
     attachedDocumentName: 'INV-2026-010_Pioneer.pdf',
@@ -245,8 +251,8 @@ export const INITIAL_INVOICES: Invoice[] = [
     vendorId: 'vendor-4', // Summit Creative
     poId: 'po-7',
     amount: 11000,
-    dueDate: '2026-09-25',
-    submittedDate: '2026-09-05',
+    dueDate: daysFromNow(20),
+    submittedDate: daysFromNow(-5),
     status: 'Flagged',
     submittedBy: 'user-3',
     attachedDocumentName: 'INV-2026-011_Summit.pdf',
@@ -271,8 +277,8 @@ export const INITIAL_INVOICES: Invoice[] = [
     vendorId: 'vendor-2', // Northwest Logistics
     poId: 'po-3',
     amount: 6000,
-    dueDate: '2026-09-12', // overdue & flagged
-    submittedDate: '2026-08-20',
+    dueDate: daysFromNow(20),
+    submittedDate: daysFromNow(-10),
     status: 'Flagged',
     submittedBy: 'user-3',
     attachedDocumentName: 'INV-2026-012_NWL.pdf',
@@ -296,8 +302,8 @@ export const INITIAL_INVOICES: Invoice[] = [
     vendorId: 'vendor-3', // ByteForce Technologies
     poId: 'po-6',
     amount: 8400,
-    dueDate: '2026-10-05',
-    submittedDate: '2026-09-07',
+    dueDate: daysFromNow(20),
+    submittedDate: daysFromNow(-7),
     status: 'Flagged',
     submittedBy: 'user-3',
     attachedDocumentName: 'INV-2026-013_ByteForce.pdf',
@@ -321,12 +327,12 @@ export const INITIAL_INVOICES: Invoice[] = [
     vendorId: 'vendor-1', // Apex Cloud Services
     poId: 'po-1',
     amount: 8000,
-    dueDate: '2026-09-20',
-    submittedDate: '2026-08-10',
+    dueDate: daysFromNow(15),
+    submittedDate: daysFromNow(-20),
     status: 'Payment Scheduled',
     submittedBy: 'user-3',
     attachedDocumentName: 'INV-2026-014_Apex.pdf',
-    scheduledPaymentDate: '2026-09-18',
+    scheduledPaymentDate: daysFromNow(10),
     items: [
       {
         id: 'li-1401',
@@ -344,12 +350,12 @@ export const INITIAL_INVOICES: Invoice[] = [
     vendorId: 'vendor-3', // ByteForce Technologies
     poId: 'po-5',
     amount: 4500,
-    dueDate: '2026-09-24',
-    submittedDate: '2026-08-18',
+    dueDate: daysFromNow(18),
+    submittedDate: daysFromNow(-18),
     status: 'Payment Scheduled',
     submittedBy: 'user-3',
     attachedDocumentName: 'INV-2026-015_ByteForce.pdf',
-    scheduledPaymentDate: '2026-09-22',
+    scheduledPaymentDate: daysFromNow(10),
     items: [
       {
         id: 'li-1501',
@@ -367,12 +373,12 @@ export const INITIAL_INVOICES: Invoice[] = [
     vendorId: 'vendor-4', // Summit Creative
     poId: 'po-7',
     amount: 5500,
-    dueDate: '2026-09-28',
-    submittedDate: '2026-08-25',
+    dueDate: daysFromNow(22),
+    submittedDate: daysFromNow(-15),
     status: 'Payment Scheduled',
     submittedBy: 'user-3',
     attachedDocumentName: 'INV-2026-016_Summit.pdf',
-    scheduledPaymentDate: '2026-09-26',
+    scheduledPaymentDate: daysFromNow(10),
     items: [
       {
         id: 'li-1601',
@@ -390,13 +396,13 @@ export const INITIAL_INVOICES: Invoice[] = [
     vendorId: 'vendor-2', // Northwest Logistics
     poId: 'po-3',
     amount: 4000,
-    dueDate: '2026-08-15',
-    submittedDate: '2026-07-20',
+    dueDate: daysFromNow(-15),
+    submittedDate: daysFromNow(-30),
     status: 'Paid',
     submittedBy: 'user-3',
     attachedDocumentName: 'INV-2026-017_NWL.pdf',
-    scheduledPaymentDate: '2026-08-14',
-    paidDate: '2026-08-15',
+    scheduledPaymentDate: daysFromNow(-6),
+    paidDate: daysFromNow(-5),
     items: [
       {
         id: 'li-1701',
@@ -414,13 +420,13 @@ export const INITIAL_INVOICES: Invoice[] = [
     vendorId: 'vendor-1', // Apex Cloud Services
     poId: 'po-1',
     amount: 2500,
-    dueDate: '2026-08-20',
-    submittedDate: '2026-07-25',
+    dueDate: daysFromNow(-12),
+    submittedDate: daysFromNow(-25),
     status: 'Paid',
     submittedBy: 'user-3',
     attachedDocumentName: 'INV-2026-018_Apex.pdf',
-    scheduledPaymentDate: '2026-08-18',
-    paidDate: '2026-08-19',
+    scheduledPaymentDate: daysFromNow(-6),
+    paidDate: daysFromNow(-5),
     items: [
       {
         id: 'li-1801',

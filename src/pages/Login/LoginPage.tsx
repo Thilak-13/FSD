@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 // src/pages/Login/LoginPage.tsx
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -129,11 +130,17 @@ export const LoginPage: React.FC = () => {
     clearRedirectNotice();
   };
 
-  const handleQuickLogin = (account: DemoAccount) => {
-    login(account.email, account.role);
-    clearRedirectNotice();
-    const dest = !targetPath || targetPath === '/login' ? '/' : targetPath;
-    navigate(dest, { replace: true });
+  const handleQuickLogin = async (account: DemoAccount) => {
+    try {
+      setErrors({});
+      await login(account.email, 'DemoPassword!2026');
+      clearRedirectNotice();
+      const dest = !targetPath || targetPath === '/login' ? '/' : targetPath;
+      navigate(dest, { replace: true });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Invalid email or password';
+      setErrors({ general: message });
+    }
   };
 
   const handlePrefill = (role: Role) => {
@@ -159,7 +166,7 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  const handleFormSubmit = (e?: React.FormEvent) => {
+  const handleFormSubmit = async (e?: React.FormEvent) => {
     if (e && typeof e.preventDefault === 'function') {
       e.preventDefault();
     }
@@ -186,34 +193,16 @@ export const LoginPage: React.FC = () => {
       return;
     }
 
-    // Determine role from matching demo account or heuristics
-    const lowerEmail = trimmedEmail.toLowerCase();
-    let resolvedRole: Role = 'Requester';
-
-    const demo = DEMO_ACCOUNTS.find(
-      (a) => a.email.toLowerCase() === lowerEmail
-    );
-    if (demo) {
-      resolvedRole = demo.role;
-    } else if (
-      lowerEmail.includes('admin') ||
-      lowerEmail.includes('alex') ||
-      lowerEmail.includes('sarah')
-    ) {
-      resolvedRole = 'Admin';
-    } else if (
-      lowerEmail.includes('approv') ||
-      lowerEmail.includes('marcus')
-    ) {
-      resolvedRole = 'Approver';
-    } else {
-      resolvedRole = 'Requester';
+    try {
+      setErrors({});
+      await login(trimmedEmail, password);
+      clearRedirectNotice();
+      const dest = !targetPath || targetPath === '/login' ? '/' : targetPath;
+      navigate(dest, { replace: true });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Invalid email or password';
+      setErrors({ general: message });
     }
-
-    login(trimmedEmail, resolvedRole);
-    clearRedirectNotice();
-    const dest = !targetPath || targetPath === '/login' ? '/' : targetPath;
-    navigate(dest, { replace: true });
   };
 
   return (
@@ -267,45 +256,49 @@ export const LoginPage: React.FC = () => {
           )}
 
           {/* 1-Click Quick-Role Demo Accounts */}
-          <section
-            className="quick-role-section"
-            aria-label="1-Click Demo Accounts"
-          >
-            <div className="quick-role-header">
-              <h2 className="quick-role-heading">1-Click Demo Accounts</h2>
-              <span className="quick-role-hint">Instant role sign-in</span>
-            </div>
-            <div className="quick-role-list">
-              {DEMO_ACCOUNTS.map((account) => (
-                <ActionButton
-                  key={account.role}
-                  data-testid={`quick-login-${account.role}`}
-                  className={`quick-login-btn quick-login-btn-${account.role.toLowerCase()}`}
-                  onClick={() => handleQuickLogin(account)}
-                  aria-label={`Sign in as ${account.role}: ${account.name}`}
-                >
-                  <div className="quick-login-avatar" aria-hidden="true">
-                    {account.initials}
-                  </div>
-                  <div className="quick-login-info">
-                    <div className="quick-login-header">
-                      <span className="quick-login-name">{account.name}</span>
-                      <StatusBadge variant={account.badgeVariant} size="s">
-                        {account.role}
-                      </StatusBadge>
-                    </div>
-                    <span className="quick-login-email">{account.email}</span>
-                    <span className="quick-login-desc">{account.description}</span>
-                  </div>
-                </ActionButton>
-              ))}
-            </div>
-          </section>
+          {import.meta.env.VITE_DEMO_LOGINS === 'true' && (
+            <>
+              <section
+                className="quick-role-section"
+                aria-label="1-Click Demo Accounts"
+              >
+                <div className="quick-role-header">
+                  <h2 className="quick-role-heading">1-Click Demo Accounts</h2>
+                  <span className="quick-role-hint">Instant role sign-in</span>
+                </div>
+                <div className="quick-role-list">
+                  {DEMO_ACCOUNTS.map((account) => (
+                    <ActionButton
+                      key={account.role}
+                      data-testid={`quick-login-${account.role}`}
+                      className={`quick-login-btn quick-login-btn-${account.role.toLowerCase()}`}
+                      onClick={() => handleQuickLogin(account)}
+                      aria-label={`Sign in as ${account.role}: ${account.name}`}
+                    >
+                      <div className="quick-login-avatar" aria-hidden="true">
+                        {account.initials}
+                      </div>
+                      <div className="quick-login-info">
+                        <div className="quick-login-header">
+                          <span className="quick-login-name">{account.name}</span>
+                          <StatusBadge variant={account.badgeVariant} size="s">
+                            {account.role}
+                          </StatusBadge>
+                        </div>
+                        <span className="quick-login-email">{account.email}</span>
+                        <span className="quick-login-desc">{account.description}</span>
+                      </div>
+                    </ActionButton>
+                  ))}
+                </div>
+              </section>
 
-          {/* Visual Divider */}
-          <div className="login-divider" role="separator" aria-label="Divider">
-            <span className="login-divider-text">Or sign in with email</span>
-          </div>
+              {/* Visual Divider */}
+              <div className="login-divider" role="separator" aria-label="Divider">
+                <span className="login-divider-text">Or sign in with email</span>
+              </div>
+            </>
+          )}
 
           {/* Credentials Form */}
           <form

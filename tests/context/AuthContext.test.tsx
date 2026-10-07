@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import React from 'react';
 import { AuthProvider, useAuth } from '../../src/context/AuthContext';
 import { setMockDelayEnabled } from '../../src/services/mockApi';
@@ -48,7 +48,7 @@ describe('AuthContext', () => {
     expect(result.current.currentUser?.name).toBe('Marcus Vance');
   });
 
-  it('should handle logout and login', () => {
+  it('should handle logout and login', async () => {
     const wrapper = ({ children }: { children: React.ReactNode }) => (
       <AuthProvider>{children}</AuthProvider>
     );
@@ -68,13 +68,51 @@ describe('AuthContext', () => {
     expect(result.current.isAuthenticated).toBe(false);
     expect(sessionStorage.getItem('active_role')).toBeNull();
 
-    act(() => {
-      result.current.login('Admin');
+    await act(async () => {
+      await result.current.login('sarah.chen@enterprise.com', 'password123');
     });
 
     expect(result.current.currentRole).toBe('Admin');
     expect(result.current.currentUser?.name).toBe('Sarah Chen');
     expect(result.current.isAuthenticated).toBe(true);
+  });
+
+  it('should restore session on mount when stored token exists', async () => {
+    sessionStorage.setItem('payverify_auth_token', 'mock-token-user-1');
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <AuthProvider>{children}</AuthProvider>
+    );
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+
+    expect(result.current.currentUser?.name).toBe('Sarah Chen');
+    expect(result.current.currentRole).toBe('Admin');
+    expect(result.current.isAuthenticated).toBe(true);
+  });
+
+  it('should trigger logout when payverify:unauthorized window event is dispatched', async () => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <AuthProvider>{children}</AuthProvider>
+    );
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    await act(async () => {
+      await result.current.login('sarah.chen@enterprise.com', 'password123');
+    });
+    expect(result.current.isAuthenticated).toBe(true);
+    expect(result.current.currentUser?.name).toBe('Sarah Chen');
+
+    act(() => {
+      window.dispatchEvent(new Event('payverify:unauthorized'));
+    });
+
+    await waitFor(() => {
+      expect(result.current.isAuthenticated).toBe(false);
+      expect(result.current.currentUser).toBeNull();
+    });
   });
 
   it('should throw an error when useAuth is called outside AuthProvider', () => {

@@ -7,7 +7,7 @@ import { InvoiceDetailPage } from '../../src/pages/InvoiceDetail/InvoiceDetailPa
 import { VerificationPanel } from '../../src/pages/InvoiceDetail/VerificationPanel';
 import { AuthProvider } from '../../src/context/AuthContext';
 import { DataProvider } from '../../src/context/DataContext';
-import { setMockDelayEnabled, resetInvoices } from '../../src/services/mockApi';
+import { setMockDelayEnabled, resetInvoices, INITIAL_INVOICES } from '../../src/services/mockApi';
 
 // Helper component to track navigation destination
 const LocationDisplay: React.FC = () => {
@@ -70,8 +70,8 @@ describe('InvoiceDetailPage', () => {
 
       expect(screen.getByTestId('meta-vendor-name').textContent).toContain('Apex Cloud Services');
       expect(screen.getByTestId('meta-amount').textContent).toBe('$6,500.00');
-      expect(screen.getByTestId('meta-due-date').textContent).toBe('2026-10-02');
-      expect(screen.getByTestId('meta-submitted-date').textContent).toBe('2026-09-02');
+      expect(screen.getByTestId('meta-due-date').textContent).toBe(INITIAL_INVOICES[0].dueDate);
+      expect(screen.getByTestId('meta-submitted-date').textContent).toBe(INITIAL_INVOICES[0].submittedDate);
       expect(screen.getByTestId('invoice-status-badge')).toBeDefined();
     });
 
@@ -154,7 +154,7 @@ describe('InvoiceDetailPage', () => {
     });
   });
 
-  describe('VerificationPanel (3-Way Matching Engine)', () => {
+  describe('VerificationPanel (PO Matching Engine)', () => {
     it('renders linked PO details: PO number, amount, vendor, status', async () => {
       renderInvoiceDetailPage('inv-1', 'Admin');
 
@@ -334,6 +334,31 @@ describe('InvoiceDetailPage', () => {
       await waitFor(() => {
         expect(screen.getByTestId('invoice-detail-toast')).toBeDefined();
         expect(screen.getByText(/Invoice INV-2026-001 was successfully approved/i)).toBeDefined();
+      });
+    });
+
+    it('executes Approve workflow for an Under Verification invoice and updates status to Approved', async () => {
+      renderInvoiceDetailPage('inv-5', 'Approver'); // inv-5 is Under Verification
+
+      await waitFor(() => {
+        expect(screen.getByTestId('approve-invoice-btn')).toBeDefined();
+      });
+
+      // Click Approve Button to open ConfirmDialog
+      fireEvent.click(screen.getByTestId('approve-invoice-btn'));
+
+      expect(screen.getByRole('alertdialog')).toBeDefined();
+      expect(screen.getByText(/Are you sure you want to approve invoice INV-2026-005/i)).toBeDefined();
+
+      // Click Confirm Button in Dialog
+      const dialog = screen.getByRole('alertdialog');
+      const confirmApproveBtn = within(dialog).getByText('Approve');
+      fireEvent.click(confirmApproveBtn);
+
+      // Status should update to Approved and display success toast
+      await waitFor(() => {
+        expect(screen.getByTestId('invoice-detail-toast')).toBeDefined();
+        expect(screen.getByText(/Invoice INV-2026-005 was successfully approved/i)).toBeDefined();
       });
     });
 

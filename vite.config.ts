@@ -14,5 +14,10 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
+    include: ['tests/**/*.{test,spec}.{ts,tsx}'],
+    env: {
+      VITE_API_MODE: 'mock',
+      VITE_DEMO_LOGINS: 'true',
+    },
   },
 });
