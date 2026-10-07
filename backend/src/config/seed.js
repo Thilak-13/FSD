@@ -5,36 +5,28 @@ const PurchaseOrder = require('../models/PurchaseOrder');
 
 const DEMO_USERS = [
   {
-    name: 'Elena Rodriguez',
-    email: 'admin@payverify.local',
-    password: 'AdminPass123!',
+    name: 'Alex Rivera',
+    email: 'alex.rivera@apex.corp',
+    password: 'DemoPassword!2026',
     role: 'Admin',
     department: 'Executive / Administration',
     avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=128&fit=crop&crop=face',
   },
   {
-    name: 'Marcus Vance',
-    email: 'approver@payverify.local',
-    password: 'ApproverPass123!',
+    name: 'Sarah Chen',
+    email: 'sarah.chen@apex.corp',
+    password: 'DemoPassword!2026',
     role: 'Approver',
     department: 'Procurement & Approvals',
-    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=128&fit=crop&crop=face',
+    avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=128&fit=crop&crop=face',
   },
   {
-    name: 'Alex Rivera',
-    email: 'requester@payverify.local',
-    password: 'RequesterPass123!',
+    name: 'Jordan Lee',
+    email: 'jordan.lee@apex.corp',
+    password: 'DemoPassword!2026',
     role: 'Requester',
     department: 'Engineering / Facilities',
-    avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=128&fit=crop&crop=face',
-  },
-  {
-    name: 'Sarah Chen',
-    email: 'sarah.chen@enterprise.com',
-    password: 'SecurePassword123!',
-    role: 'Admin',
-    department: 'Finance Operations',
-    avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=128&fit=crop&crop=face',
+    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=128&fit=crop&crop=face',
   },
 ];
 

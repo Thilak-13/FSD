@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 const mongoose = require('mongoose');
 const Invoice = require('../models/Invoice');
 const AuditEntry = require('../models/AuditEntry');
@@ -347,9 +348,94 @@ async function uploadAttachment(req, res, next) {
   }
 }
 
+/**
+ * GET /api/invoices/:id/attachment
+ * Requires requireAuth.
+ * Enforces same scoping as invoice detail: Admin, Approver, or invoice owner (req.user.id === invoice.submittedBy).
+ * If Requester requests non-owned invoice attachment, return 404.
+ * If invoice has no attachedDocumentPath, or file does not exist on disk, return 404 ({ error: 'Attachment not found' }).
+ * Returns file bytes with stored/detected Content-Type and header Content-Disposition: attachment; filename="<attachedDocumentName || basename>".
+ */
+async function getInvoiceAttachment(req, res, next) {
+  try {
+    const { id } = req.params;
+
+    let invoice = null;
+    if (mongoose.isValidObjectId(id)) {
+      invoice = await Invoice.findById(id);
+    }
+    if (!invoice) {
+      invoice = await Invoice.findOne({
+        $or: [{ id }, { invoiceNumber: id }],
+      });
+    }
+
+    if (!invoice) {
+      return res.status(404).json({ error: 'Invoice not found' });
+    }
+
+    const invSubmittedBy = invoice.submittedBy?._id
+      ? invoice.submittedBy._id.toString()
+      : invoice.submittedBy?.toString
+      ? invoice.submittedBy.toString()
+      : String(invoice.submittedBy);
+
+    const isAuthorized =
+      req.user &&
+      (req.user.role === 'Admin' ||
+        req.user.role === 'Approver' ||
+        String(invSubmittedBy) === String(req.user.id));
+
+    if (!isAuthorized) {
+      return res.status(404).json({ error: 'Invoice not found' });
+    }
+
+    if (!invoice.attachedDocumentPath) {
+      return res.status(404).json({ error: 'Attachment not found' });
+    }
+
+    let filePath = invoice.attachedDocumentPath;
+    if (filePath.startsWith('/uploads/')) {
+      filePath = path.join(__dirname, '../../uploads', filePath.replace(/^\/uploads\//, ''));
+    } else if (filePath.startsWith('uploads/')) {
+      filePath = path.join(__dirname, '../../uploads', filePath.replace(/^uploads\//, ''));
+    } else if (!path.isAbsolute(filePath)) {
+      filePath = path.join(__dirname, '../../uploads', filePath);
+    }
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: 'Attachment not found' });
+    }
+
+    const filename = invoice.attachedDocumentName || path.basename(filePath);
+    const ext = path.extname(filename).toLowerCase() || path.extname(filePath).toLowerCase();
+    const extToMime = {
+      '.pdf': 'application/pdf',
+      '.png': 'image/png',
+      '.jpg': 'image/jpeg',
+      '.jpeg': 'image/jpeg',
+      '.txt': 'text/plain',
+      '.csv': 'text/csv',
+    };
+    const contentType = extToMime[ext] || 'application/octet-stream';
+
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Type', contentType);
+
+    return res.sendFile(path.resolve(filePath), (err) => {
+      if (err && !res.headersSent) {
+        return next(err);
+      }
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
 module.exports = {
   getInvoices,
   getInvoiceById,
+  getInvoiceAttachment,
   createInvoice,
   updateInvoiceStatus,
   uploadAttachment,

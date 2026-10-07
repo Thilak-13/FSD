@@ -23,9 +23,6 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Static file serving for uploads
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

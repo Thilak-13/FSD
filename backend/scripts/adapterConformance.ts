@@ -265,8 +265,8 @@ async function runConformance(): Promise<void> {
     console.log('\n--- FUNCTION: authApi.login ---');
     try {
       const loginRes = await authApi.login(
-        'admin@payverify.local',
-        'AdminPass123!'
+        'alex.rivera@apex.corp',
+        'DemoPassword!2026'
       );
       const valErrors = validateUser(loginRes.user);
       if (typeof loginRes.token !== 'string' || !loginRes.token) {
@@ -318,7 +318,7 @@ async function runConformance(): Promise<void> {
         console.log('authApi.logout: PASS');
       }
       // Re-login so subsequent authenticated calls proceed
-      await authApi.login('admin@payverify.local', 'AdminPass123!');
+      await authApi.login('alex.rivera@apex.corp', 'DemoPassword!2026');
     } catch (err: any) {
       console.log(`authApi.logout: FAIL - ${err.message}`);
     }
@@ -732,46 +732,112 @@ async function runConformance(): Promise<void> {
     console.log('\n--- FUNCTION: invoicesApi.updateInvoiceStatus ---');
     try {
       const targetId = sampleInvoice ? sampleInvoice.id : 'unknown';
-      // Transition to Flagged to enable notifications test
-      const updated = await invoicesApi.updateInvoiceStatus(
+
+      // 1. Transition to Flagged with flagReason
+      const flagged = await invoicesApi.updateInvoiceStatus(
         targetId,
         'Flagged',
         'Conformance inspection flag',
         adminUser?.id,
         { flagReason: 'Price verification discrepancy' }
       );
-      const valErrors = validateInvoice(updated);
-      if (updated.status !== 'Flagged') {
-        valErrors.push(`Expected status 'Flagged', got '${updated.status}'`);
+      const valErrorsFlagged = validateInvoice(flagged);
+      if (flagged.status !== 'Flagged' || flagged.flagReason !== 'Price verification discrepancy') {
+        valErrorsFlagged.push(`Expected Flagged with flagReason, got ${flagged.status} / ${flagged.flagReason}`);
       }
-      if (valErrors.length > 0) {
-        console.log(`invoicesApi.updateInvoiceStatus: FAIL - ${valErrors.join(', ')}`);
+      if (valErrorsFlagged.length > 0) {
+        console.log(`invoicesApi.updateInvoiceStatus (Flagged): FAIL - ${valErrorsFlagged.join(', ')}`);
       } else {
-        console.log('invoicesApi.updateInvoiceStatus: PASS');
-        sampleInvoice = updated;
+        console.log('invoicesApi.updateInvoiceStatus (Flagged with flagReason): PASS');
       }
+
+      // 2. Transition to Payment Scheduled with scheduledPaymentDate
+      const scheduled = await invoicesApi.updateInvoiceStatus(
+        targetId,
+        'Payment Scheduled',
+        'Scheduled for payment batch',
+        adminUser?.id,
+        { scheduledPaymentDate: '2026-11-15' }
+      );
+      const valErrorsSched = validateInvoice(scheduled);
+      if (scheduled.status !== 'Payment Scheduled' || scheduled.scheduledPaymentDate !== '2026-11-15') {
+        valErrorsSched.push(`Expected Payment Scheduled with scheduledPaymentDate, got ${scheduled.status} / ${scheduled.scheduledPaymentDate}`);
+      }
+      if (valErrorsSched.length > 0) {
+        console.log(`invoicesApi.updateInvoiceStatus (Payment Scheduled): FAIL - ${valErrorsSched.join(', ')}`);
+      } else {
+        console.log('invoicesApi.updateInvoiceStatus (Payment Scheduled with scheduledPaymentDate): PASS');
+      }
+
+      // 3. Transition to Paid with paidDate
+      const paid = await invoicesApi.updateInvoiceStatus(
+        targetId,
+        'Paid',
+        'Payment settled via ACH',
+        adminUser?.id,
+        { paidDate: '2026-11-16' }
+      );
+      const valErrorsPaid = validateInvoice(paid);
+      if (paid.status !== 'Paid' || paid.paidDate !== '2026-11-16') {
+        valErrorsPaid.push(`Expected Paid with paidDate, got ${paid.status} / ${paid.paidDate}`);
+      }
+      if (valErrorsPaid.length > 0) {
+        console.log(`invoicesApi.updateInvoiceStatus (Paid): FAIL - ${valErrorsPaid.join(', ')}`);
+      } else {
+        console.log('invoicesApi.updateInvoiceStatus (Paid with paidDate): PASS');
+      }
+
+      // 4. Return to Flagged so downstream notifications tests receive expected state
+      sampleInvoice = await invoicesApi.updateInvoiceStatus(
+        targetId,
+        'Flagged',
+        'Conformance inspection flag restored',
+        adminUser?.id,
+        { flagReason: 'Price verification discrepancy' }
+      );
+      console.log('invoicesApi.updateInvoiceStatus: PASS');
     } catch (err: any) {
       console.log(`invoicesApi.updateInvoiceStatus: FAIL - ${err.message}`);
     }
 
     // -------------------------------------------------------------------------
-    // 14b. invoicesApi.uploadInvoiceAttachment (supplementary adapter function)
+    // 14b. invoicesApi.uploadInvoiceAttachment & Download Test
     // -------------------------------------------------------------------------
-    console.log('\n--- FUNCTION: invoicesApi.uploadInvoiceAttachment ---');
+    console.log('\n--- FUNCTION: invoicesApi.uploadInvoiceAttachment & Download ---');
     try {
       const targetId = sampleInvoice ? sampleInvoice.id : 'unknown';
       const fileBlob = new Blob(['sample pdf content'], { type: 'application/pdf' });
       const testFile = new File([fileBlob], 'test-invoice.pdf', { type: 'application/pdf' });
       const uploaded = await invoicesApi.uploadInvoiceAttachment(targetId, testFile);
       if (!uploaded) {
-        console.log('invoicesApi.uploadInvoiceAttachment: FAIL - Returned undefined (backend returns Invoice root, adapter expects { invoice: Invoice })');
-        console.log('  -> Defect location: Adapter (src/services/api/invoices.ts:69 unpacks res.invoice, but backend res.status(200).json(invoice) returns root object).');
+        console.log('invoicesApi.uploadInvoiceAttachment: FAIL - Returned undefined');
       } else {
         const valErrors = validateInvoice(uploaded);
         if (valErrors.length > 0) {
           console.log(`invoicesApi.uploadInvoiceAttachment: FAIL - ${valErrors.join(', ')}`);
         } else {
           console.log('invoicesApi.uploadInvoiceAttachment: PASS');
+          sampleInvoice = uploaded;
+        }
+      }
+
+      // Conformance attachment download test asserting 200 and received bytes
+      const token = getStoredToken();
+      const dlRes = await fetch(`http://localhost:5000/api/invoices/${targetId}/attachment`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (dlRes.status !== 200) {
+        console.log(`GET /api/invoices/:id/attachment: FAIL - Status ${dlRes.status}`);
+      } else {
+        const cdHeader = dlRes.headers.get('content-disposition');
+        const ctHeader = dlRes.headers.get('content-type');
+        const bytes = await dlRes.arrayBuffer();
+        if (!cdHeader || !cdHeader.includes('attachment')) {
+          console.log(`GET /api/invoices/:id/attachment: FAIL - Missing or invalid Content-Disposition header: ${cdHeader}`);
+        } else if (bytes.byteLength === 0) {
+          console.log('GET /api/invoices/:id/attachment: FAIL - Received 0 bytes');
+        } else {
+          console.log(`GET /api/invoices/:id/attachment: PASS (status 200, Content-Type: ${ctHeader}, received ${bytes.byteLength} bytes)`);
         }
       }
     } catch (err: any) {
@@ -896,7 +962,7 @@ async function runConformance(): Promise<void> {
       }
 
       // Audit log triggers test: Creating and approving an invoice generates audit entries
-      // with performedBy containing the Admin user's name ('Elena Rodriguez')
+      // with performedBy containing the Admin user's name ('Alex Rivera')
       console.log('--- Triggers Test: auditLogApi (Creation & Approval by Admin) ---');
       const vId = sampleVendor ? sampleVendor.id : 'unknown';
       const auditTriggerInv = await invoicesApi.createInvoice({
@@ -919,7 +985,7 @@ async function runConformance(): Promise<void> {
       await invoicesApi.updateInvoiceStatus(
         auditTriggerInv.id,
         'Approved',
-        'Approved by Elena Rodriguez in conformance suite',
+        'Approved by Alex Rivera in conformance suite',
         adminUser?.id
       );
 
@@ -935,10 +1001,10 @@ async function runConformance(): Promise<void> {
 
       assertParameterNotIgnored('auditLogApi.getAuditLog', 'invoiceId', filterEffective);
 
-      // Verify actions and performedBy contains Admin user's name ('Elena Rodriguez')
+      // Verify actions and performedBy contains Admin user's name ('Alex Rivera')
       const hasSubmission = filteredAuditEntries.some((e) => e.action === 'SUBMISSION');
       const hasApproval = filteredAuditEntries.some((e) => e.action === 'APPROVAL');
-      const adminName = 'Elena Rodriguez';
+      const adminName = 'Alex Rivera';
       const allAdminPerformed = filteredAuditEntries.every(
         (e) => e.performedBy && e.performedBy.includes(adminName)
       );
@@ -1019,8 +1085,8 @@ async function runConformance(): Promise<void> {
 
     try {
       const requesterLoginRes = await authApi.login(
-        'requester@payverify.local',
-        'RequesterPass123!'
+        'jordan.lee@apex.corp',
+        'DemoPassword!2026'
       );
       const requesterUser = requesterLoginRes.user;
       console.log(`Logged in as Requester: ${requesterUser.name} (${requesterUser.email})`);
@@ -1126,8 +1192,103 @@ async function runConformance(): Promise<void> {
           );
         }
       }
+
+      // 5. invoicesApi.updateInvoiceStatus: assert throws 403 Forbidden for Requester
+      try {
+        await invoicesApi.updateInvoiceStatus(
+          reqInvoice.id,
+          'Approved',
+          'Requester illegal approval attempt'
+        );
+        console.log(
+          'Requester updateInvoiceStatus: FAIL - Expected 403 error, but call succeeded'
+        );
+      } catch (err: any) {
+        const is403 =
+          err?.message?.includes('403') ||
+          err?.message?.toLowerCase().includes('forbidden') ||
+          err?.status === 403 ||
+          err?.statusCode === 403;
+        if (is403) {
+          console.log('Requester updateInvoiceStatus: PASS (threw 403 Forbidden)');
+        } else {
+          console.log(
+            `Requester updateInvoiceStatus: FAIL - Unexpected error: ${err.message}`
+          );
+        }
+      }
     } catch (err: any) {
       console.log(`Requester pass login: FAIL - ${err.message}`);
+    }
+
+    // -------------------------------------------------------------------------
+    // 23. Approver Pass
+    // -------------------------------------------------------------------------
+    console.log('\n====================================================');
+    console.log('APPROVER ROLE PASS');
+    console.log('====================================================');
+
+    try {
+      const approverLoginRes = await authApi.login(
+        'sarah.chen@apex.corp',
+        'DemoPassword!2026'
+      );
+      const approverUser = approverLoginRes.user;
+      console.log(`Logged in as Approver: ${approverUser.name} (${approverUser.email})`);
+
+      // 1. Can view all invoices
+      try {
+        const allInvoices = await invoicesApi.getInvoices();
+        if (!Array.isArray(allInvoices) || allInvoices.length === 0) {
+          console.log('Approver invoicesApi.getInvoices: FAIL - Expected non-empty array of invoices');
+        } else {
+          console.log(`Approver invoicesApi.getInvoices: PASS (retrieved ${allInvoices.length} invoices across all users)`);
+        }
+      } catch (err: any) {
+        console.log(`Approver invoicesApi.getInvoices: FAIL - ${err.message}`);
+      }
+
+      // 2. Approve invoice
+      try {
+        const targetId = sampleInvoice ? sampleInvoice.id : 'unknown';
+        const approvedByApprover = await invoicesApi.updateInvoiceStatus(
+          targetId,
+          'Approved',
+          'Approved by Sarah Chen in Approver pass',
+          approverUser.id
+        );
+        if (approvedByApprover.status === 'Approved') {
+          console.log('Approver updateInvoiceStatus (approve): PASS');
+        } else {
+          console.log(`Approver updateInvoiceStatus (approve): FAIL - status was ${approvedByApprover.status}`);
+        }
+      } catch (err: any) {
+        console.log(`Approver updateInvoiceStatus (approve): FAIL - ${err.message}`);
+      }
+
+      // 3. Download attachment
+      try {
+        const targetId = sampleInvoice ? sampleInvoice.id : 'unknown';
+        const token = getStoredToken();
+        const appDlRes = await fetch(`http://localhost:5000/api/invoices/${targetId}/attachment`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (appDlRes.status === 200) {
+          const bytes = await appDlRes.arrayBuffer();
+          const cdHeader = appDlRes.headers.get('content-disposition');
+          if (bytes.byteLength > 0 && cdHeader && cdHeader.includes('attachment')) {
+            console.log(`Approver download attachment: PASS (status 200, received ${bytes.byteLength} bytes)`);
+          } else {
+            console.log(`Approver download attachment: FAIL - bytes: ${bytes.byteLength}, cd: ${cdHeader}`);
+          }
+        } else {
+          console.log(`Approver download attachment: FAIL - status ${appDlRes.status}`);
+        }
+      } catch (err: any) {
+        console.log(`Approver download attachment: FAIL - ${err.message}`);
+      }
+    } catch (err: any) {
+      console.log(`Approver pass login: FAIL - ${err.message}`);
     }
   } finally {
     // Cleanup

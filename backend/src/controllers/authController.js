@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 const User = require('../models/User');
 const { JWT_SECRET } = require('../config/env');
 
@@ -107,7 +108,12 @@ const getUsers = async (req, res) => {
  */
 const getUserById = async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select('-passwordHash');
+    const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = await User.findById(id).select('-passwordHash');
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }

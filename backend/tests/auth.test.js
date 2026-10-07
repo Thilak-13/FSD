@@ -268,4 +268,53 @@ describe('Auth Integration Tests (POST /api/auth/login, requireAuth, roleGuard)'
       });
     });
   });
+
+  describe('GET /api/auth/users/:id (Malformed ID and Not Found validation)', () => {
+    let adminToken;
+
+    beforeEach(async () => {
+      adminToken = jwt.sign(
+        { id: seededUser._id.toString(), role: 'Admin', email: seededUser.email },
+        JWT_SECRET
+      );
+    });
+
+    it('retrieves user successfully with a valid user id (200)', async () => {
+      const res = await request(app)
+        .get(`/api/auth/users/${seededUser._id}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.body.email).toBe('sarah.chen@enterprise.com');
+      expect(res.body.passwordHash).toBeUndefined();
+    });
+
+    it('returns 404 and not 500 when id is malformed (invalid-id-123)', async () => {
+      const res = await request(app)
+        .get('/api/auth/users/invalid-id-123')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(404);
+      expect(res.body).toEqual({ error: 'User not found' });
+    });
+
+    it('returns 404 and not 500 when id is malformed non-hex string (nonexistent-id-0000000000000000)', async () => {
+      const res = await request(app)
+        .get('/api/auth/users/nonexistent-id-0000000000000000')
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(404);
+      expect(res.body).toEqual({ error: 'User not found' });
+    });
+
+    it('returns 404 when id is a valid ObjectId format but user does not exist', async () => {
+      const nonExistentId = new mongoose.Types.ObjectId().toString();
+      const res = await request(app)
+        .get(`/api/auth/users/${nonExistentId}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(404);
+      expect(res.body).toEqual({ error: 'User not found' });
+    });
+  });
 });

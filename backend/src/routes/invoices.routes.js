@@ -7,6 +7,7 @@ const upload = require('../middleware/upload');
 
 // Protected read endpoints
 router.get('/', requireAuth, invoiceController.getInvoices);
+router.get('/:id/attachment', requireAuth, invoiceController.getInvoiceAttachment);
 router.get('/:id', requireAuth, invoiceController.getInvoiceById);
 
 // Protected mutation endpoints

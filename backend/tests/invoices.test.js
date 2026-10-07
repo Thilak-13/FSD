@@ -249,6 +249,20 @@ describe('Invoices Integration & Verification Tests', () => {
       expect(notFoundRes.status).toBe(404);
       expect(notFoundRes.body.message).toContain('Invoice not found');
     });
+
+    it('returns 404 and not 500 when id is malformed (invalid-id-123 or nonexistent-id-0000000000000000)', async () => {
+      const resMalformed = await request(app)
+        .get('/api/invoices/invalid-id-123')
+        .set('Authorization', `Bearer ${adminToken}`);
+      expect(resMalformed.status).toBe(404);
+      expect(resMalformed.body.error).toBe('Invoice not found');
+
+      const resNonExistent = await request(app)
+        .get('/api/invoices/nonexistent-id-0000000000000000')
+        .set('Authorization', `Bearer ${adminToken}`);
+      expect(resNonExistent.status).toBe(404);
+      expect(resNonExistent.body.error).toBe('Invoice not found');
+    });
   });
 
   describe('Verification rule checks', () => {
@@ -595,6 +609,12 @@ describe('Invoices Integration & Verification Tests', () => {
       expect(res.body).toHaveProperty('error');
     });
 
+    it('rejects GET /api/invoices/:id/attachment without auth token with 401', async () => {
+      const res = await request(app).get('/api/invoices/some-id/attachment');
+      expect(res.status).toBe(401);
+      expect(res.body).toHaveProperty('error');
+    });
+
     it('rejects requests with invalid or expired token with 401', async () => {
       const res = await request(app)
         .post('/api/invoices')
@@ -828,6 +848,157 @@ describe('Invoices Integration & Verification Tests', () => {
         .set('Authorization', `Bearer ${requesterToken}`);
       expect(res.status).toBe(400);
       expect(res.body.message).toContain('No file uploaded');
+    });
+  });
+
+  describe('GET /api/invoices/:id/attachment (Authenticated file download)', () => {
+    let invoiceWithAttachment;
+    let createdFilePath;
+    const dummyPdfContent = 'PDF Mock Download Content 2026';
+
+    beforeEach(async () => {
+      const uploadDir = path.join(__dirname, '../uploads');
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      const testFilename = `test-download-${Date.now()}.pdf`;
+      createdFilePath = path.join(uploadDir, testFilename);
+      fs.writeFileSync(createdFilePath, dummyPdfContent);
+
+      invoiceWithAttachment = await Invoice.create({
+        invoiceNumber: 'INV-ATTACH-DOWNLOAD',
+        vendorId: testVendor._id,
+        amount: 3200,
+        dueDate: daysFromNow(30),
+        status: 'Submitted',
+        submittedBy: requesterUser._id,
+        attachedDocumentPath: `/uploads/${testFilename}`,
+        attachedDocumentName: 'receipt-original.pdf',
+      });
+    });
+
+    afterEach(() => {
+      if (createdFilePath && fs.existsSync(createdFilePath)) {
+        try {
+          fs.unlinkSync(createdFilePath);
+        } catch (_) {}
+      }
+    });
+
+    it('rejects unauthenticated request with 401', async () => {
+      const res = await request(app).get(
+        `/api/invoices/${invoiceWithAttachment._id}/attachment`
+      );
+      expect(res.status).toBe(401);
+      expect(res.body).toHaveProperty('error');
+    });
+
+    it('returns 404 when Requester requests another user\'s invoice attachment', async () => {
+      const bob = await User.create({
+        name: 'Bob Requester',
+        email: 'bob.req@payverify.local',
+        passwordHash: 'dummyhash',
+        role: 'Requester',
+      });
+      const bobToken = jwt.sign(
+        { id: bob._id.toString(), role: 'Requester', email: bob.email },
+        JWT_SECRET
+      );
+
+      const res = await request(app)
+        .get(`/api/invoices/${invoiceWithAttachment._id}/attachment`)
+        .set('Authorization', `Bearer ${bobToken}`);
+
+      expect(res.status).toBe(404);
+      expect(res.body).toEqual({ error: 'Invoice not found' });
+    });
+
+    it('returns 404 when invoice has no attachedDocumentPath', async () => {
+      const invoiceNoAttach = await Invoice.create({
+        invoiceNumber: 'INV-NO-ATTACH-RECORD',
+        vendorId: testVendor._id,
+        amount: 1200,
+        dueDate: daysFromNow(30),
+        status: 'Submitted',
+        submittedBy: requesterUser._id,
+      });
+
+      const res = await request(app)
+        .get(`/api/invoices/${invoiceNoAttach._id}/attachment`)
+        .set('Authorization', `Bearer ${requesterToken}`);
+
+      expect(res.status).toBe(404);
+      expect(res.body).toEqual({ error: 'Attachment not found' });
+    });
+
+    it('returns 404 when attachment file does not exist on disk', async () => {
+      const invoiceMissingFile = await Invoice.create({
+        invoiceNumber: 'INV-MISSING-DISK-FILE',
+        vendorId: testVendor._id,
+        amount: 1400,
+        dueDate: daysFromNow(30),
+        status: 'Submitted',
+        submittedBy: requesterUser._id,
+        attachedDocumentPath: '/uploads/nonexistent-disk-file-999.pdf',
+        attachedDocumentName: 'ghost.pdf',
+      });
+
+      const res = await request(app)
+        .get(`/api/invoices/${invoiceMissingFile._id}/attachment`)
+        .set('Authorization', `Bearer ${requesterToken}`);
+
+      expect(res.status).toBe(404);
+      expect(res.body).toEqual({ error: 'Attachment not found' });
+    });
+
+    it('returns 404 and not 500 when id is malformed (invalid-id-123 or nonexistent-id-0000000000000000)', async () => {
+      const res = await request(app)
+        .get('/api/invoices/invalid-id-123/attachment')
+        .set('Authorization', `Bearer ${requesterToken}`);
+      expect(res.status).toBe(404);
+      expect(res.body.error).toBe('Invoice not found');
+    });
+
+    it('returns 200 with correct headers (Content-Disposition: attachment and Content-Type) for owner', async () => {
+      const res = await request(app)
+        .get(`/api/invoices/${invoiceWithAttachment._id}/attachment`)
+        .set('Authorization', `Bearer ${requesterToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.headers['content-disposition']).toBe(
+        'attachment; filename="receipt-original.pdf"'
+      );
+      expect(res.headers['content-type']).toContain('application/pdf');
+      const received = Buffer.isBuffer(res.body) ? res.body.toString() : res.text;
+      expect(received).toBe(dummyPdfContent);
+    });
+
+    it('returns 200 with correct headers for Approver', async () => {
+      const res = await request(app)
+        .get(`/api/invoices/${invoiceWithAttachment._id}/attachment`)
+        .set('Authorization', `Bearer ${approverToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.headers['content-disposition']).toBe(
+        'attachment; filename="receipt-original.pdf"'
+      );
+      expect(res.headers['content-type']).toContain('application/pdf');
+      const received = Buffer.isBuffer(res.body) ? res.body.toString() : res.text;
+      expect(received).toBe(dummyPdfContent);
+    });
+
+    it('returns 200 with correct headers for Admin', async () => {
+      const res = await request(app)
+        .get(`/api/invoices/${invoiceWithAttachment._id}/attachment`)
+        .set('Authorization', `Bearer ${adminToken}`);
+
+      expect(res.status).toBe(200);
+      expect(res.headers['content-disposition']).toBe(
+        'attachment; filename="receipt-original.pdf"'
+      );
+      expect(res.headers['content-type']).toContain('application/pdf');
+      const received = Buffer.isBuffer(res.body) ? res.body.toString() : res.text;
+      expect(received).toBe(dummyPdfContent);
     });
   });
 });
