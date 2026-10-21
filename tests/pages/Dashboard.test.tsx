@@ -256,5 +256,49 @@ describe('DashboardPage', () => {
       expect(screen.getByTestId('kpi-requires-approval').textContent).toContain('0');
       expect(screen.getByText(/No recent invoices found/i)).toBeDefined();
     });
+
+    it('displays loading skeleton state when loading is true instead of 0/empty counters', () => {
+      const mockLoadingContext: any = {
+        invoices: [],
+        vendors: [],
+        purchaseOrders: [],
+        auditLog: [],
+        notifications: [],
+        reportsSummary: null,
+        loading: true,
+        error: null,
+      };
+
+      render(
+        <MemoryRouter>
+          <AuthProvider initialRole="Admin">
+            <DataContext.Provider value={mockLoadingContext}>
+              <DashboardPage />
+            </DataContext.Provider>
+          </AuthProvider>
+        </MemoryRouter>
+      );
+
+      // Executive Dashboard header remains visible
+      expect(screen.getByText(/Executive Dashboard/i)).toBeDefined();
+
+      // Loading skeleton containers are displayed
+      expect(screen.getByTestId('dashboard-loading-skeleton')).toBeDefined();
+      expect(screen.getByTestId('dashboard-kpi-skeleton')).toBeDefined();
+      expect(screen.getByTestId('dashboard-charts-skeleton')).toBeDefined();
+      expect(screen.getByTestId('volume-chart-skeleton')).toBeDefined();
+      expect(screen.getByTestId('status-chart-skeleton')).toBeDefined();
+
+      // Summary cards and charts should not render 0/empty counters while loading
+      expect(screen.queryByTestId('kpi-spend-pending')).toBeNull();
+      expect(screen.queryByTestId('kpi-requires-approval')).toBeNull();
+      expect(screen.queryByTestId('kpi-flagged-discrepancies')).toBeNull();
+      expect(screen.queryByTestId('kpi-scheduled-disbursements')).toBeNull();
+      expect(screen.queryByTestId('dashboard-volume-chart')).toBeNull();
+      expect(screen.queryByTestId('dashboard-status-chart')).toBeNull();
+
+      // DataTable should be in loading state, not showing "No recent invoices found"
+      expect(screen.queryByText(/No recent invoices found/i)).toBeNull();
+    });
   });
 });
