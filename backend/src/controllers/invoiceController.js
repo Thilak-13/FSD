@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const Invoice = require('../models/Invoice');
 const AuditEntry = require('../models/AuditEntry');
 const User = require('../models/User');
+const Vendor = require('../models/Vendor');
 const { verifyInvoice, validateInvoice } = require('../services/verificationService');
 
 /**
@@ -233,10 +234,16 @@ async function createInvoice(req, res, next) {
         ? req.body.poId
         : undefined;
 
-    const vendorId =
-      mongoose.isValidObjectId(req.body.vendorId)
-        ? req.body.vendorId
-        : new mongoose.Types.ObjectId();
+    if (!req.body.vendorId || !mongoose.Types.ObjectId.isValid(req.body.vendorId)) {
+      return res.status(400).json({ error: 'Valid vendorId is required' });
+    }
+
+    const vendor = await Vendor.findById(req.body.vendorId);
+    if (!vendor) {
+      return res.status(400).json({ error: 'Vendor not found' });
+    }
+
+    const vendorId = req.body.vendorId;
 
     // 4. Create Invoice
     const invoice = await Invoice.create({
