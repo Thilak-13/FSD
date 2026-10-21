@@ -6,8 +6,9 @@ const { requireAuth } = require('../middleware/auth');
 // GET /api/notifications - Identity strictly from verified JWT
 router.get('/', requireAuth, notificationsController.getNotifications);
 
-// PATCH /api/notifications/:id/read & POST /api/notifications/:id/read
+// Standard route: PATCH /api/notifications/:id/read
 router.patch('/:id/read', requireAuth, notificationsController.markRead);
+// Backwards-compatibility alias: POST /api/notifications/:id/read (kept for legacy callers and contract tests)
 router.post('/:id/read', requireAuth, notificationsController.markRead);
 
 // POST /api/notifications/read-all
