@@ -1,7 +1,6 @@
 const {
   getDerivedNotifications,
   markNotificationAsRead,
-  markAllNotificationsAsRead,
 } = require('../services/notificationService');
 const NotificationRead = require('../models/NotificationRead');
 

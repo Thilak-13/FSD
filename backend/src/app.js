@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 const { CLIENT_ORIGIN } = require('./config/env');
 
 const authRoutes = require('./routes/auth.routes');
