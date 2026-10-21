@@ -5,7 +5,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 
-const nodeEnv = process.env.NODE_ENV;
+const nodeEnv = process.env.NODE_ENV || 'development';
 const isTest = nodeEnv === 'test';
 const isDev = nodeEnv === 'development';
 const isProductionLike = !isTest && !isDev;

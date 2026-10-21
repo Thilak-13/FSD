@@ -73,8 +73,8 @@ const connectDB = async (uri, options = {}) => {
     isUsingMemoryServer = false;
     return conn;
   } catch (error) {
-    const isDev = process.env.NODE_ENV === 'development';
-    const useMemoryDB = process.env.USE_MEMORY_DB === 'true';
+    const isDev = (process.env.NODE_ENV || 'development') === 'development';
+    const useMemoryDB = process.env.USE_MEMORY_DB === 'true' || (isDev && process.env.USE_MEMORY_DB !== 'false');
     const allowFallback = isDev && useMemoryDB && !options.disableMemoryFallback;
 
     if (allowFallback) {
