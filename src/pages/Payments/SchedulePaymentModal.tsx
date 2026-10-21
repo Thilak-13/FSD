@@ -173,7 +173,7 @@ export const SchedulePaymentModal: React.FC<SchedulePaymentModalProps> = ({
           <strong>{invoice.invoiceNumber}</strong> (Amount:{' '}
           <strong>
             ₹
-            {invoice.amount.toLocaleString('en-US', {
+            {invoice.amount.toLocaleString('en-IN', {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })}

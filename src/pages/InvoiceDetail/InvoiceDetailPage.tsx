@@ -247,7 +247,7 @@ export const InvoiceDetailPage: React.FC = () => {
           <div className="invoice-detail-meta-item">
             <span className="invoice-detail-meta-label">Total Amount</span>
             <span className="invoice-detail-meta-value invoice-detail-meta-value-amount" data-testid="meta-amount">
-              ₹{invoice.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ₹{invoice.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           <div className="invoice-detail-meta-item">

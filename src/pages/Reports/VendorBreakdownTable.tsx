@@ -42,7 +42,7 @@ export const VendorBreakdownTable: React.FC<VendorBreakdownTableProps> = ({ rows
         sortable: true,
         render: (row) => (
           <span style={{ fontFamily: 'monospace', fontWeight: 600 }}>
-            ₹{row.totalBilled.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            ₹{row.totalBilled.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
         ),
       },
@@ -52,7 +52,7 @@ export const VendorBreakdownTable: React.FC<VendorBreakdownTableProps> = ({ rows
         sortable: true,
         render: (row) => (
           <span style={{ fontFamily: 'monospace', color: 'var(--spectrum-global-color-green-700, #2680eb)', fontWeight: 600 }}>
-            ₹{row.totalPaid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            ₹{row.totalPaid.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
         ),
       },
@@ -62,7 +62,7 @@ export const VendorBreakdownTable: React.FC<VendorBreakdownTableProps> = ({ rows
         sortable: true,
         render: (row) => (
           <span style={{ fontFamily: 'monospace', color: 'var(--spectrum-global-color-orange-700, #e68619)', fontWeight: 600 }}>
-            ₹{row.pendingBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            ₹{row.pendingBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </span>
         ),
       },

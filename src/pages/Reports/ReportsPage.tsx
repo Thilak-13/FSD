@@ -107,7 +107,7 @@ export const ReportsPage: React.FC = () => {
   };
 
   const formatCurrency = (amt: number) => {
-    return `₹${amt.toLocaleString('en-US', {
+    return `₹${amt.toLocaleString('en-IN', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;

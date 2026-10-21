@@ -548,7 +548,7 @@ export const createInvoice = async (
     invoiceId: newInvoice.id,
     action: 'SUBMISSION',
     performedBy: input.submittedBy || 'Requester',
-    details: `Invoice ${newInvoice.invoiceNumber} submitted for amount ₹${newInvoice.amount.toLocaleString()}`,
+    details: `Invoice ${newInvoice.invoiceNumber} submitted for amount ₹${newInvoice.amount.toLocaleString('en-IN')}`,
   });
 
   return { ...newInvoice };

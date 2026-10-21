@@ -88,7 +88,7 @@ export const DocumentViewerStub: React.FC<DocumentViewerStubProps> = ({
           <div style={{ margin: '8px 0', fontSize: '12px', color: 'var(--spectrum-global-color-gray-700, #6e6e6e)' }}>
             <strong>Vendor ID:</strong> {invoice.vendorId}
             <br />
-            <strong>Total Due:</strong> ₹{invoice.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            <strong>Total Due:</strong> ₹{invoice.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
           </div>
 
           <div className="document-mock-line" style={{ width: '100%' }} />

@@ -105,7 +105,7 @@ test.describe('PayVerify Real-Mode Smoke Tests & RBAC Validation', () => {
 
     // Verify dashboard data is populated
     await expect(page.locator('[data-testid="kpi-spend-pending"] .summary-card-value')).toBeVisible();
-    await expect(page.locator('[data-testid="kpi-spend-pending"] .summary-card-value')).not.toHaveText('$0.00');
+    await expect(page.locator('[data-testid="kpi-spend-pending"] .summary-card-value')).not.toHaveText('₹0.00');
     await expect(page.locator('[data-testid="kpi-requires-approval"] .summary-card-value')).toBeVisible();
 
     // Navigate to Invoices page

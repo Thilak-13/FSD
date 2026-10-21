@@ -102,7 +102,7 @@ export const VolumeChart: React.FC<VolumeChartProps> = ({ invoices }) => {
             <Tooltip
               formatter={(value: any, name: string) => [
                 name === 'Spend (₹)'
-                  ? `₹${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+                  ? `₹${Number(value).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
                   : value,
                 name,
               ]}

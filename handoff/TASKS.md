@@ -12,10 +12,10 @@ Deduplicated master task list for project stabilization and feature completion.
 
 ### Priority 0: Core End-to-End Demo Blockers
 
-1. [x] **[P0] [AG] Fix Currency Symbol Mismatch in Variance Assertion**
+1. [x] **[P0] [AG] Standardize Currency to Indian Rupees (₹) Everywhere**
    - **Files**: `backend/src/services/verificationService.js:124`, `backend/src/config/seed.js:626`, `backend/tests/invoices.test.js:284`, `backend/tests/seed.test.js:123`
-   - **Problem**: Verification service and seed data output Rupee symbol (`±₹0.01 tolerance`) while Jest test assertions expect Dollar (`±$0.01 tolerance`), causing 2 test suite failures.
-   - **Fix**: Align the tolerance message in `verificationService.js` and `seed.js` with test expectations (`±$0.01 tolerance`) so `npm run server:test` passes 100%.
+   - **Problem**: Inconsistent currency symbols between backend verification messages (`₹`), test assertions (`$`), and frontend locale formatting.
+   - **Fix**: Standardize on Indian Rupee (`₹` / `en-IN` locale) everywhere across verificationService, seed data, backend tests, and frontend components.
 
 2. [ ] **[P0] [CC] Implement End-to-End Invoice Document Upload and Attachment Viewing**
    - **Files**: `src/pages/Invoices/InvoiceFormDialog.tsx:214-222,271`, `src/pages/InvoiceDetail/DocumentViewerStub.tsx:41-43,75`, `src/services/api/invoices.ts:71,82`, `backend/src/routes/invoices.routes.js:10,21`

@@ -262,7 +262,7 @@ describe('Reports & Spend Analytics Integration Tests', () => {
     });
 
     it('scopes summary metrics strictly to invoices submitted by Requester', async () => {
-      // Alice submitted: INV-REP-001 ($1000 Paid), INV-REP-002 ($500 Submitted), INV-REP-005 ($800 Under Verification)
+      // Alice submitted: INV-REP-001 (₹1000 Paid), INV-REP-002 (₹500 Submitted), INV-REP-005 (₹800 Under Verification)
       const res = await request(app)
         .get('/api/reports/summary')
         .set('Authorization', `Bearer ${requesterToken}`);
@@ -278,7 +278,7 @@ describe('Reports & Spend Analytics Integration Tests', () => {
         scheduledDisbursements: 0,
       });
 
-      // Bob submitted: INV-REP-003 ($250 Flagged), INV-REP-004 ($2000 Payment Scheduled), INV-REP-006 ($1200 Paid)
+      // Bob submitted: INV-REP-003 (₹250 Flagged), INV-REP-004 (₹2000 Payment Scheduled), INV-REP-006 (₹1200 Paid)
       const resBob = await request(app)
         .get('/api/reports/summary')
         .set('Authorization', `Bearer ${otherRequesterToken}`);

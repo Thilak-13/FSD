@@ -67,7 +67,7 @@ export const DashboardPage: React.FC = () => {
     }, [invoices]);
 
   const formatCurrency = (amount: number) => {
-    return `₹${amount.toLocaleString('en-US', {
+    return `₹${amount.toLocaleString('en-IN', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;

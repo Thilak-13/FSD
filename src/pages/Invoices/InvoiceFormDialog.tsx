@@ -411,7 +411,7 @@ export const InvoiceFormDialog: React.FC<InvoiceFormDialogProps> = ({
                 <option value="">None / Direct Invoice</option>
                 {availablePOs.map((po) => (
                   <option key={po.id} value={po.id}>
-                    {po.poNumber} — ₹{po.amount.toLocaleString()} ({po.description})
+                    {po.poNumber} — ₹{po.amount.toLocaleString('en-IN')} ({po.description})
                   </option>
                 ))}
               </select>

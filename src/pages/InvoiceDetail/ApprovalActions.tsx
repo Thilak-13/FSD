@@ -200,7 +200,7 @@ export const ApprovalActions: React.FC<ApprovalActionsProps> = ({
         open={isApproveOpen}
         title="Approve Invoice"
         message={`Are you sure you want to approve invoice ${invoice.invoiceNumber} for ₹${invoice.amount.toLocaleString(
-          'en-US',
+          'en-IN',
           { minimumFractionDigits: 2 }
         )}? This confirms line items and verification compliance.`}
         confirmLabel="Approve"
@@ -252,7 +252,7 @@ export const ApprovalActions: React.FC<ApprovalActionsProps> = ({
         open={isScheduleOpen}
         title="Schedule Payment Disbursement"
         message={`Select disbursement date for invoice ${invoice.invoiceNumber} (₹${invoice.amount.toLocaleString(
-          'en-US',
+          'en-IN',
           { minimumFractionDigits: 2 }
         )}).`}
         confirmLabel="Schedule Payment"

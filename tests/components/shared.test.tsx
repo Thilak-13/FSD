@@ -257,7 +257,7 @@ describe('Shared Components', () => {
 
     const columns: Column<TestRow>[] = [
       { key: 'name', title: 'Vendor Name', sortable: true },
-      { key: 'amount', title: 'Amount', sortable: true, render: (row) => `$${row.amount.toFixed(2)}` },
+      { key: 'amount', title: 'Amount', sortable: true, render: (row) => `₹${row.amount.toFixed(2)}` },
       { key: 'status', title: 'Status', render: (row) => <StatusBadge status={row.status} /> },
     ];
 
@@ -273,9 +273,9 @@ describe('Shared Components', () => {
       expect(screen.getByText('Vendor Name')).toBeDefined();
       expect(screen.getByText('Amount')).toBeDefined();
       expect(screen.getByText('Apex Cloud Services')).toBeDefined();
-      expect(screen.getByText('$1250.00')).toBeDefined();
+      expect(screen.getByText('₹1250.00')).toBeDefined();
       expect(screen.getByText('ByteForce Technologies')).toBeDefined();
-      expect(screen.getByText('$3400.00')).toBeDefined();
+      expect(screen.getByText('₹3400.00')).toBeDefined();
     });
 
     it('handles row click callbacks', () => {

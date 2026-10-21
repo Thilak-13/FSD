@@ -120,7 +120,7 @@ describe('Database Seed Unit Tests', () => {
     );
     expect(outsideToleranceInv).toBeDefined();
     expect(outsideToleranceInv.status).toBe('Flagged');
-    expect(outsideToleranceInv.flagReason).toContain('exceeds ±$0.01 tolerance');
+    expect(outsideToleranceInv.flagReason).toContain('exceeds ±₹0.01 tolerance');
 
     // Verify flagged reasons include price mismatch, quantity excess, duplicate, and surcharge
     const flagged = invoices.filter((inv) => inv.status === 'Flagged');

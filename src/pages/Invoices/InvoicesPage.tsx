@@ -122,7 +122,7 @@ export const InvoicesPage: React.FC = () => {
         sortable: true,
         align: 'right',
         render: (inv) =>
-          `₹${inv.amount.toLocaleString('en-US', {
+          `₹${inv.amount.toLocaleString('en-IN', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })}`,

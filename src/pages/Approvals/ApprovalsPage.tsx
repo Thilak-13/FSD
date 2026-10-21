@@ -202,7 +202,7 @@ export const ApprovalsPage: React.FC = () => {
         sortable: true,
         align: 'right',
         render: (inv) =>
-          `₹${inv.amount.toLocaleString('en-US', {
+          `₹${inv.amount.toLocaleString('en-IN', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })}`,
@@ -339,7 +339,7 @@ export const ApprovalsPage: React.FC = () => {
         >
           <span className="approvals-metric-label">Total Amount Pending</span>
           <span className="approvals-metric-value">
-            ₹{metrics.totalPendingAmount.toLocaleString('en-US', {
+            ₹{metrics.totalPendingAmount.toLocaleString('en-IN', {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })}
@@ -457,7 +457,7 @@ export const ApprovalsPage: React.FC = () => {
               Are you sure you want to approve invoice{' '}
               <strong>{approvingInvoice?.invoiceNumber}</strong> for{' '}
               <strong>
-                ₹{approvingInvoice?.amount.toLocaleString('en-US', {
+                ₹{approvingInvoice?.amount.toLocaleString('en-IN', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}

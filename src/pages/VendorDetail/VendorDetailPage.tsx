@@ -68,7 +68,7 @@ export const VendorDetailPage: React.FC = () => {
         sortable: true,
         align: 'right',
         render: (po) =>
-          `₹${po.amount.toLocaleString('en-US', {
+          `₹${po.amount.toLocaleString('en-IN', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })}`,
@@ -113,7 +113,7 @@ export const VendorDetailPage: React.FC = () => {
         sortable: true,
         align: 'right',
         render: (inv) =>
-          `₹${inv.amount.toLocaleString('en-US', {
+          `₹${inv.amount.toLocaleString('en-IN', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })}`,

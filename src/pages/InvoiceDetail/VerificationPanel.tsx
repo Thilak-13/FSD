@@ -96,7 +96,7 @@ export const VerificationPanel: React.FC<VerificationPanelProps> = ({
           <div className="invoice-detail-meta-item">
             <span className="invoice-detail-meta-label">PO Total Value</span>
             <span className="invoice-detail-meta-value" data-testid="verification-po-amount">
-              ₹{linkedPo.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ₹{linkedPo.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           <div className="invoice-detail-meta-item">
@@ -172,16 +172,16 @@ export const VerificationPanel: React.FC<VerificationPanelProps> = ({
                     {poItem ? poItem.quantity : '—'}
                   </td>
                   <td className="align-right" data-testid={`row-${idx}-inv-price`}>
-                    ₹{invoiceItem.unitPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    ₹{invoiceItem.unitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </td>
                   <td className="align-right" data-testid={`row-${idx}-po-price`}>
                     {poItem
-                      ? `₹${poItem.unitPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                      ? `₹${poItem.unitPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                       : '—'}
                   </td>
                   <td className="align-right" data-testid={`row-${idx}-total`}>
                     <strong>
-                      ₹{invoiceItem.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      ₹{invoiceItem.total.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </strong>
                   </td>
                   <td data-testid={`row-${idx}-status`}>
@@ -251,7 +251,7 @@ export const VerificationPanel: React.FC<VerificationPanelProps> = ({
               Invoice Total
             </span>
             <strong>
-              ₹{invoice.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ₹{invoice.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </strong>
           </div>
           {linkedPo && (
@@ -261,7 +261,7 @@ export const VerificationPanel: React.FC<VerificationPanelProps> = ({
                   PO Reference Value
                 </span>
                 <strong>
-                  ₹{linkedPo.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ₹{linkedPo.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </strong>
               </div>
               <div>
@@ -269,7 +269,7 @@ export const VerificationPanel: React.FC<VerificationPanelProps> = ({
                   Variance
                 </span>
                 <strong data-testid="variance-amount">
-                  ₹{Math.abs(varianceAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ₹{Math.abs(varianceAmount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </strong>
               </div>
             </>

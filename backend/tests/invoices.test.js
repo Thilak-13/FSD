@@ -266,7 +266,7 @@ describe('Invoices Integration & Verification Tests', () => {
   });
 
   describe('Verification rule checks', () => {
-    it('flags invoice when amount mismatches PO beyond ±$0.01 tolerance', async () => {
+    it('flags invoice when amount mismatches PO beyond ±₹0.01 tolerance', async () => {
       const res = await request(app)
         .post('/api/invoices')
         .set('Authorization', `Bearer ${requesterToken}`)
@@ -274,17 +274,17 @@ describe('Invoices Integration & Verification Tests', () => {
           invoiceNumber: 'INV-MISMATCH',
           vendorId: testVendor._id.toString(),
           poId: testPO._id.toString(),
-          amount: 5050.0, // $50 more than PO $5000
+          amount: 5050.0, // ₹50 more than PO ₹5000
           dueDate: daysFromNow(30),
         });
 
       expect(res.status).toBe(201);
       expect(res.body.status).toBe('Flagged');
       expect(res.body.flagReason).toContain('Amount mismatch');
-      expect(res.body.flagReason).toContain('exceeds ±$0.01 tolerance');
+      expect(res.body.flagReason).toContain('exceeds ±₹0.01 tolerance');
     });
 
-    it('accepts invoice when amount matches PO within ±$0.01 tolerance', async () => {
+    it('accepts invoice when amount matches PO within ±₹0.01 tolerance', async () => {
       const res = await request(app)
         .post('/api/invoices')
         .set('Authorization', `Bearer ${requesterToken}`)

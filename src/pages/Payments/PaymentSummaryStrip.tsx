@@ -73,7 +73,7 @@ export const PaymentSummaryStrip: React.FC<PaymentSummaryStripProps> = ({
         </div>
         <div>
           <span className="payments-metric-value">
-            ₹{metrics.scheduledDisbursements.toLocaleString('en-US', {
+            ₹{metrics.scheduledDisbursements.toLocaleString('en-IN', {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })}
@@ -92,7 +92,7 @@ export const PaymentSummaryStrip: React.FC<PaymentSummaryStripProps> = ({
         </div>
         <div>
           <span className="payments-metric-value">
-            ₹{metrics.paidMtd.toLocaleString('en-US', {
+            ₹{metrics.paidMtd.toLocaleString('en-IN', {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
             })}

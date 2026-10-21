@@ -154,7 +154,7 @@ export const PaymentsPage: React.FC = () => {
         sortable: true,
         align: 'right',
         render: (inv) =>
-          `₹${inv.amount.toLocaleString('en-US', {
+          `₹${inv.amount.toLocaleString('en-IN', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })}`,
@@ -472,7 +472,7 @@ export const PaymentsPage: React.FC = () => {
               <strong>{payingInvoice?.vendorName}</strong>) for{' '}
               <strong>
                 ₹
-                {payingInvoice?.amount.toLocaleString('en-US', {
+                {payingInvoice?.amount.toLocaleString('en-IN', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}
