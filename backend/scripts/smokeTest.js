@@ -134,7 +134,9 @@ async function runSmokeTests() {
 
     // 6. Reports Domain: GET /api/reports/summary
     console.log('\n--- 6. GET /api/reports/summary ---');
-    const summaryRes = await request(app).get('/api/reports/summary');
+    const summaryRes = await request(app)
+      .get('/api/reports/summary')
+      .set('Authorization', 'Bearer ' + adminToken);
     console.log(`Status: ${summaryRes.status}`);
     console.log('Response body:', JSON.stringify(summaryRes.body, null, 2));
 
