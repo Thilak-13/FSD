@@ -1,6 +1,6 @@
 // src/services/api/client.ts
 const metaEnv = typeof import.meta !== 'undefined' && (import.meta as Record<string, any>).env;
-export const API_BASE_URL = metaEnv?.VITE_API_URL || 'http://localhost:5000/api';
+export const API_BASE_URL = metaEnv?.VITE_API_URL || '/api';
 const TOKEN_KEY = 'payverify_auth_token';
 
 export class ApiError extends Error {
