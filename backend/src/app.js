@@ -14,12 +14,8 @@ const auditLogRoutes = require('./routes/auditLog.routes');
 const app = express();
 
 // Global Middleware
-app.use(
-  cors({
-    origin: CLIENT_ORIGIN || '*',
-    credentials: true,
-  })
-);
+const allowedOrigin = CLIENT_ORIGIN || (process.env.NODE_ENV !== 'production' ? 'http://localhost:5173' : false);
+app.use(cors({ origin: allowedOrigin, credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
