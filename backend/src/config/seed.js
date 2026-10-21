@@ -623,7 +623,7 @@ const getDemoInvoices = (vendorMap, poMap, userMap) => {
       dueDate: daysFromNow(12),
       submittedDate: daysFromNow(-18),
       status: 'Flagged',
-      flagReason: 'Amount mismatch: Invoice amount ₹8,350.00 differs from PO amount ₹8,200.00 (variance: ₹150.00 exceeds ±₹0.01 tolerance)',
+      flagReason: 'Amount mismatch: Invoice amount $8,350.00 differs from PO amount $8,200.00 (variance: $150.00 exceeds ±$0.01 tolerance)',
       submittedBy: jordan._id,
       attachedDocumentName: 'INV-2026-009_Apex.pdf',
       attachedDocumentPath: sampleDoc,
