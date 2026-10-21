@@ -9,3 +9,4 @@ backend/data/
 backend/uploads/
 test-results/
 playwright-report/
+.worktrees/
