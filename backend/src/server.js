@@ -8,6 +8,9 @@ let server = null;
 
 const startServer = async () => {
   try {
+    if (process.env.USE_MEMORY_DB === undefined && process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
+      process.env.USE_MEMORY_DB = 'true';
+    }
     // 1. Connect to MongoDB
     console.log(`Connecting to MongoDB at ${MONGODB_URI}...`);
     await connectDB(MONGODB_URI);
