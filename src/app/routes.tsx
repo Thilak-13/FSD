@@ -15,20 +15,6 @@ import { VendorDetailPage } from '../pages/VendorDetail/VendorDetailPage';
 import { ReportsPage } from '../pages/Reports/ReportsPage';
 import { AuditLogPage } from '../pages/AuditLog/AuditLogPage';
 
-// Placeholder components until dedicated page implementations (Tasks 5-11) are attached
-export const LoginPlaceholder: React.FC = LoginPage;
-export const LandingPlaceholder: React.FC = LandingPage;
-export const DashboardPlaceholder: React.FC = DashboardPage;
-export const InvoicesPlaceholder: React.FC = InvoicesPage;
-export const InvoiceDetailPlaceholder: React.FC = InvoiceDetailPage;
-export const ApprovalsPlaceholder: React.FC = ApprovalsPage;
-export const PaymentsPlaceholder: React.FC = PaymentsPage;
-export const VendorsPlaceholder: React.FC = VendorsPage;
-export const VendorDetailPlaceholder: React.FC = VendorDetailPage;
-export const ReportsPlaceholder: React.FC = ReportsPage;
-export const AuditLogPlaceholder: React.FC = AuditLogPage;
-
-export { LandingPage };
 
 /**
  * RootRoute Component:
