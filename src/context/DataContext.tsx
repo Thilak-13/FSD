@@ -534,3 +534,7 @@ export const useData = (): DataContextType => {
   }
   return context;
 };
+
+export const useDataContext = (): DataContextType | undefined => {
+  return useContext(DataContext);
+};
