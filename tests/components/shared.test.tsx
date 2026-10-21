@@ -36,8 +36,8 @@ describe('Shared Components', () => {
     it('allows overriding variant explicitly', () => {
       const { container } = render(<StatusBadge status="Custom" variant="positive" />);
       expect(screen.getByText('Custom')).toBeDefined();
-      const statusLight = container.querySelector('sp-status-light');
-      expect(statusLight?.getAttribute('variant')).toBe('positive');
+      const statusLight = container.querySelector('[data-variant]') || container.querySelector('sp-status-light');
+      expect(statusLight?.getAttribute('data-variant') || statusLight?.getAttribute('variant')).toBe('positive');
     });
   });
 
@@ -218,9 +218,9 @@ describe('Shared Components', () => {
         </FormField>
       );
 
-      const fieldLabel = container.querySelector('sp-field-label');
+      const fieldLabel = container.querySelector('label') || container.querySelector('sp-field-label');
       expect(fieldLabel).toBeDefined();
-      expect(fieldLabel?.hasAttribute('required') || (fieldLabel as any)?.required).toBeTruthy();
+      expect(fieldLabel?.textContent).toContain('*');
     });
 
     it('renders error message with role="alert" and aria-live="polite"', () => {

@@ -1,5 +1,4 @@
 import React from 'react';
-import { Button } from '@swc-react/button';
 
 export interface EmptyStateProps {
   title: string;
@@ -15,7 +14,7 @@ export interface EmptyStateProps {
 
 /**
  * Accessible Empty State component rendered when data sets or query results are empty.
- * Styled purely with Adobe Spectrum design tokens and compliant with WCAG AA.
+ * Styled purely with CSS/design tokens and compliant with WCAG AA.
  */
 export const EmptyState: React.FC<EmptyStateProps> = ({
   title,
@@ -96,15 +95,43 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         }}
       >
         {actionLabel && onAction && (
-          <Button variant="accent" onClick={onAction}>
+          <button
+            type="button"
+            className="empty-state-action-btn"
+            onClick={onAction}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: 'var(--spectrum-global-color-blue-600, #1473e6)',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '4px',
+              fontWeight: 600,
+              fontSize: '14px',
+              cursor: 'pointer',
+            }}
+          >
             {actionLabel}
-          </Button>
+          </button>
         )}
 
         {secondaryActionLabel && onSecondaryAction && (
-          <Button variant="secondary" onClick={onSecondaryAction}>
+          <button
+            type="button"
+            className="empty-state-secondary-btn"
+            onClick={onSecondaryAction}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: 'transparent',
+              color: 'var(--spectrum-global-color-gray-800, #464646)',
+              border: '1px solid var(--spectrum-global-color-gray-400, #b8b8b8)',
+              borderRadius: '4px',
+              fontWeight: 600,
+              fontSize: '14px',
+              cursor: 'pointer',
+            }}
+          >
             {secondaryActionLabel}
-          </Button>
+          </button>
         )}
       </div>
     </div>

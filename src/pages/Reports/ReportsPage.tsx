@@ -1,8 +1,5 @@
-// src/pages/Reports/ReportsPage.tsx
 import React, { useState, useContext, useMemo } from 'react';
 import { DataContext } from '../../context/DataContext';
-import { Card } from '@swc-react/card';
-import { ActionButton } from '@swc-react/action-button';
 import { DateRangeFilter } from './DateRangeFilter';
 import { ExportButtons, VendorReportRow } from './ExportButtons';
 import { VendorBreakdownTable } from './VendorBreakdownTable';
@@ -110,7 +107,7 @@ export const ReportsPage: React.FC = () => {
   };
 
   const formatCurrency = (amt: number) => {
-    return `$${amt.toLocaleString('en-US', {
+    return `₹${amt.toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
@@ -122,15 +119,22 @@ export const ReportsPage: React.FC = () => {
       {toastMessage && (
         <div className="reports-toast" role="status" aria-live="polite">
           <span>{toastMessage}</span>
-          <ActionButton
-            quiet
-            size="s"
+          <button
+            type="button"
             onClick={() => setToastMessage(null)}
             aria-label="Close notification"
-            role="button"
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#ffffff',
+              fontSize: '18px',
+              cursor: 'pointer',
+              padding: '0 4px',
+              lineHeight: 1,
+            }}
           >
             &times;
-          </ActionButton>
+          </button>
         </div>
       )}
 
@@ -152,12 +156,12 @@ export const ReportsPage: React.FC = () => {
 
       {/* High-Level Metric Strip */}
       <div className="reports-metric-strip">
-        <Card className="reports-metric-card" data-testid="report-metric-total-billed">
+        <div className="reports-metric-card" data-testid="report-metric-total-billed">
           <h3 className="reports-metric-label">Total Billed</h3>
           <div className="reports-metric-value">{formatCurrency(totalBilled)}</div>
           <p className="reports-metric-sub">Across all invoiced items in period</p>
-        </Card>
-        <Card className="reports-metric-card" data-testid="report-metric-total-paid">
+        </div>
+        <div className="reports-metric-card" data-testid="report-metric-total-paid">
           <h3 className="reports-metric-label">Total Disbursed</h3>
           <div
             className="reports-metric-value"
@@ -166,8 +170,8 @@ export const ReportsPage: React.FC = () => {
             {formatCurrency(totalPaid)}
           </div>
           <p className="reports-metric-sub">Settled and disbursed payments</p>
-        </Card>
-        <Card className="reports-metric-card" data-testid="report-metric-pending">
+        </div>
+        <div className="reports-metric-card" data-testid="report-metric-pending">
           <h3 className="reports-metric-label">Pending Outstanding</h3>
           <div
             className="reports-metric-value"
@@ -176,12 +180,12 @@ export const ReportsPage: React.FC = () => {
             {formatCurrency(pendingBalance)}
           </div>
           <p className="reports-metric-sub">Awaiting verification or disbursement</p>
-        </Card>
-        <Card className="reports-metric-card" data-testid="report-metric-vendors">
+        </div>
+        <div className="reports-metric-card" data-testid="report-metric-vendors">
           <h3 className="reports-metric-label">Active Vendors</h3>
           <div className="reports-metric-value">{vendors.length}</div>
           <p className="reports-metric-sub">Registered supplier organizations</p>
-        </Card>
+        </div>
       </div>
 
       {/* Vendor Breakdown Table */}

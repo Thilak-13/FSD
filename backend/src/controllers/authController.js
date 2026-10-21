@@ -44,9 +44,8 @@ const login = async (req, res) => {
       role: user.role,
       name: user.name,
     };
-
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '8h' });
-
+    res.setHeader('Set-Cookie', `token=${token}; Path=/; SameSite=Lax`);
     return res.status(200).json({
       token,
       user: {

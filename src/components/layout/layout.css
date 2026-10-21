@@ -3,6 +3,29 @@
    Strict Spectrum Design Tokens & Zero Hardcoded Colors
    ========================================================================== */
 
+/* App Root & Theme Structure */
+.app-root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.theme-dark,
+[data-theme="dark"] {
+  --spectrum-global-color-gray-50: #1e1e1e;
+  --spectrum-global-color-gray-100: #252525;
+  --spectrum-global-color-gray-200: #2f2f2f;
+  --spectrum-global-color-gray-300: #3e3e3e;
+  --spectrum-global-color-gray-400: #555555;
+  --spectrum-global-color-gray-500: #777777;
+  --spectrum-global-color-gray-600: #999999;
+  --spectrum-global-color-gray-700: #cccccc;
+  --spectrum-global-color-gray-800: #e0e0e0;
+  --spectrum-global-color-gray-900: #ffffff;
+  background-color: var(--spectrum-global-color-gray-100, #252525);
+  color: var(--spectrum-global-color-gray-900, #ffffff);
+}
+
 /* AppShell Layout Structure */
 .app-shell {
   display: flex;
@@ -189,6 +212,20 @@
 
 .global-search-input {
   width: 100%;
+  height: 36px;
+  padding: var(--spectrum-global-dimension-size-50, 4px) var(--spectrum-global-dimension-size-150, 12px);
+  border: 1px solid var(--spectrum-global-color-gray-300, #e1e1e1);
+  border-radius: var(--spectrum-alias-border-radius-regular, 4px);
+  background-color: var(--spectrum-global-color-gray-50, #ffffff);
+  color: var(--spectrum-global-color-gray-900, #2c2c2c);
+  font-family: inherit;
+  font-size: var(--spectrum-alias-font-size-default, 14px);
+  box-sizing: border-box;
+}
+
+.global-search-input:focus {
+  outline: 2px solid var(--spectrum-global-color-blue-500, #1473e6);
+  outline-offset: -1px;
 }
 
 .top-bar-right {
@@ -236,6 +273,21 @@
   pointer-events: none;
 }
 
+.notification-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background-color: var(--spectrum-global-color-blue-600, #0d66d0);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
 /* Fast Role Switcher */
 .role-switcher-container {
   position: relative;
@@ -264,6 +316,26 @@
 .role-switcher-trigger:focus-visible {
   outline: 2px solid var(--spectrum-global-color-blue-500, #1473e6);
   outline-offset: 2px;
+}
+
+.role-switcher-spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 4px;
+}
+
+.role-switcher-spinner .spinner-icon {
+  animation: role-spinner-spin 0.8s linear infinite;
+}
+
+@keyframes role-spinner-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .role-dropdown-menu {

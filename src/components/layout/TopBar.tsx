@@ -1,13 +1,8 @@
 // src/components/layout/TopBar.tsx
-import React, { useState, useRef, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search as SpSearch } from '@swc-react/search';
-import { Badge as SpBadge } from '@swc-react/badge';
-import { ActionButton } from '@swc-react/action-button';
-import { Button } from '@swc-react/button';
 import { useAuth } from '../../context/AuthContext';
 import { DataContext } from '../../context/DataContext';
-import { Role } from '../../types';
 import { NotificationPanel } from './NotificationPanel';
 
 export interface TopBarProps {
@@ -21,7 +16,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   theme = 'light',
   onToggleTheme,
 }) => {
-  const { currentUser, currentRole, switchRole, logout } = useAuth();
+  const { currentUser, currentRole, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const dataCtx = useContext(DataContext);
 
@@ -29,45 +24,13 @@ export const TopBar: React.FC<TopBarProps> = ({
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const [isRoleMenuOpen, setIsRoleMenuOpen] = useState(false);
   const [localTheme, setLocalTheme] = useState<'light' | 'dark'>(theme);
   const [searchTerm, setSearchTerm] = useState('');
-
-  const roleMenuRef = useRef<HTMLDivElement>(null);
 
   // Sync prop theme with local state
   useEffect(() => {
     setLocalTheme(theme);
   }, [theme]);
-
-  // Handle outside click to close role dropdown menu
-  useEffect(() => {
-    if (!isRoleMenuOpen) return;
-
-    const handleClickOutside = (e: MouseEvent) => {
-      if (roleMenuRef.current && !roleMenuRef.current.contains(e.target as Node)) {
-        setIsRoleMenuOpen(false);
-      }
-    };
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setIsRoleMenuOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isRoleMenuOpen]);
-
-  const handleRoleChange = (role: Role) => {
-    switchRole(role);
-    setIsRoleMenuOpen(false);
-  };
 
   const handleLogout = () => {
     logout();
@@ -82,17 +45,13 @@ export const TopBar: React.FC<TopBarProps> = ({
     }
   };
 
-  const roles: Role[] = ['Admin', 'Approver', 'Requester'];
-
   return (
     <header className="top-bar" role="banner">
       <div className="top-bar-left">
-        <ActionButton
-          quiet
+        <button
+          type="button"
           className="hamburger-btn"
           aria-label="Toggle navigation"
-          role="button"
-          ref={(el: any) => el?.setAttribute('role', 'button')}
           onClick={onToggleSidebar}
         >
           <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -100,15 +59,17 @@ export const TopBar: React.FC<TopBarProps> = ({
             <rect y="9" width="20" height="2" rx="1" />
             <rect y="15" width="20" height="2" rx="1" />
           </svg>
-        </ActionButton>
+        </button>
 
         <div className="global-search-container">
-          <SpSearch
+          <input
+            type="search"
+            role="searchbox"
             placeholder="Search invoices, vendors..."
             aria-label="Search"
             className="global-search-input"
             value={searchTerm}
-            onInput={(e: any) => setSearchTerm(e.target?.value || '')}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
@@ -116,8 +77,8 @@ export const TopBar: React.FC<TopBarProps> = ({
       <div className="top-bar-right">
         {/* Notification Bell with Live Badge */}
         <div className="notification-bell-container">
-          <ActionButton
-            quiet
+          <button
+            type="button"
             className="icon-btn"
             aria-label={
               unreadCount > 0
@@ -125,8 +86,6 @@ export const TopBar: React.FC<TopBarProps> = ({
                 : 'Notifications'
             }
             aria-expanded={isNotificationOpen}
-            role="button"
-            ref={(el: any) => el?.setAttribute('role', 'button')}
             onClick={() => setIsNotificationOpen((prev) => !prev)}
           >
             <svg
@@ -145,12 +104,12 @@ export const TopBar: React.FC<TopBarProps> = ({
             </svg>
             <span className="notification-badge-wrapper" aria-live="polite">
               {unreadCount > 0 && (
-                <SpBadge size="s" variant="accent">
+                <span className="notification-badge">
                   {unreadCount}
-                </SpBadge>
+                </span>
               )}
             </span>
-          </ActionButton>
+          </button>
 
           <NotificationPanel
             isOpen={isNotificationOpen}
@@ -159,8 +118,8 @@ export const TopBar: React.FC<TopBarProps> = ({
         </div>
 
         {/* Light / Dark Mode Toggle */}
-        <ActionButton
-          quiet
+        <button
+          type="button"
           className="icon-btn"
           aria-label={
             localTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
@@ -168,8 +127,6 @@ export const TopBar: React.FC<TopBarProps> = ({
           title={
             localTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
           }
-          role="button"
-          ref={(el: any) => el?.setAttribute('role', 'button')}
           onClick={handleToggleTheme}
         >
           {localTheme === 'dark' ? (
@@ -209,66 +166,41 @@ export const TopBar: React.FC<TopBarProps> = ({
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
             </svg>
           )}
-        </ActionButton>
-
-        {/* Fast Role Switcher */}
-        <div className="role-switcher-container" ref={roleMenuRef}>
-          <ActionButton
-            className="role-switcher-trigger"
-            aria-label={`Role: ${currentRole}`}
-            aria-haspopup="true"
-            aria-expanded={isRoleMenuOpen}
-            role="button"
-            ref={(el: any) => el?.setAttribute('role', 'button')}
-            onClick={() => setIsRoleMenuOpen((prev) => !prev)}
-          >
-            Role: {currentRole} ▾
-          </ActionButton>
-
-          {isRoleMenuOpen && (
-            <div className="role-dropdown-menu" aria-label="Role selector">
-              {roles.map((role) => (
-                <ActionButton
-                  key={role}
-                  aria-label={`Switch to ${role} role`}
-                  className={`role-dropdown-item ${currentRole === role ? 'active' : ''}`}
-                  role="button"
-                  ref={(el: any) => el?.setAttribute('role', 'button')}
-                  onClick={() => handleRoleChange(role)}
-                >
-                  <span>{role}</span>
-                  {currentRole === role && <span>✓</span>}
-                </ActionButton>
-              ))}
-            </div>
-          )}
-        </div>
+        </button>
 
         {/* User Profile & Logout */}
-        <div className="user-profile-strip">
-          <div
-            className="user-avatar-badge"
-            aria-hidden="true"
-            title={currentUser?.name || currentRole}
-          >
-            {currentUser?.name?.charAt(0) || currentRole.charAt(0)}
+        {isAuthenticated && currentUser ? (
+          <div className="user-profile-strip">
+            <div
+              className="user-avatar-badge"
+              aria-hidden="true"
+              title={currentUser?.name || currentRole}
+            >
+              {currentUser?.name?.charAt(0) || currentRole.charAt(0)}
+            </div>
+            <div className="user-info-text">
+              <span className="user-name-label">{currentUser?.name || 'User'}</span>
+              <span className="user-role-label">{currentRole}</span>
+            </div>
+            <button
+              type="button"
+              className="logout-btn"
+              aria-label="Log out"
+              onClick={handleLogout}
+            >
+              Log out
+            </button>
           </div>
-          <div className="user-info-text">
-            <span className="user-name-label">{currentUser?.name || 'User'}</span>
-            <span className="user-role-label">{currentRole}</span>
-          </div>
-          <Button
-            variant="secondary"
-            size="s"
+        ) : (
+          <button
+            type="button"
             className="logout-btn"
-            aria-label="Log out"
-            role="button"
-            ref={(el: any) => el?.setAttribute('role', 'button')}
-            onClick={handleLogout}
+            aria-label="Sign in"
+            onClick={() => navigate('/login')}
           >
-            Log out
-          </Button>
-        </div>
+            Sign in
+          </button>
+        )}
       </div>
     </header>
   );

@@ -1,5 +1,7 @@
+const mongoose = require('mongoose');
 const Invoice = require('../models/Invoice');
 const Vendor = require('../models/Vendor');
+const User = require('../models/User');
 
 const isInvoiceInDateRange = (submittedDate, dueDate, from, to) => {
   const dateStr = submittedDate || dueDate;
@@ -36,7 +38,42 @@ const getReportsSummary = async (req, res) => {
     const { from, to } = req.query;
     const query = {};
     if (req.user && req.user.role === 'Requester') {
-      query.submittedBy = req.user.id;
+      const matchCriteria = [];
+      if (req.user.id) {
+        if (mongoose.isValidObjectId(req.user.id)) {
+          matchCriteria.push(new mongoose.Types.ObjectId(req.user.id));
+        }
+        matchCriteria.push(String(req.user.id));
+      }
+      if (req.user.email) {
+        matchCriteria.push(req.user.email);
+        matchCriteria.push(req.user.email.toLowerCase());
+      }
+      try {
+        const userObj = await User.findOne({
+          $or: [
+            ...(req.user.id && mongoose.isValidObjectId(req.user.id) ? [{ _id: req.user.id }] : []),
+            ...(req.user.email ? [{ email: req.user.email.toLowerCase() }, { email: req.user.email }] : [])
+          ]
+        }).lean();
+        if (userObj) {
+          matchCriteria.push(userObj._id);
+          matchCriteria.push(userObj._id.toString());
+          if (userObj.email) {
+            matchCriteria.push(userObj.email);
+            matchCriteria.push(userObj.email.toLowerCase());
+          }
+        }
+      } catch (_) {}
+
+      const uniqueCriteria = [];
+      for (const item of matchCriteria) {
+        uniqueCriteria.push(item);
+        if (typeof item === 'string' && mongoose.isValidObjectId(item)) {
+          uniqueCriteria.push(new mongoose.Types.ObjectId(item));
+        }
+      }
+      query.submittedBy = { $in: uniqueCriteria };
     }
     const allInvoices = await Invoice.find(query).lean();
 
@@ -48,7 +85,13 @@ const getReportsSummary = async (req, res) => {
           : inv.submittedBy?.toString
           ? inv.submittedBy.toString()
           : String(inv.submittedBy);
-        return sId === String(req.user.id);
+        return (
+          (req.user.id && sId === String(req.user.id)) ||
+          (req.user.email && (
+            sId.toLowerCase() === req.user.email.toLowerCase() ||
+            (inv.submittedBy?.email && inv.submittedBy.email.toLowerCase() === req.user.email.toLowerCase())
+          ))
+        );
       });
     }
 
@@ -111,6 +154,10 @@ const getReportsSummary = async (req, res) => {
 
 const getVendorBreakdown = async (req, res) => {
   try {
+    if (req.user && req.user.role === 'Requester') {
+      return res.status(403).json({ error: 'Forbidden: Insufficient permissions' });
+    }
+
     const { from, to } = req.query;
     const [vendors, allInvoices] = await Promise.all([
       Vendor.find().lean(),

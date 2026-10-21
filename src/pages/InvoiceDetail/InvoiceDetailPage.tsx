@@ -1,9 +1,9 @@
 // src/pages/InvoiceDetail/InvoiceDetailPage.tsx
-import React, { useContext, useState, useMemo, useCallback } from 'react';
+import React, { useContext, useState, useMemo, useCallback, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button } from '@swc-react/button';
-import { ActionButton } from '@swc-react/action-button';
 import { DataContext } from '../../context/DataContext';
+import { dataApi } from '../../services/dataSource';
+import { AuditEntry } from '../../types';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { LoadingSkeleton } from '../../components/shared/LoadingSkeleton';
 import { EmptyState } from '../../components/shared/EmptyState';
@@ -36,11 +36,38 @@ export const InvoiceDetailPage: React.FC = () => {
   } = dataContext;
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [invoiceAuditLog, setInvoiceAuditLog] = useState<AuditEntry[]>([]);
 
   // Find target invoice
   const invoice = useMemo(() => {
     return invoices.find((inv) => inv.id === id);
   }, [invoices, id]);
+
+  const loadInvoiceAuditLog = useCallback(async () => {
+    const targetId = invoice?.id || id;
+    if (!targetId) return;
+    try {
+      const entries = await dataApi.getAuditLog(targetId);
+      if (entries) {
+        setInvoiceAuditLog(entries);
+      }
+    } catch (err) {
+      console.error('Failed to load invoice audit log:', err);
+    }
+  }, [invoice?.id, id]);
+
+  useEffect(() => {
+    loadInvoiceAuditLog();
+  }, [loadInvoiceAuditLog]);
+
+  // Combined audit log for invoice
+  const displayedAuditLog = useMemo(() => {
+    const targetId = invoice?.id || id;
+    const map = new Map<string, AuditEntry>();
+    (auditLog || []).filter((e) => e.invoiceId === targetId).forEach((e) => map.set(e.id, e));
+    invoiceAuditLog.forEach((e) => map.set(e.id, e));
+    return Array.from(map.values());
+  }, [auditLog, invoiceAuditLog, invoice?.id, id]);
 
   // Vendor Lookup Map
   const vendorMap = useMemo(() => {
@@ -54,9 +81,10 @@ export const InvoiceDetailPage: React.FC = () => {
     async (comment?: string) => {
       if (!invoice) return;
       await updateStatus(invoice.id, 'Approved', comment);
+      await loadInvoiceAuditLog();
       setToastMessage(`Invoice ${invoice.invoiceNumber} was successfully approved.`);
     },
-    [invoice, updateStatus]
+    [invoice, updateStatus, loadInvoiceAuditLog]
   );
 
   const handleFlag = useCallback(
@@ -69,29 +97,32 @@ export const InvoiceDetailPage: React.FC = () => {
         undefined,
         { flagReason: reason }
       );
+      await loadInvoiceAuditLog();
       setToastMessage(`Invoice ${invoice.invoiceNumber} has been flagged for review.`);
     },
-    [invoice, updateStatus]
+    [invoice, updateStatus, loadInvoiceAuditLog]
   );
 
   const handleSchedulePayment = useCallback(
     async (paymentDate: string, comment?: string) => {
       if (!invoice) return;
       await schedulePayment(invoice.id, paymentDate, undefined, comment);
+      await loadInvoiceAuditLog();
       setToastMessage(
         `Payment for invoice ${invoice.invoiceNumber} has been scheduled for ${paymentDate}.`
       );
     },
-    [invoice, schedulePayment]
+    [invoice, schedulePayment, loadInvoiceAuditLog]
   );
 
   const handleMarkPaid = useCallback(
     async () => {
       if (!invoice) return;
       await markPaid(invoice.id);
+      await loadInvoiceAuditLog();
       setToastMessage(`Invoice ${invoice.invoiceNumber} has been marked as Paid.`);
     },
-    [invoice, markPaid]
+    [invoice, markPaid, loadInvoiceAuditLog]
   );
 
   // Loading State
@@ -145,15 +176,15 @@ export const InvoiceDetailPage: React.FC = () => {
     >
       {/* Top Navigation & Back Button */}
       <nav aria-label="Breadcrumb Navigation" className="invoice-detail-header-nav">
-        <Button
-          variant="secondary"
-          size="s"
+        <button
+          type="button"
           onClick={() => navigate('/invoices')}
           data-testid="back-to-invoices-btn"
           aria-label="Back to Invoices directory"
+          className="invoice-detail-back-btn"
         >
           ← Back to Invoices
-        </Button>
+        </button>
       </nav>
 
       {/* Success Notification Banner / Toast */}
@@ -180,16 +211,14 @@ export const InvoiceDetailPage: React.FC = () => {
             </svg>
             <span>{toastMessage}</span>
           </div>
-          <ActionButton
-            quiet
-            size="s"
+          <button
+            type="button"
             className="invoice-detail-toast-dismiss"
             onClick={() => setToastMessage(null)}
             aria-label="Dismiss notification"
-            role="button"
           >
             &times;
-          </ActionButton>
+          </button>
         </div>
       )}
 
@@ -218,7 +247,7 @@ export const InvoiceDetailPage: React.FC = () => {
           <div className="invoice-detail-meta-item">
             <span className="invoice-detail-meta-label">Total Amount</span>
             <span className="invoice-detail-meta-value invoice-detail-meta-value-amount" data-testid="meta-amount">
-              ${invoice.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ₹{invoice.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           <div className="invoice-detail-meta-item">
@@ -279,7 +308,7 @@ export const InvoiceDetailPage: React.FC = () => {
       </div>
 
       {/* 4. Audit Activity Feed Timeline */}
-      <ActivityFeed invoiceId={invoice.id} auditLog={auditLog} />
+      <ActivityFeed invoiceId={invoice.id} auditLog={displayedAuditLog} />
     </main>
   );
 };

@@ -65,13 +65,13 @@ describe('ApprovalsPage', () => {
       });
 
       // In mock data:
-      // Submitted: INV-2026-001 ($6500), INV-2026-002 ($4800), INV-2026-003 ($2600) -> 3
-      // Under Verification: INV-2026-004 ($7200), INV-2026-005 ($8000), INV-2026-006 ($14400) -> 3
-      // Flagged: INV-2026-011 ($11000), INV-2026-012 ($6000), INV-2026-013 ($8400) -> 3
-      // Total in queue = 9. Total amount pending = $68,900.00
+      // Submitted: INV-2026-001 (₹6500), INV-2026-002 (₹4800), INV-2026-003 (₹2600) -> 3
+      // Under Verification: INV-2026-004 (₹7200), INV-2026-005 (₹8000), INV-2026-006 (₹14400) -> 3
+      // Flagged: INV-2026-011 (₹11000), INV-2026-012 (₹6000), INV-2026-013 (₹8400) -> 3
+      // Total in queue = 9. Total amount pending = ₹68,900.00
       expect(screen.getByTestId('metric-awaiting-approval').textContent).toContain('9');
       expect(screen.getByTestId('metric-flagged-count').textContent).toContain('3');
-      expect(screen.getByTestId('metric-pending-amount').textContent).toContain('$68,900.00');
+      expect(screen.getByTestId('metric-pending-amount').textContent).toContain('₹68,900.00');
     });
 
     it('only displays invoices with status Submitted, Under Verification, or Flagged', async () => {

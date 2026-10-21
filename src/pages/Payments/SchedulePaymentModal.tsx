@@ -1,7 +1,5 @@
 // src/pages/Payments/SchedulePaymentModal.tsx
 import React, { useState, useEffect, useRef } from 'react';
-import { Dialog } from '@swc-react/dialog';
-import { Button } from '@swc-react/button';
 import { FormField } from '../../components/shared/FormField';
 import { Invoice } from '../../types';
 import { useData } from '../../context/DataContext';
@@ -15,7 +13,7 @@ export interface SchedulePaymentModalProps {
 
 /**
  * Accessible SchedulePaymentModal allowing Approver/Admin to pick target disbursement date.
- * Strictly adheres to Spectrum design tokens and WCAG AA guidelines.
+ * Uses standard HTML5 modal dialog and elements.
  */
 export const SchedulePaymentModal: React.FC<SchedulePaymentModalProps> = ({
   open,
@@ -139,96 +137,121 @@ export const SchedulePaymentModal: React.FC<SchedulePaymentModalProps> = ({
           maxWidth: '500px',
           width: '100%',
           outline: 'none',
+          backgroundColor: '#ffffff',
+          borderRadius: '4px',
+          padding: '24px',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+          boxSizing: 'border-box',
         }}
       >
-        <Dialog
-          size="m"
-          dismissable
-          close={handleCancel}
-          aria-label="Schedule Payment"
+        <h2
+          id="schedule-payment-heading"
+          style={{
+            margin: 0,
+            fontFamily:
+              'var(--spectrum-alias-body-text-font-family, "Adobe Clean", sans-serif)',
+            fontSize: 'var(--spectrum-alias-font-size-heading, 20px)',
+            color: 'var(--spectrum-global-color-gray-900, #2c2c2c)',
+          }}
         >
-          <h2
-            slot="heading"
-            id="schedule-payment-heading"
-            style={{
-              margin: 0,
-              fontFamily:
-                'var(--spectrum-alias-body-text-font-family, "Adobe Clean", sans-serif)',
-              fontSize: 'var(--spectrum-alias-font-size-heading, 20px)',
-              color: 'var(--spectrum-global-color-gray-900, #2c2c2c)',
-            }}
-          >
-            Schedule Payment
-          </h2>
+          Schedule Payment
+        </h2>
 
-          <div
-            id="schedule-payment-desc"
-            style={{
-              marginTop: 'var(--spectrum-global-dimension-size-100, 8px)',
-              marginBottom: 'var(--spectrum-global-dimension-size-200, 16px)',
-              fontFamily:
-                'var(--spectrum-alias-body-text-font-family, "Adobe Clean", sans-serif)',
-              fontSize: 'var(--spectrum-alias-font-size-default, 14px)',
-              color: 'var(--spectrum-global-color-gray-700, #6e6e6e)',
-              lineHeight: 1.5,
-            }}
-          >
-            Select the disbursement execution date for invoice{' '}
-            <strong>{invoice.invoiceNumber}</strong> (Amount:{' '}
-            <strong>
-              $
-              {invoice.amount.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </strong>
-            , Due: <strong>{invoice.dueDate}</strong>).
-          </div>
+        <div
+          id="schedule-payment-desc"
+          style={{
+            marginTop: 'var(--spectrum-global-dimension-size-100, 8px)',
+            marginBottom: 'var(--spectrum-global-dimension-size-200, 16px)',
+            fontFamily:
+              'var(--spectrum-alias-body-text-font-family, "Adobe Clean", sans-serif)',
+            fontSize: 'var(--spectrum-alias-font-size-default, 14px)',
+            color: 'var(--spectrum-global-color-gray-700, #6e6e6e)',
+            lineHeight: 1.5,
+          }}
+        >
+          Select the disbursement execution date for invoice{' '}
+          <strong>{invoice.invoiceNumber}</strong> (Amount:{' '}
+          <strong>
+            ₹
+            {invoice.amount.toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </strong>
+          , Due: <strong>{invoice.dueDate}</strong>).
+        </div>
 
-          <FormField
-            label="Target Disbursement Date"
-            htmlFor="schedule-disbursement-date-input"
+        <FormField
+          label="Target Disbursement Date"
+          htmlFor="schedule-disbursement-date-input"
+          required
+          error={validationError}
+          hint="The authorized date when funds will be released to the vendor"
+        >
+          <input
+            id="schedule-disbursement-date-input"
+            data-testid="schedule-disbursement-date-input"
+            type="date"
+            className="payments-form-input"
+            value={paymentDate}
+            onChange={(e) => {
+              setPaymentDate(e.target.value);
+              if (e.target.value) {
+                setValidationError(undefined);
+              }
+            }}
             required
-            error={validationError}
-            hint="The authorized date when funds will be released to the vendor"
-          >
-            <input
-              id="schedule-disbursement-date-input"
-              data-testid="schedule-disbursement-date-input"
-              type="date"
-              className="payments-form-input"
-              value={paymentDate}
-              onChange={(e) => {
-                setPaymentDate(e.target.value);
-                if (e.target.value) {
-                  setValidationError(undefined);
-                }
-              }}
-              required
-              aria-required="true"
-              aria-invalid={!!validationError}
-            />
-          </FormField>
+            aria-required="true"
+            aria-invalid={!!validationError}
+          />
+        </FormField>
 
-          <Button
-            slot="button"
-            variant="secondary"
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: '12px',
+            marginTop: '20px',
+          }}
+        >
+          <button
+            type="button"
             data-testid="cancel-schedule-payment-btn"
             onClick={handleCancel}
+            style={{
+              padding: '7px 16px',
+              borderRadius: '16px',
+              border: '1px solid #cacaca',
+              backgroundColor: '#ffffff',
+              color: '#2c2c2c',
+              fontSize: '14px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
           >
             Cancel
-          </Button>
+          </button>
 
-          <Button
-            slot="button"
-            variant="accent"
+          <button
+            type="button"
             data-testid="confirm-schedule-payment-btn"
             disabled={!paymentDate.trim() || submitting}
             onClick={handleConfirm}
+            style={{
+              padding: '7px 16px',
+              borderRadius: '16px',
+              border: 'none',
+              backgroundColor: '#0265dc',
+              color: '#ffffff',
+              fontSize: '14px',
+              fontWeight: 600,
+              cursor: (!paymentDate.trim() || submitting) ? 'not-allowed' : 'pointer',
+              opacity: (!paymentDate.trim() || submitting) ? 0.6 : 1,
+            }}
           >
             {submitting ? 'Scheduling...' : 'Schedule Payment'}
-          </Button>
-        </Dialog>
+          </button>
+        </div>
       </div>
     </div>
   );

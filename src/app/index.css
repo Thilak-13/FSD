@@ -2,6 +2,7 @@
    Spectrum Design Tokens & Global Styles
    Invoice Verification & Vendor Payment Platform
    ========================================================================== */
+@import '../components/ui/ui.css';
 
 :root {
   /* Adobe Clean Font Fallback Stack */

@@ -6,3 +6,4 @@ export * from './purchaseOrders';
 export * from './invoices';
 export * from './auditLog';
 export * from './notifications';
+export * from './reports';

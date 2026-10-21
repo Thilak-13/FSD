@@ -1,34 +1,38 @@
 // tests/components/layout.test.tsx
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { TopBar } from '../../src/components/layout/TopBar';
 import { SideNav } from '../../src/components/layout/SideNav';
 import { AppShell } from '../../src/components/layout/AppShell';
 import { NotificationPanel } from '../../src/components/layout/NotificationPanel';
 import { App } from '../../src/app/App';
-import { AuthProvider } from '../../src/context/AuthContext';
+import { AuthProvider, useAuth } from '../../src/context/AuthContext';
 import { DataProvider } from '../../src/context/DataContext';
+import { authApi } from '../../src/services/dataSource';
 import { setMockDelayEnabled } from '../../src/services/mockApi';
 
 describe('Layout Components', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     setMockDelayEnabled(false);
     sessionStorage.clear();
+    await authApi.logout().catch(() => {});
   });
 
   describe('TopBar', () => {
-    it('renders skip to main content link / role button in TopBar', () => {
+    it('renders global search, notifications and controls in TopBar', () => {
       render(
         <MemoryRouter>
-          <AuthProvider>
+          <AuthProvider initialRole="Admin">
             <DataProvider>
               <TopBar onToggleSidebar={() => {}} />
             </DataProvider>
           </AuthProvider>
         </MemoryRouter>
       );
-      expect(screen.getByRole('button', { name: /role/i })).toBeDefined();
+      expect(screen.getByRole('searchbox')).toBeDefined();
+      expect(screen.getByRole('button', { name: /notifications/i })).toBeDefined();
+      expect(screen.getByRole('button', { name: /log out/i })).toBeDefined();
     });
 
     it('renders hamburger button and triggers onToggleSidebar callback', () => {
@@ -116,7 +120,7 @@ describe('Layout Components', () => {
       expect(handleToggleTheme).toHaveBeenCalledTimes(1);
     });
 
-    it('allows fast role switching via role switcher', () => {
+    it('does not render a role switcher dropdown or button', () => {
       render(
         <MemoryRouter>
           <AuthProvider initialRole="Requester">
@@ -127,14 +131,26 @@ describe('Layout Components', () => {
         </MemoryRouter>
       );
 
-      const roleBtn = screen.getByRole('button', { name: /role/i });
-      fireEvent.click(roleBtn);
+      expect(screen.queryByRole('button', { name: /role/i })).toBeNull();
+      expect(screen.queryByRole('button', { name: /switch to (admin|approver|requester)/i })).toBeNull();
+      expect(screen.queryByTestId('role-switcher-dropdown')).toBeNull();
+      expect(screen.queryByTestId('role-switch-spinner')).toBeNull();
+    });
 
-      const adminOption = screen.getByRole('button', { name: /admin/i });
-      expect(adminOption).toBeDefined();
-      fireEvent.click(adminOption);
+    it('renders a "Sign in" button when unauthenticated', () => {
+      render(
+        <MemoryRouter>
+          <AuthProvider>
+            <DataProvider>
+              <TopBar onToggleSidebar={() => {}} />
+            </DataProvider>
+          </AuthProvider>
+        </MemoryRouter>
+      );
 
-      expect(sessionStorage.getItem('active_role')).toBe('Admin');
+      const signInBtn = screen.getByRole('button', { name: /sign in/i });
+      expect(signInBtn).toBeDefined();
+      expect(screen.queryByRole('button', { name: /log\s*out/i })).toBeNull();
     });
 
     it('renders user profile info and logs out when logout button is clicked', () => {
@@ -240,6 +256,59 @@ describe('Layout Components', () => {
       const invoiceItem = screen.getByText('Invoices');
       fireEvent.click(invoiceItem);
       expect(handleNavigate).toHaveBeenCalled();
+    });
+
+    it('dynamically updates SideNav links when switching roles between Requester, Approver, and Admin', async () => {
+      const RoleSwitcher = () => {
+        const { switchRole } = useAuth();
+        return (
+          <div>
+            <button data-testid="to-requester" onClick={() => switchRole('Requester')}>Requester</button>
+            <button data-testid="to-approver" onClick={() => switchRole('Approver')}>Approver</button>
+            <button data-testid="to-admin" onClick={() => switchRole('Admin')}>Admin</button>
+          </div>
+        );
+      };
+
+      render(
+        <MemoryRouter>
+          <AuthProvider initialRole="Requester">
+            <RoleSwitcher />
+            <SideNav />
+          </AuthProvider>
+        </MemoryRouter>
+      );
+
+      // Initially Requester
+      expect(screen.getByText('Dashboard')).toBeDefined();
+      expect(screen.getByText('Invoices')).toBeDefined();
+      expect(screen.getByText('Vendors')).toBeDefined();
+      expect(screen.queryByText('Approvals')).toBeNull();
+      expect(screen.queryByText('Payments')).toBeNull();
+      expect(screen.queryByText('Reports')).toBeNull();
+      expect(screen.queryByText('Audit Log')).toBeNull();
+
+      // Switch to Approver
+      fireEvent.click(screen.getByTestId('to-approver'));
+      await waitFor(() => {
+        expect(screen.getByText('Approvals')).toBeDefined();
+        expect(screen.getByText('Payments')).toBeDefined();
+        expect(screen.getByText('Reports')).toBeDefined();
+        expect(screen.queryByText('Audit Log')).toBeNull();
+      });
+
+      // Switch to Admin
+      fireEvent.click(screen.getByTestId('to-admin'));
+      await waitFor(() => {
+        expect(screen.getByText('Audit Log')).toBeDefined();
+      });
+
+      // Switch back to Requester
+      fireEvent.click(screen.getByTestId('to-requester'));
+      await waitFor(() => {
+        expect(screen.queryByText('Approvals')).toBeNull();
+        expect(screen.queryByText('Audit Log')).toBeNull();
+      });
     });
   });
 
@@ -428,7 +497,8 @@ describe('Layout Components', () => {
     it('mounts App root component and renders platform without errors', () => {
       render(<App />);
       expect(screen.getByText('Skip to main content')).toBeDefined();
-      expect(screen.getByRole('button', { name: /role/i })).toBeDefined();
+      expect(screen.getAllByText('PayVerify')[0]).toBeDefined();
+      expect(screen.queryByRole('button', { name: /role/i })).toBeNull();
     });
   });
 });

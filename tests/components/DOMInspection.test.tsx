@@ -26,7 +26,7 @@ describe('DOM Tree Inspection', () => {
       <SummaryCard
         id="kpi-spend-pending"
         title="Total Spend Pending"
-        value="$124,500.00"
+        value="₹124,500.00"
         subtitle="Across unapproved & flagged invoices"
         trendType="notice"
       />
@@ -43,7 +43,7 @@ describe('DOM Tree Inspection', () => {
       { key: 'amount', title: 'Amount' },
     ];
     const data = [
-      { id: '1', invoiceNumber: 'INV-001', vendorName: 'Acme Corp', amount: '$1,200' },
+      { id: '1', invoiceNumber: 'INV-001', vendorName: 'Acme Corp', amount: '₹1,200' },
     ];
     const { container } = render(
       <DataTable columns={columns} data={data} />

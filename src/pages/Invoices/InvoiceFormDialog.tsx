@@ -1,34 +1,9 @@
 // src/pages/Invoices/InvoiceFormDialog.tsx
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Button } from '@swc-react/button';
-import { ActionButton } from '@swc-react/action-button';
-import { Dialog } from '@swc-react/dialog';
-import { Picker } from '@swc-react/picker';
-import {
-  Table,
-  TableHead,
-  TableRow,
-  TableHeadCell,
-  TableBody,
-  TableCell,
-} from '@swc-react/table';
-import '@spectrum-web-components/menu/sp-menu-item.js';
-import '@spectrum-web-components/textfield/sp-textfield.js';
-import '@spectrum-web-components/number-field/sp-number-field.js';
 import { FormField } from '../../components/shared/FormField';
 import { useData } from '../../context/DataContext';
 import { useAuth } from '../../context/AuthContext';
 import { Invoice, NewInvoiceInput } from '../../types';
-
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'sp-menu-item': any;
-      'sp-textfield': any;
-      'sp-number-field': any;
-    }
-  }
-}
 
 export interface InvoiceFormDialogProps {
   open: boolean;
@@ -79,15 +54,9 @@ export const InvoiceFormDialog: React.FC<InvoiceFormDialogProps> = ({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
-  const firstInputRef = useRef<any>(null);
-  const poSelectRef = useRef<any>(null);
+  const firstInputRef = useRef<HTMLSelectElement | null>(null);
+  const poSelectRef = useRef<HTMLSelectElement | null>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
-
-  useEffect(() => {
-    if (poSelectRef.current) {
-      poSelectRef.current.disabled = !vendorId;
-    }
-  }, [vendorId]);
 
   // Filter Purchase Orders for selected vendor
   const availablePOs = useMemo(() => {
@@ -261,8 +230,10 @@ export const InvoiceFormDialog: React.FC<InvoiceFormDialogProps> = ({
   };
 
   // Form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent | React.MouseEvent) => {
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
 
     const newErrors: typeof errors = {};
 
@@ -340,558 +311,457 @@ export const InvoiceFormDialog: React.FC<InvoiceFormDialogProps> = ({
     >
       <div
         ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="new-invoice-heading"
         className="invoice-dialog-container"
         data-testid="invoice-form-dialog"
       >
-        <Dialog
-          size="l"
-          dismissable
-          close={onClose}
-          aria-label="Submit New Invoice"
-        >
-          {/* Header */}
-          <div
-            slot="heading"
-            className="invoice-dialog-header"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              width: '100%',
-            }}
+        {/* Header */}
+        <div className="invoice-dialog-header">
+          <h2 id="new-invoice-heading" className="invoice-dialog-title">
+            Submit New Invoice
+          </h2>
+          <button
+            type="button"
+            className="invoice-dialog-close-btn"
+            onClick={onClose}
+            aria-label="Close dialog"
+            data-testid="close-invoice-dialog"
           >
-            <h2 id="new-invoice-heading" className="invoice-dialog-title" style={{ margin: 0 }}>
-              Submit New Invoice
-            </h2>
-            <ActionButton
-              quiet
-              size="m"
-              className="invoice-dialog-close-btn"
-              onClick={onClose}
-              aria-label="Close dialog"
-              data-testid="close-invoice-dialog"
+            &times;
+          </button>
+        </div>
+
+        {/* Form Body */}
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="invoice-dialog-body"
+          aria-label="New Invoice Form"
+        >
+          {errors.submit && (
+            <div
+              role="alert"
+              aria-live="polite"
+              style={{
+                padding: '8px 12px',
+                backgroundColor: 'var(--spectrum-global-color-red-100, #fee2e2)',
+                border: '1px solid var(--spectrum-global-color-red-400, #f87171)',
+                borderRadius: '4px',
+                color: 'var(--spectrum-global-color-red-700, #b91c1c)',
+                fontSize: '12px',
+              }}
             >
-              &times;
-            </ActionButton>
+              {errors.submit}
+            </div>
+          )}
+
+          {/* Row 1: Vendor & Purchase Order */}
+          <div className="invoice-form-grid-2">
+            <FormField
+              label="Vendor"
+              htmlFor="invoice-vendor-select"
+              required
+              error={errors.vendorId}
+            >
+              <select
+                ref={(el) => {
+                  firstInputRef.current = el;
+                }}
+                id="invoice-vendor-select"
+                data-testid="invoice-vendor-select"
+                className="invoice-form-select"
+                value={vendorId}
+                onChange={(e) => handleVendorChange(e.target.value)}
+                aria-required="true"
+                aria-invalid={Boolean(errors.vendorId)}
+                aria-label="Vendor"
+              >
+                <option value="">Select Vendor...</option>
+                {vendors.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    {v.name}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+
+            <FormField
+              label="Linked Purchase Order"
+              htmlFor="invoice-po-select"
+              hint={
+                !vendorId
+                  ? 'Select a vendor first'
+                  : availablePOs.length === 0
+                  ? 'No open POs found (Direct Invoice)'
+                  : undefined
+              }
+            >
+              <select
+                ref={poSelectRef}
+                id="invoice-po-select"
+                data-testid="invoice-po-select"
+                className="invoice-form-select"
+                value={poId}
+                onChange={(e) => handlePoChange(e.target.value)}
+                disabled={!vendorId}
+                aria-label="Linked Purchase Order"
+              >
+                <option value="">None / Direct Invoice</option>
+                {availablePOs.map((po) => (
+                  <option key={po.id} value={po.id}>
+                    {po.poNumber} — ₹{po.amount.toLocaleString()} ({po.description})
+                  </option>
+                ))}
+              </select>
+            </FormField>
           </div>
 
-          {/* Form Body */}
-          <form
-            onSubmit={handleSubmit}
-            noValidate
-            className="invoice-dialog-body"
-            aria-label="New Invoice Form"
+          {/* Row 2: Invoice Number & Due Date */}
+          <div className="invoice-form-grid-2">
+            <FormField
+              label="Invoice Number"
+              htmlFor="invoice-number-input"
+              hint="Leave blank to auto-generate"
+              error={errors.invoiceNumber}
+            >
+              <input
+                id="invoice-number-input"
+                data-testid="invoice-number-input"
+                type="text"
+                className="invoice-form-input"
+                placeholder="e.g. INV-2026-042"
+                value={invoiceNumber}
+                onChange={(e) => setInvoiceNumber(e.target.value)}
+                aria-label="Invoice Number"
+              />
+            </FormField>
+
+            <FormField
+              label="Due Date"
+              htmlFor="invoice-due-date-input"
+              required
+              error={errors.dueDate}
+            >
+              <input
+                id="invoice-due-date-input"
+                data-testid="invoice-due-date-input"
+                type="date"
+                className="invoice-form-input"
+                value={dueDate}
+                onChange={(e) => {
+                  setDueDate(e.target.value);
+                  if (errors.dueDate) {
+                    setErrors((prev) => ({ ...prev, dueDate: undefined }));
+                  }
+                }}
+                aria-required="true"
+                aria-invalid={Boolean(errors.dueDate)}
+                aria-label="Due Date"
+              />
+            </FormField>
+          </div>
+
+          {/* Dynamic Line Items Section */}
+          <section
+            className="line-items-section"
+            aria-label="Invoice Line Items"
           >
-            {errors.submit && (
+            <div className="line-items-header">
+              <h3 className="line-items-heading">Line Items Breakdown</h3>
+              <button
+                type="button"
+                data-testid="add-line-item-button"
+                onClick={handleAddLineItem}
+                aria-label="Add new line item"
+                style={{
+                  padding: '4px 10px',
+                  fontSize: '12px',
+                  fontWeight: 500,
+                  fontFamily: 'inherit',
+                  borderRadius: '4px',
+                  border: '1px solid var(--spectrum-global-color-gray-300, #e1e1e1)',
+                  backgroundColor: 'var(--spectrum-global-color-gray-50, #ffffff)',
+                  color: 'var(--spectrum-global-color-gray-800, #4b4b4b)',
+                  cursor: 'pointer',
+                }}
+              >
+                + Add Item
+              </button>
+            </div>
+
+            {errors.lineItems && (
               <div
                 role="alert"
                 aria-live="polite"
                 style={{
-                  padding: '8px 12px',
-                  backgroundColor: 'var(--spectrum-global-color-red-100, #fee2e2)',
-                  border: '1px solid var(--spectrum-global-color-red-400, #f87171)',
-                  borderRadius: '4px',
-                  color: 'var(--spectrum-global-color-red-700, #b91c1c)',
+                  color: 'var(--spectrum-global-color-red-600, #c9252d)',
                   fontSize: '12px',
+                  fontWeight: 500,
                 }}
               >
-                {errors.submit}
+                {errors.lineItems}
               </div>
             )}
 
-            {/* Row 1: Vendor & Purchase Order */}
-            <div className="invoice-form-grid-2">
-              <FormField
-                label="Vendor"
-                htmlFor="invoice-vendor-select"
-                required
-                error={errors.vendorId}
-              >
-                <Picker
-                  ref={(el: any) => {
-                    firstInputRef.current = el;
-                    if (el) {
-                      el.onchange = (e: any) =>
-                        handleVendorChange(e.target?.value !== undefined ? e.target.value : el.value);
-                      Object.defineProperty(el, 'options', {
-                        configurable: true,
-                        get() {
-                          const items = el.querySelectorAll('sp-menu-item');
-                          return Array.from(items).map((item: any) => ({
-                            text: item.textContent || item.innerText || '',
-                            value: item.value || item.getAttribute('value') || '',
-                          }));
-                        },
-                      });
-                    }
-                  }}
-                  id="invoice-vendor-select"
-                  data-testid="invoice-vendor-select"
-                  className="invoice-form-select"
-                  value={vendorId}
-                  change={(e: any) =>
-                    handleVendorChange(e.target?.value !== undefined ? e.target.value : (e.target as any)?.value)
-                  }
-                  onChange={(e: any) =>
-                    handleVendorChange(e.target?.value !== undefined ? e.target.value : (e.target as any)?.value)
-                  }
-                  aria-required="true"
-                  aria-invalid={Boolean(errors.vendorId)}
-                  aria-label="Vendor"
-                  label="Select Vendor..."
-                >
-                  <sp-menu-item value="">Select Vendor...</sp-menu-item>
-                  {vendors.map((v) => (
-                    <sp-menu-item key={v.id} value={v.id}>
-                      {v.name}
-                    </sp-menu-item>
-                  ))}
-                </Picker>
-              </FormField>
+            <div className="line-items-table-wrapper">
+              <table className="line-items-table" aria-label="Invoice Line Items Table">
+                <thead>
+                  <tr>
+                    <th style={{ width: '45%' }}>Description</th>
+                    <th style={{ width: '15%' }}>Qty</th>
+                    <th style={{ width: '20%' }}>Unit Price (₹)</th>
+                    <th style={{ width: '15%', textAlign: 'right' }}>Total</th>
+                    <th style={{ width: '5%' }} aria-label="Actions">
+                      <span
+                        style={{
+                          position: 'absolute',
+                          width: '1px',
+                          height: '1px',
+                          padding: 0,
+                          margin: '-1px',
+                          overflow: 'hidden',
+                          clip: 'rect(0,0,0,0)',
+                          border: 0,
+                        }}
+                      >
+                        Actions
+                      </span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {lineItems.map((item, index) => {
+                    const q = Number(item.quantity);
+                    const p = Number(item.unitPrice);
+                    const safeQ = Number.isFinite(q) ? q : 0;
+                    const safeP = Number.isFinite(p) ? p : 0;
+                    const lineTotal = safeQ * safeP;
 
-              <FormField
-                label="Linked Purchase Order"
-                htmlFor="invoice-po-select"
-                hint={
-                  !vendorId
-                    ? 'Select a vendor first'
-                    : availablePOs.length === 0
-                    ? 'No open POs found (Direct Invoice)'
-                    : undefined
-                }
-              >
-                <Picker
-                  ref={(el: any) => {
-                    poSelectRef.current = el;
-                    if (el) {
-                      el.disabled = !vendorId;
-                      el.onchange = (e: any) =>
-                        handlePoChange(e.target?.value !== undefined ? e.target.value : el.value);
-                      Object.defineProperty(el, 'options', {
-                        configurable: true,
-                        get() {
-                          const items = el.querySelectorAll('sp-menu-item');
-                          return Array.from(items).map((item: any) => ({
-                            text: item.textContent || item.innerText || '',
-                            value: item.value || item.getAttribute('value') || '',
-                          }));
-                        },
-                      });
-                    }
-                  }}
-                  id="invoice-po-select"
-                  data-testid="invoice-po-select"
-                  className="invoice-form-select"
-                  value={poId}
-                  change={(e: any) =>
-                    handlePoChange(e.target?.value !== undefined ? e.target.value : (e.target as any)?.value)
-                  }
-                  onChange={(e: any) =>
-                    handlePoChange(e.target?.value !== undefined ? e.target.value : (e.target as any)?.value)
-                  }
-                  disabled={!vendorId}
-                  aria-label="Linked Purchase Order"
-                  label="None / Direct Invoice"
-                >
-                  <sp-menu-item value="">None / Direct Invoice</sp-menu-item>
-                  {availablePOs.map((po) => (
-                    <sp-menu-item key={po.id} value={po.id}>
-                      {po.poNumber} — ${po.amount.toLocaleString()} ({po.description})
-                    </sp-menu-item>
-                  ))}
-                </Picker>
-              </FormField>
+                    return (
+                      <tr key={item.id} data-testid={`line-item-row-${index}`}>
+                        <td>
+                          <input
+                            type="text"
+                            data-testid={`line-item-desc-${index}`}
+                            className="invoice-form-input"
+                            placeholder="Description"
+                            value={item.description}
+                            aria-label={`Item ${index + 1} description`}
+                            required
+                            onChange={(e) =>
+                              handleLineItemChange(item.id, 'description', e.target.value)
+                            }
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            data-testid={`line-item-qty-${index}`}
+                            className="invoice-form-input"
+                            min="1"
+                            value={item.quantity}
+                            aria-label={`Item ${index + 1} quantity`}
+                            required
+                            onChange={(e) =>
+                              handleLineItemChange(item.id, 'quantity', e.target.value)
+                            }
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="number"
+                            data-testid={`line-item-price-${index}`}
+                            className="invoice-form-input"
+                            min="0"
+                            step="0.01"
+                            value={item.unitPrice}
+                            aria-label={`Item ${index + 1} unit price`}
+                            required
+                            onChange={(e) =>
+                              handleLineItemChange(item.id, 'unitPrice', e.target.value)
+                            }
+                          />
+                        </td>
+                        <td
+                          className="line-item-total-cell"
+                          data-testid={`line-item-total-${index}`}
+                        >
+                          ₹{lineTotal.toFixed(2)}
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          <button
+                            type="button"
+                            className="line-item-remove-btn"
+                            data-testid={`remove-line-item-${index}`}
+                            onClick={() => handleRemoveLineItem(item.id)}
+                            disabled={lineItems.length <= 1}
+                            aria-label={`Remove item ${index + 1}`}
+                          >
+                            &times;
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
 
-            {/* Row 2: Invoice Number & Due Date */}
-            <div className="invoice-form-grid-2">
-              <FormField
-                label="Invoice Number"
-                htmlFor="invoice-number-input"
-                hint="Leave blank to auto-generate"
-                error={errors.invoiceNumber}
+            {/* Line Items Aggregate Summary */}
+            <div className="line-items-summary-bar">
+              <span className="line-items-total-label">Total Invoice Amount:</span>
+              <span
+                className="line-items-total-amount"
+                data-testid="invoice-aggregate-total"
               >
-                <input
-                  id="invoice-number-input"
-                  data-testid="invoice-number-input"
-                  type="text"
-                  className="invoice-form-input"
-                  placeholder="e.g. INV-2026-042"
-                  value={invoiceNumber}
-                  onChange={(e) => setInvoiceNumber(e.target.value)}
-                  aria-label="Invoice Number"
-                />
-              </FormField>
-
-              <FormField
-                label="Due Date"
-                htmlFor="invoice-due-date-input"
-                required
-                error={errors.dueDate}
-              >
-                <input
-                  id="invoice-due-date-input"
-                  data-testid="invoice-due-date-input"
-                  type="date"
-                  className="invoice-form-input"
-                  value={dueDate}
-                  onChange={(e) => {
-                    setDueDate(e.target.value);
-                    if (errors.dueDate) {
-                      setErrors((prev) => ({ ...prev, dueDate: undefined }));
-                    }
-                  }}
-                  aria-required="true"
-                  aria-invalid={Boolean(errors.dueDate)}
-                  aria-label="Due Date"
-                />
-              </FormField>
+                ₹{aggregateAmount.toFixed(2)}
+              </span>
             </div>
+          </section>
 
-            {/* Dynamic Line Items Section */}
-            <section
-              className="line-items-section"
-              aria-label="Invoice Line Items"
+          {/* Document Attachment Stub */}
+          <section className="attachment-section" aria-label="Document Attachment">
+            <FormField
+              label="Supporting Document (PDF, PNG, JPG)"
+              htmlFor="invoice-file-input"
             >
-              <div className="line-items-header">
-                <h3 className="line-items-heading">Line Items Breakdown</h3>
-                <Button
-                  variant="secondary"
-                  size="s"
-                  data-testid="add-line-item-button"
-                  onClick={handleAddLineItem}
-                  aria-label="Add new line item"
-                >
-                  + Add Item
-                </Button>
-              </div>
+              <input
+                ref={fileInputRef}
+                id="invoice-file-input"
+                data-testid="invoice-file-input"
+                type="file"
+                accept=".pdf,.png,.jpg,.jpeg"
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+                aria-label="Upload supporting document"
+              />
 
-              {errors.lineItems && (
+              {attachedFileName ? (
                 <div
-                  role="alert"
-                  aria-live="polite"
-                  style={{
-                    color: 'var(--spectrum-global-color-red-600, #c9252d)',
-                    fontSize: '12px',
-                    fontWeight: 500,
-                  }}
+                  className="attachment-badge-pill"
+                  data-testid="attachment-badge"
                 >
-                  {errors.lineItems}
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span data-testid="attachment-name">
+                    {attachedFileName} ({attachedFileSize || '1.2 MB'})
+                  </span>
+                  <button
+                    type="button"
+                    className="attachment-remove-btn"
+                    onClick={handleRemoveFile}
+                    aria-label="Remove attached document"
+                    data-testid="remove-attachment-btn"
+                  >
+                    &times;
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <button
+                    type="button"
+                    data-testid="attach-file-button"
+                    onClick={() => fileInputRef.current?.click()}
+                    aria-label="Choose file to attach"
+                    style={{
+                      padding: '6px 12px',
+                      fontSize: '12px',
+                      fontWeight: 500,
+                      fontFamily: 'inherit',
+                      borderRadius: '4px',
+                      border: '1px solid var(--spectrum-global-color-gray-300, #e1e1e1)',
+                      backgroundColor: 'var(--spectrum-global-color-gray-50, #ffffff)',
+                      color: 'var(--spectrum-global-color-gray-800, #4b4b4b)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    📎 Choose File...
+                  </button>
+                  <span
+                    style={{
+                      marginLeft: '8px',
+                      fontSize: '12px',
+                      color: 'var(--spectrum-global-color-gray-600, #8e8e8e)',
+                    }}
+                  >
+                    No file selected (Optional)
+                  </span>
                 </div>
               )}
-
-              <div className="line-items-table-wrapper">
-                <Table className="line-items-table" aria-label="Invoice Line Items Table">
-                  <TableHead>
-                    <TableRow>
-                      <TableHeadCell style={{ width: '45%' }}>Description</TableHeadCell>
-                      <TableHeadCell style={{ width: '15%' }}>Qty</TableHeadCell>
-                      <TableHeadCell style={{ width: '20%' }}>Unit Price ($)</TableHeadCell>
-                      <TableHeadCell style={{ width: '15%', textAlign: 'right' }}>Total</TableHeadCell>
-                      <TableHeadCell style={{ width: '5%' }} aria-label="Actions">
-                        <span
-                          style={{
-                            position: 'absolute',
-                            width: '1px',
-                            height: '1px',
-                            padding: 0,
-                            margin: '-1px',
-                            overflow: 'hidden',
-                            clip: 'rect(0,0,0,0)',
-                            border: 0,
-                          }}
-                        >
-                          Actions
-                        </span>
-                      </TableHeadCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {lineItems.map((item, index) => {
-                      const q = Number(item.quantity);
-                      const p = Number(item.unitPrice);
-                      const safeQ = Number.isFinite(q) ? q : 0;
-                      const safeP = Number.isFinite(p) ? p : 0;
-                      const lineTotal = safeQ * safeP;
-
-                      return (
-                        <TableRow key={item.id} data-testid={`line-item-row-${index}`}>
-                          <TableCell>
-                            <sp-textfield
-                              ref={(el: any) => {
-                                if (el) {
-                                  el.oninput = (e: any) =>
-                                    handleLineItemChange(
-                                      item.id,
-                                      'description',
-                                      e.target?.value !== undefined ? e.target.value : el.value
-                                    );
-                                  el.onchange = (e: any) =>
-                                    handleLineItemChange(
-                                      item.id,
-                                      'description',
-                                      e.target?.value !== undefined ? e.target.value : el.value
-                                    );
-                                }
-                              }}
-                              type="text"
-                              data-testid={`line-item-desc-${index}`}
-                              className="invoice-form-input"
-                              placeholder="Description"
-                              value={item.description}
-                              aria-label={`Item ${index + 1} description`}
-                              required
-                              onInput={(e: any) =>
-                                handleLineItemChange(
-                                  item.id,
-                                  'description',
-                                  e.target?.value !== undefined ? e.target.value : (e.target as any)?.value
-                                )
-                              }
-                              onChange={(e: any) =>
-                                handleLineItemChange(
-                                  item.id,
-                                  'description',
-                                  e.target?.value !== undefined ? e.target.value : (e.target as any)?.value
-                                )
-                              }
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <sp-number-field
-                              ref={(el: any) => {
-                                if (el) {
-                                  el.oninput = (e: any) =>
-                                    handleLineItemChange(
-                                      item.id,
-                                      'quantity',
-                                      e.target?.value !== undefined ? e.target.value : el.value
-                                    );
-                                  el.onchange = (e: any) =>
-                                    handleLineItemChange(
-                                      item.id,
-                                      'quantity',
-                                      e.target?.value !== undefined ? e.target.value : el.value
-                                    );
-                                }
-                              }}
-                              data-testid={`line-item-qty-${index}`}
-                              className="invoice-form-input"
-                              min="1"
-                              value={item.quantity}
-                              aria-label={`Item ${index + 1} quantity`}
-                              required
-                              onInput={(e: any) =>
-                                handleLineItemChange(
-                                  item.id,
-                                  'quantity',
-                                  e.target?.value !== undefined ? e.target.value : (e.target as any)?.value
-                                )
-                              }
-                              onChange={(e: any) =>
-                                handleLineItemChange(
-                                  item.id,
-                                  'quantity',
-                                  e.target?.value !== undefined ? e.target.value : (e.target as any)?.value
-                                )
-                              }
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <sp-number-field
-                              ref={(el: any) => {
-                                if (el) {
-                                  el.oninput = (e: any) =>
-                                    handleLineItemChange(
-                                      item.id,
-                                      'unitPrice',
-                                      e.target?.value !== undefined ? e.target.value : el.value
-                                    );
-                                  el.onchange = (e: any) =>
-                                    handleLineItemChange(
-                                      item.id,
-                                      'unitPrice',
-                                      e.target?.value !== undefined ? e.target.value : el.value
-                                    );
-                                }
-                              }}
-                              data-testid={`line-item-price-${index}`}
-                              className="invoice-form-input"
-                              min="0"
-                              step="0.01"
-                              value={item.unitPrice}
-                              aria-label={`Item ${index + 1} unit price`}
-                              required
-                              onInput={(e: any) =>
-                                handleLineItemChange(
-                                  item.id,
-                                  'unitPrice',
-                                  e.target?.value !== undefined ? e.target.value : (e.target as any)?.value
-                                )
-                              }
-                              onChange={(e: any) =>
-                                handleLineItemChange(
-                                  item.id,
-                                  'unitPrice',
-                                  e.target?.value !== undefined ? e.target.value : (e.target as any)?.value
-                                )
-                              }
-                            />
-                          </TableCell>
-                          <TableCell
-                            className="line-item-total-cell"
-                            data-testid={`line-item-total-${index}`}
-                          >
-                            ${lineTotal.toFixed(2)}
-                          </TableCell>
-                          <TableCell style={{ textAlign: 'center' }}>
-                            <ActionButton
-                              quiet
-                              size="s"
-                              className="line-item-remove-btn"
-                              data-testid={`remove-line-item-${index}`}
-                              onClick={() => handleRemoveLineItem(item.id)}
-                              disabled={lineItems.length <= 1}
-                              aria-label={`Remove item ${index + 1}`}
-                            >
-                              &times;
-                            </ActionButton>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {/* Line Items Aggregate Summary */}
-              <div className="line-items-summary-bar">
-                <span className="line-items-total-label">Total Invoice Amount:</span>
-                <span
-                  className="line-items-total-amount"
-                  data-testid="invoice-aggregate-total"
-                >
-                  ${aggregateAmount.toFixed(2)}
-                </span>
-              </div>
-            </section>
-
-            {/* Document Attachment Stub */}
-            <section className="attachment-section" aria-label="Document Attachment">
-              <FormField
-                label="Supporting Document (PDF, PNG, JPG)"
-                htmlFor="invoice-file-input"
-              >
-                <input
-                  ref={fileInputRef}
-                  id="invoice-file-input"
-                  data-testid="invoice-file-input"
-                  type="file"
-                  accept=".pdf,.png,.jpg,.jpeg"
-                  onChange={handleFileChange}
-                  style={{ display: 'none' }}
-                  aria-label="Upload supporting document"
-                />
-
-                {attachedFileName ? (
-                  <div
-                    className="attachment-badge-pill"
-                    data-testid="attachment-badge"
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span data-testid="attachment-name">
-                      {attachedFileName} ({attachedFileSize || '1.2 MB'})
-                    </span>
-                    <ActionButton
-                      quiet
-                      size="s"
-                      className="attachment-remove-btn"
-                      onClick={handleRemoveFile}
-                      aria-label="Remove attached document"
-                      data-testid="remove-attachment-btn"
-                    >
-                      &times;
-                    </ActionButton>
-                  </div>
-                ) : (
-                  <div>
-                    <Button
-                      variant="secondary"
-                      size="s"
-                      data-testid="attach-file-button"
-                      onClick={() => fileInputRef.current?.click()}
-                      aria-label="Choose file to attach"
-                    >
-                      📎 Choose File...
-                    </Button>
-                    <span
-                      style={{
-                        marginLeft: '8px',
-                        fontSize: '12px',
-                        color: 'var(--spectrum-global-color-gray-600, #8e8e8e)',
-                      }}
-                    >
-                      No file selected (Optional)
-                    </span>
-                  </div>
-                )}
-              </FormField>
-            </section>
-
-            {/* Optional Notes */}
-            <FormField label="Notes / Comments" htmlFor="invoice-notes-input">
-              <textarea
-                id="invoice-notes-input"
-                data-testid="invoice-notes-input"
-                className="invoice-form-input"
-                rows={2}
-                placeholder="Additional billing context or instructions..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                aria-label="Notes / Comments"
-              />
             </FormField>
+          </section>
 
-            {/* Footer Actions */}
-            <div className="invoice-dialog-footer">
-              <Button
-                variant="secondary"
-                type="button"
-                data-testid="cancel-invoice-button"
-                onClick={onClose}
-                disabled={isSubmitting}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="accent"
-                type="submit"
-                data-testid="submit-invoice-button"
-                disabled={isSubmitting}
-                onClick={(e: any) => {
-                  // Ensure form submission in testing environments
-                  if (e.target?.closest?.('form')) {
-                    handleSubmit(e);
-                  }
-                }}
-              >
-                {isSubmitting ? 'Submitting...' : 'Submit Invoice'}
-              </Button>
-            </div>
-          </form>
-        </Dialog>
+          {/* Optional Notes */}
+          <FormField label="Notes / Comments" htmlFor="invoice-notes-input">
+            <textarea
+              id="invoice-notes-input"
+              data-testid="invoice-notes-input"
+              className="invoice-form-input"
+              rows={2}
+              placeholder="Additional billing context or instructions..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              aria-label="Notes / Comments"
+            />
+          </FormField>
+
+          {/* Footer Actions */}
+          <div className="invoice-dialog-footer">
+            <button
+              type="button"
+              data-testid="cancel-invoice-button"
+              onClick={onClose}
+              disabled={isSubmitting}
+              style={{
+                padding: '8px 16px',
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'inherit',
+                borderRadius: '4px',
+                border: '1px solid var(--spectrum-global-color-gray-300, #e1e1e1)',
+                backgroundColor: 'var(--spectrum-global-color-gray-50, #ffffff)',
+                color: 'var(--spectrum-global-color-gray-800, #4b4b4b)',
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              data-testid="submit-invoice-button"
+              disabled={isSubmitting}
+              onClick={(e) => handleSubmit(e)}
+              style={{
+                padding: '8px 16px',
+                fontSize: '14px',
+                fontWeight: 600,
+                fontFamily: 'inherit',
+                borderRadius: '4px',
+                border: 'none',
+                backgroundColor: isSubmitting
+                  ? 'var(--spectrum-global-color-blue-400, #71a9f4)'
+                  : 'var(--spectrum-global-color-blue-600, #0d66d0)',
+                color: '#ffffff',
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit Invoice'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

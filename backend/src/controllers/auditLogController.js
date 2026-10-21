@@ -15,26 +15,83 @@ const getAuditLogs = async (req, res, next) => {
     const { invoiceId, user, performedBy, action } = req.query;
     const filter = {};
 
+    // Without invoiceId: require Admin role (Requester and Approver get 403)
+    if (!invoiceId) {
+      if (!req.user || req.user.role !== 'Admin') {
+        return res
+          .status(403)
+          .json({ error: 'Forbidden: Insufficient permissions' });
+      }
+    }
+
     if (action) {
       filter.action = action;
     }
 
     if (invoiceId) {
+      let targetInvoice = null;
       if (mongoose.Types.ObjectId.isValid(invoiceId)) {
-        filter.invoiceId = invoiceId;
-      } else {
-        // Try looking up Invoice by invoiceNumber
-        try {
-          const inv = await Invoice.findOne({ invoiceNumber: invoiceId });
-          if (inv) {
-            filter.invoiceId = inv._id;
-          } else {
-            return res.status(200).json([]);
-          }
-        } catch {
-          return res.status(200).json([]);
-        }
+        targetInvoice = await Invoice.findById(invoiceId);
       }
+      if (!targetInvoice) {
+        targetInvoice = await Invoice.findOne({
+          $or: [{ id: invoiceId }, { invoiceNumber: invoiceId }],
+        });
+      }
+
+      // If the invoice does not exist at all, return 404
+      if (!targetInvoice) {
+        return res.status(404).json({ error: 'Invoice not found' });
+      }
+
+      // Scoped access: Admin and Approver may view any; Requester only their own, else 404
+      if (req.user && req.user.role === 'Requester') {
+        const invSubmittedBy = targetInvoice.submittedBy?._id
+          ? targetInvoice.submittedBy._id.toString()
+          : targetInvoice.submittedBy?.toString
+          ? targetInvoice.submittedBy.toString()
+          : String(targetInvoice.submittedBy);
+
+        let isOwner = false;
+        if (req.user.id && String(invSubmittedBy) === String(req.user.id)) {
+          isOwner = true;
+        }
+        if (req.user.email) {
+          if (String(invSubmittedBy).toLowerCase() === String(req.user.email).toLowerCase()) {
+            isOwner = true;
+          }
+          if (
+            targetInvoice.submittedBy?.email &&
+            String(targetInvoice.submittedBy.email).toLowerCase() === String(req.user.email).toLowerCase()
+          ) {
+            isOwner = true;
+          }
+        }
+
+        if (!isOwner && mongoose.isValidObjectId(invSubmittedBy)) {
+          try {
+            const ownerUser = await User.findById(invSubmittedBy).lean();
+            if (ownerUser) {
+              if (req.user.email && ownerUser.email?.toLowerCase() === String(req.user.email).toLowerCase()) {
+                isOwner = true;
+              }
+              if (req.user.id && ownerUser._id?.toString() === String(req.user.id)) {
+                isOwner = true;
+              }
+            }
+          } catch (_) {}
+        }
+
+        if (!isOwner) {
+          return res.status(404).json({ error: 'Invoice not found' });
+        }
+      } else if (!req.user || !['Admin', 'Approver'].includes(req.user.role)) {
+        return res
+          .status(403)
+          .json({ error: 'Forbidden: Insufficient permissions' });
+      }
+
+      filter.invoiceId = targetInvoice._id;
     }
 
     const userFilter = user || performedBy;

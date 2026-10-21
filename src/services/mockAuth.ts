@@ -60,12 +60,17 @@ export const login = async (
 };
 
 export const getCurrentUser = async (): Promise<User | null> => {
-  if (storedUser) {
+  const token = getStoredToken();
+  if (!token) {
+    storedUser = null;
+    return null;
+  }
+
+  if (storedUser && token === 'mock-token-' + storedUser.id) {
     return storedUser;
   }
 
-  const token = getStoredToken();
-  if (token && token.startsWith('mock-token-')) {
+  if (token.startsWith('mock-token-')) {
     const userId = token.replace('mock-token-', '');
     const found =
       INITIAL_USERS.find((u) => u.id === userId) ||
@@ -88,7 +93,7 @@ export const getCurrentUser = async (): Promise<User | null> => {
     }
   }
 
-  return INITIAL_USERS[0];
+  return null;
 };
 
 export const logout = async (): Promise<void> => {

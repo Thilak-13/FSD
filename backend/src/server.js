@@ -1,6 +1,6 @@
 const app = require('./app');
 const { PORT, MONGODB_URI } = require('./config/env');
-const { connectDB, disconnectDB } = require('./config/db');
+const { connectDB, disconnectDB, isMemoryDB } = require('./config/db');
 const { seedDatabase } = require('./config/seed');
 const { initReminderCron, stopReminderCron } = require('./jobs/reminderCron');
 
@@ -13,9 +13,10 @@ const startServer = async () => {
     await connectDB(MONGODB_URI);
     console.log('MongoDB connected successfully.');
 
-    // 2. Seed database demo data if gate passes
-    if (process.env.SEED_DEMO_DATA === 'true') {
-      if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'development') {
+    // 2. Seed database demo data if gate passes or if running on in-memory DB
+    const isMemory = isMemoryDB();
+    if (process.env.SEED_DEMO_DATA === 'true' || isMemory) {
+      if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'development' && !isMemory) {
         console.warn('WARNING: SEED_DEMO_DATA is enabled in production! Demo credentials will be active.');
       }
       console.log('Seeding demo database...');

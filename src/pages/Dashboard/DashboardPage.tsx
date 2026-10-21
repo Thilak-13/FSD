@@ -5,8 +5,6 @@ import { DataContext } from '../../context/DataContext';
 import { AuthContext } from '../../context/AuthContext';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { DataTable, Column } from '../../components/shared/DataTable';
-import { Card } from '@swc-react/card';
-import { ActionButton } from '@swc-react/action-button';
 import { SummaryCard } from './SummaryCard';
 import { VolumeChart } from './VolumeChart';
 import { StatusBreakdownChart } from './StatusBreakdownChart';
@@ -68,7 +66,7 @@ export const DashboardPage: React.FC = () => {
     }, [invoices]);
 
   const formatCurrency = (amount: number) => {
-    return `$${amount.toLocaleString('en-US', {
+    return `₹${amount.toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     })}`;
@@ -122,20 +120,19 @@ export const DashboardPage: React.FC = () => {
         title: 'Actions',
         sortable: false,
         render: (inv) => (
-          <ActionButton
-            size="s"
+          <button
+            type="button"
             className="quick-link-btn"
-            style={{ padding: '4px 10px', fontSize: '12px' }}
+            style={{ padding: '4px 10px', fontSize: '12px', cursor: 'pointer' }}
             onClick={(e) => {
               e.stopPropagation();
               navigate(`/invoices/${inv.id}`);
             }}
             data-testid={`recent-view-${inv.id}`}
             aria-label={`View invoice ${inv.invoiceNumber}`}
-            role="button"
           >
             View
-          </ActionButton>
+          </button>
         ),
       },
     ],
@@ -230,61 +227,60 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Quick Action Navigation */}
-      <Card className="quick-actions-card">
+      <div className="quick-actions-card">
         <h2 className="quick-actions-title">Quick Actions & Workflows</h2>
         <div className="quick-actions-grid">
           {(currentRole === 'Admin' || currentRole === 'Approver') && (
-            <ActionButton
+            <button
+              type="button"
               className="quick-link-btn"
               data-testid="quick-link-approvals"
-              role="button"
               onClick={() => navigate('/approvals')}
             >
               Go to Approvals Queue
-            </ActionButton>
+            </button>
           )}
-          <ActionButton
+          <button
+            type="button"
             className="quick-link-btn"
             data-testid="quick-link-invoices"
-            role="button"
             onClick={() => navigate('/invoices')}
           >
             Invoices Directory
-          </ActionButton>
+          </button>
           {(currentRole === 'Admin' || currentRole === 'Approver') && (
-            <ActionButton
+            <button
+              type="button"
               className="quick-link-btn"
               data-testid="quick-link-payments"
-              role="button"
               onClick={() => navigate('/payments')}
             >
               Payments & Disbursements
-            </ActionButton>
+            </button>
           )}
-          <ActionButton
+          <button
+            type="button"
             className="quick-link-btn"
             data-testid="quick-link-vendors"
-            role="button"
             onClick={() => navigate('/vendors')}
           >
             Vendor Directory
-          </ActionButton>
+          </button>
         </div>
-      </Card>
+      </div>
 
       {/* Recent Invoices Table */}
-      <Card className="recent-invoices-card">
+      <div className="recent-invoices-card">
         <div className="recent-invoices-header">
           <h2 className="recent-invoices-title">Recent Invoices</h2>
-          <ActionButton
-            size="s"
+          <button
+            type="button"
             className="quick-link-btn"
-            style={{ fontSize: '12px', padding: '6px 12px' }}
-            role="button"
+            style={{ fontSize: '12px', padding: '6px 12px', cursor: 'pointer' }}
             onClick={() => navigate('/invoices')}
           >
             View All Invoices
-          </ActionButton>
+          </button>
         </div>
         <DataTable
           columns={recentColumns}
@@ -293,7 +289,7 @@ export const DashboardPage: React.FC = () => {
           onRowClick={(inv) => navigate(`/invoices/${inv.id}`)}
           emptyMessage="No recent invoices found"
         />
-      </Card>
+      </div>
     </div>
   );
 };

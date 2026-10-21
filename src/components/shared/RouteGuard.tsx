@@ -11,6 +11,7 @@ export interface RouteGuardProps {
   children?: React.ReactNode;
   allowedRoles?: Role[];
   redirectPath?: string;
+  loginPath?: string;
   unauthorizedMessage?: string;
 }
 
@@ -39,9 +40,10 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   children,
   allowedRoles,
   redirectPath = '/',
+  loginPath = '/login',
   unauthorizedMessage,
 }) => {
-  const { isAuthenticated, currentRole } = useAuth();
+  const { isAuthenticated, currentRole, loading } = useAuth();
   const location = useLocation();
 
   const isRoleForbidden = Boolean(allowedRoles && !allowedRoles.includes(currentRole));
@@ -62,6 +64,10 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
     }
   }, [isAuthenticated, isRoleForbidden, message]);
 
+  if (loading) {
+    return null;
+  }
+
   const hasSessionAuth = Boolean(
     isAuthenticated ||
       (typeof window !== 'undefined' &&
@@ -70,7 +76,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   );
 
   if (!hasSessionAuth) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
+    return <Navigate to={loginPath} replace state={{ from: location }} />;
   }
 
   if (isRoleForbidden) {

@@ -257,7 +257,7 @@ export const INITIAL_INVOICES: Invoice[] = [
     submittedBy: 'user-3',
     attachedDocumentName: 'INV-2026-011_Summit.pdf',
     flagReason:
-      'Unit price discrepancy: invoiced rate $11,000 exceeds PO rate $9,500',
+      'Unit price discrepancy: invoiced rate ₹11,000 exceeds PO rate ₹9,500',
     items: [
       {
         id: 'li-1101',
@@ -308,7 +308,7 @@ export const INITIAL_INVOICES: Invoice[] = [
     submittedBy: 'user-3',
     attachedDocumentName: 'INV-2026-013_ByteForce.pdf',
     flagReason:
-      'Unit price mismatch on 48-Port Switches ($2,100 invoiced vs $1,800 PO rate)',
+      'Unit price mismatch on 48-Port Switches (₹2,100 invoiced vs ₹1,800 PO rate)',
     items: [
       {
         id: 'li-1301',
@@ -548,7 +548,7 @@ export const createInvoice = async (
     invoiceId: newInvoice.id,
     action: 'SUBMISSION',
     performedBy: input.submittedBy || 'Requester',
-    details: `Invoice ${newInvoice.invoiceNumber} submitted for amount $${newInvoice.amount.toLocaleString()}`,
+    details: `Invoice ${newInvoice.invoiceNumber} submitted for amount ₹${newInvoice.amount.toLocaleString()}`,
   });
 
   return { ...newInvoice };

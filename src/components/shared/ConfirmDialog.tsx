@@ -1,6 +1,4 @@
 import React, { useEffect, useRef } from 'react';
-import { Dialog } from '@swc-react/dialog';
-import { Button } from '@swc-react/button';
 
 export interface ConfirmDialogProps {
   open: boolean;
@@ -17,7 +15,7 @@ export interface ConfirmDialogProps {
 }
 
 /**
- * Accessible confirmation modal dialog wrapping @swc-react/dialog.
+ * Accessible confirmation modal dialog using standard React & HTML5 elements.
  * Features focus management, Escape key dismiss, and Spectrum token styling.
  */
 export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -33,8 +31,8 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   children,
   className,
 }) => {
-  const confirmBtnRef = useRef<any>(null);
-  const cancelBtnRef = useRef<any>(null);
+  const confirmBtnRef = useRef<HTMLButtonElement | null>(null);
+  const cancelBtnRef = useRef<HTMLButtonElement | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
 
@@ -108,61 +106,87 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           maxWidth: '520px',
           width: '100%',
           outline: 'none',
+          backgroundColor: '#ffffff',
+          borderRadius: '4px',
+          padding: '24px',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+          boxSizing: 'border-box',
         }}
       >
-        <Dialog
-          size="m"
-          dismissable
-          close={onCancel}
-          aria-label={title}
+        <h2
+          id="confirm-dialog-heading"
+          style={{
+            margin: '0 0 12px 0',
+            fontFamily: 'var(--spectrum-alias-body-text-font-family, "Adobe Clean", sans-serif)',
+            fontSize: 'var(--spectrum-alias-font-size-heading, 20px)',
+            color: 'var(--spectrum-global-color-gray-900, #2c2c2c)',
+          }}
         >
-          <h2
-            slot="heading"
-            id="confirm-dialog-heading"
-            style={{
-              margin: 0,
-              fontFamily: 'var(--spectrum-alias-body-text-font-family, "Adobe Clean", sans-serif)',
-              fontSize: 'var(--spectrum-alias-font-size-heading, 20px)',
-              color: 'var(--spectrum-global-color-gray-900, #2c2c2c)',
-            }}
-          >
-            {title}
-          </h2>
+          {title}
+        </h2>
 
-          <div
-            id="confirm-dialog-message"
-            style={{
-              marginTop: 'var(--spectrum-global-dimension-size-100, 8px)',
-              fontFamily: 'var(--spectrum-alias-body-text-font-family, "Adobe Clean", sans-serif)',
-              fontSize: 'var(--spectrum-alias-font-size-default, 14px)',
-              color: 'var(--spectrum-global-color-gray-700, #6e6e6e)',
-              lineHeight: 1.5,
-            }}
-          >
-            {typeof message === 'string' ? <p style={{ margin: 0 }}>{message}</p> : message}
-          </div>
+        <div
+          id="confirm-dialog-message"
+          style={{
+            marginTop: 'var(--spectrum-global-dimension-size-100, 8px)',
+            marginBottom: '20px',
+            fontFamily: 'var(--spectrum-alias-body-text-font-family, "Adobe Clean", sans-serif)',
+            fontSize: 'var(--spectrum-alias-font-size-default, 14px)',
+            color: 'var(--spectrum-global-color-gray-700, #6e6e6e)',
+            lineHeight: 1.5,
+          }}
+        >
+          {typeof message === 'string' ? <p style={{ margin: 0 }}>{message}</p> : message}
+        </div>
 
-          {children}
+        {children}
 
-          <Button
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: '12px',
+            marginTop: '20px',
+          }}
+        >
+          <button
             ref={cancelBtnRef}
-            slot="button"
-            variant="secondary"
+            type="button"
             onClick={onCancel}
+            style={{
+              padding: '7px 16px',
+              borderRadius: '16px',
+              border: '1px solid #cacaca',
+              backgroundColor: '#ffffff',
+              color: '#2c2c2c',
+              fontSize: '14px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
           >
             {cancelLabel}
-          </Button>
+          </button>
 
-          <Button
+          <button
             ref={confirmBtnRef}
-            slot="button"
-            variant={variant === 'negative' ? 'negative' : 'accent'}
+            type="button"
             onClick={onConfirm}
             disabled={confirmDisabled}
+            style={{
+              padding: '7px 16px',
+              borderRadius: '16px',
+              border: 'none',
+              backgroundColor: variant === 'negative' ? '#d7373f' : '#0265dc',
+              color: '#ffffff',
+              fontSize: '14px',
+              fontWeight: 600,
+              cursor: confirmDisabled ? 'not-allowed' : 'pointer',
+              opacity: confirmDisabled ? 0.6 : 1,
+            }}
           >
             {confirmLabel}
-          </Button>
-        </Dialog>
+          </button>
+        </div>
       </div>
     </div>
   );

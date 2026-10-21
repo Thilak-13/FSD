@@ -1,8 +1,6 @@
 // src/components/layout/SideNav.tsx
 import React from 'react';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
-import { SideNav as SpSideNav, SideNavItem as SpSideNavItem } from '@swc-react/sidenav';
-import { ActionButton } from '@swc-react/action-button';
+import { useLocation, useNavigate, Link, NavLink } from 'react-router-dom';
 import { Logo } from '../../assets/brand/Logo';
 import { useAuth } from '../../context/AuthContext';
 import { Role } from '../../types';
@@ -81,37 +79,35 @@ export const SideNav: React.FC<SideNavProps> = ({
         >
           <Logo size={32} showText />
         </Link>
-        <ActionButton
-          quiet
-          size="s"
+        <button
+          type="button"
           className="sidebar-close-btn"
           aria-label="Close navigation"
-          role="button"
           onClick={onClose}
         >
           ✕
-        </ActionButton>
+        </button>
       </div>
 
-      <nav className="sidebar-nav-content" aria-label="Main Navigation">
-        <SpSideNav>
+      <nav className="app-sidenav sidebar-nav-content" aria-label="Main Navigation">
+        <ul className="nav-links-list">
           {visibleItems.map((item) => {
             const active = isItemActive(item.path);
             return (
-              <SpSideNavItem
-                key={item.path}
-                href={item.path}
-                value={item.path}
-                role="link"
-                selected={active}
-                className={`nav-link-item ${active ? 'active' : ''}`}
-                onClick={(e) => handleItemClick(item.path, e)}
-              >
-                {item.label}
-              </SpSideNavItem>
+              <li key={item.path}>
+                <NavLink
+                  to={item.path}
+                  className={({ isActive }) =>
+                    `nav-link-item ${isActive || active ? 'active' : ''}`.trim()
+                  }
+                  onClick={(e) => handleItemClick(item.path, e)}
+                >
+                  {item.label}
+                </NavLink>
+              </li>
             );
           })}
-        </SpSideNav>
+        </ul>
       </nav>
     </aside>
   );

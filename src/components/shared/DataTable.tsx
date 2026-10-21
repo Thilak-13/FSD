@@ -1,15 +1,4 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import {
-  Table,
-  TableHead,
-  TableHeadCell,
-  TableBody,
-  TableRow,
-  TableCell,
-  TableCheckboxCell,
-} from '@swc-react/table';
-import { Button } from '@swc-react/button';
-import { Search } from '@swc-react/search';
 import { EmptyState } from './EmptyState';
 import { LoadingSkeleton } from './LoadingSkeleton';
 
@@ -67,15 +56,15 @@ export interface DataTableProps<T> {
 }
 
 /**
- * Accessible DataTable wrapping @swc-react/table with:
- * - Semantic Table structure (Head, HeadCell, Body, Row, Cell, CheckboxCell)
+ * Accessible standard HTML DataTable with:
+ * - Semantic Table structure (table, thead, tbody, tr, th, td) in light DOM
  * - Column sorting with accessible aria-sort
- * - Pagination controls
- * - Search filtering
+ * - Pagination controls with accessible buttons
+ * - Search filtering with standard input
  * - Row selection checkboxes
- * - Row click callbacks
+ * - Row click callbacks & keyboard navigation
  * - Empty and Loading progressive states
- * - 100% Spectrum design tokens styling
+ * - Spectrum design tokens styling
  */
 export function DataTable<T extends Record<string, any>>({
   columns,
@@ -271,31 +260,22 @@ export function DataTable<T extends Record<string, any>>({
           }}
         >
           <div style={{ maxWidth: '320px', width: '100%', position: 'relative' }}>
-            <Search
-              placeholder={searchPlaceholder}
-              value={currentSearch}
-              input={(e: any) => handleSearchChange(e.target.value)}
-              aria-label={searchPlaceholder}
-              style={{ width: '100%' }}
-            />
             <input
               type="search"
               placeholder={searchPlaceholder}
               value={currentSearch}
               onChange={(e) => handleSearchChange(e.target.value)}
               aria-label={searchPlaceholder}
-              aria-hidden="true"
-              tabIndex={-1}
               style={{
-                position: 'absolute',
-                width: '1px',
-                height: '1px',
-                padding: 0,
-                margin: '-1px',
-                overflow: 'hidden',
-                clip: 'rect(0, 0, 0, 0)',
-                whiteSpace: 'nowrap',
-                border: 0,
+                width: '100%',
+                padding: '8px 12px',
+                fontSize: '14px',
+                fontFamily: 'inherit',
+                borderRadius: '4px',
+                border: '1px solid var(--spectrum-global-color-gray-300, #e1e1e1)',
+                backgroundColor: 'var(--spectrum-global-color-gray-50, #ffffff)',
+                color: 'var(--spectrum-global-color-gray-900, #2c2c2c)',
+                boxSizing: 'border-box',
               }}
             />
           </div>
@@ -323,97 +303,95 @@ export function DataTable<T extends Record<string, any>>({
             backgroundColor: 'var(--spectrum-global-color-gray-50, #ffffff)',
           }}
         >
-          <Table
+          <table
             aria-label={ariaLabel}
-            style={{ width: '100%' }}
+            style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              textAlign: 'left',
+            }}
           >
-            <TableHead>
-              {selectable && (
-                <TableCheckboxCell
-                  headCell
-                  label="Select all rows"
-                  checked={isAllSelected}
-                  indeterminate={isSomeSelected}
-                  onClick={(e: any) => {
-                    e.stopPropagation();
-                    handleToggleSelectAll();
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={isAllSelected}
-                    aria-label="Select all rows"
-                    onChange={handleToggleSelectAll}
+            <thead>
+              <tr>
+                {selectable && (
+                  <th
                     style={{
-                      position: 'absolute',
-                      width: '1px',
-                      height: '1px',
-                      padding: 0,
-                      margin: '-1px',
-                      overflow: 'hidden',
-                      clip: 'rect(0, 0, 0, 0)',
-                      whiteSpace: 'nowrap',
-                      border: 0,
-                    }}
-                  />
-                </TableCheckboxCell>
-              )}
-
-              {columns.map((col) => {
-                const isSorted = currentSortCol === col.key;
-                const sortDirAttr = isSorted ? currentSortDir : undefined;
-                const ariaSort = isSorted
-                  ? currentSortDir === 'asc'
-                    ? 'ascending'
-                    : 'descending'
-                  : col.sortable
-                  ? 'none'
-                  : undefined;
-
-                return (
-                  <TableHeadCell
-                    key={col.key}
-                    sort-direction={sortDirAttr}
-                    aria-sort={ariaSort}
-                    sortable={col.sortable}
-                    onClick={() => handleSortClick(col.key, col.sortable)}
-                    style={{
-                      cursor: col.sortable ? 'pointer' : 'default',
-                      userSelect: 'none',
-                      width: col.width,
-                      textAlign: col.align || 'left',
-                      fontFamily: 'var(--spectrum-alias-body-text-font-family, "Adobe Clean", sans-serif)',
-                      fontWeight: 600,
-                      color: 'var(--spectrum-global-color-gray-800, #4b4b4b)',
+                      width: '48px',
+                      padding: 'var(--spectrum-global-dimension-size-150, 12px) var(--spectrum-global-dimension-size-200, 16px)',
+                      borderBottom: '1px solid var(--spectrum-global-color-gray-300, #e1e1e1)',
                       backgroundColor: 'var(--spectrum-global-color-gray-100, #fafafa)',
+                      textAlign: 'center',
                     }}
                   >
-                    <div
+                    <input
+                      type="checkbox"
+                      checked={isAllSelected}
+                      ref={(el) => {
+                        if (el) el.indeterminate = isSomeSelected;
+                      }}
+                      aria-label="Select all rows"
+                      onChange={handleToggleSelectAll}
+                      style={{ cursor: 'pointer' }}
+                    />
+                  </th>
+                )}
+
+                {columns.map((col) => {
+                  const isSorted = currentSortCol === col.key;
+                  const ariaSort = isSorted
+                    ? currentSortDir === 'asc'
+                      ? 'ascending'
+                      : 'descending'
+                    : col.sortable
+                    ? 'none'
+                    : undefined;
+
+                  return (
+                    <th
+                      key={col.key}
+                      aria-sort={ariaSort}
+                      onClick={() => handleSortClick(col.key, col.sortable)}
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 'var(--spectrum-global-dimension-size-50, 4px)',
-                        justifyContent:
-                          col.align === 'right'
-                            ? 'flex-end'
-                            : col.align === 'center'
-                            ? 'center'
-                            : 'flex-start',
+                        cursor: col.sortable ? 'pointer' : 'default',
+                        userSelect: 'none',
+                        width: col.width,
+                        textAlign: col.align || 'left',
+                        fontFamily: 'var(--spectrum-alias-body-text-font-family, "Adobe Clean", sans-serif)',
+                        fontWeight: 600,
+                        fontSize: 'var(--spectrum-alias-font-size-default, 14px)',
+                        color: 'var(--spectrum-global-color-gray-800, #4b4b4b)',
+                        backgroundColor: 'var(--spectrum-global-color-gray-100, #fafafa)',
+                        padding: 'var(--spectrum-global-dimension-size-150, 12px) var(--spectrum-global-dimension-size-200, 16px)',
+                        borderBottom: '1px solid var(--spectrum-global-color-gray-300, #e1e1e1)',
                       }}
                     >
-                      <span>{col.title}</span>
-                      {col.sortable && isSorted && (
-                        <span aria-hidden="true" style={{ fontSize: '10px' }}>
-                          {currentSortDir === 'asc' ? '▲' : '▼'}
-                        </span>
-                      )}
-                    </div>
-                  </TableHeadCell>
-                );
-              })}
-            </TableHead>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 'var(--spectrum-global-dimension-size-50, 4px)',
+                          justifyContent:
+                            col.align === 'right'
+                              ? 'flex-end'
+                              : col.align === 'center'
+                              ? 'center'
+                              : 'flex-start',
+                        }}
+                      >
+                        <span>{col.title}</span>
+                        {col.sortable && isSorted && (
+                          <span aria-hidden="true" style={{ fontSize: '10px' }}>
+                            {currentSortDir === 'asc' ? '▲' : '▼'}
+                          </span>
+                        )}
+                      </div>
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
 
-            <TableBody>
+            <tbody>
               {displayRows.map((row, index) => {
                 const rowId = getRowId(row, index);
                 const isSelected = currentSelectedIds.includes(rowId);
@@ -422,7 +400,7 @@ export function DataTable<T extends Record<string, any>>({
                   : index;
 
                 return (
-                  <TableRow
+                  <tr
                     key={rowId}
                     className="table-data-row"
                     aria-selected={selectable ? isSelected : undefined}
@@ -440,35 +418,26 @@ export function DataTable<T extends Record<string, any>>({
                       backgroundColor: isSelected
                         ? 'var(--spectrum-global-color-blue-100, #f0f7ff)'
                         : undefined,
+                      borderBottom: '1px solid var(--spectrum-global-color-gray-200, #eaeaea)',
                     }}
                   >
                     {selectable && (
-                      <TableCheckboxCell
-                        label={`Select row ${actualIndex + 1}`}
-                        checked={isSelected}
-                        onClick={(e: any) => {
-                          e.stopPropagation();
-                          handleToggleSelectRow(rowId);
+                      <td
+                        style={{
+                          width: '48px',
+                          padding: 'var(--spectrum-global-dimension-size-150, 12px) var(--spectrum-global-dimension-size-200, 16px)',
+                          textAlign: 'center',
                         }}
+                        onClick={(e) => e.stopPropagation()}
                       >
                         <input
                           type="checkbox"
                           checked={isSelected}
                           aria-label={`Select row ${actualIndex + 1}`}
                           onChange={() => handleToggleSelectRow(rowId)}
-                          style={{
-                            position: 'absolute',
-                            width: '1px',
-                            height: '1px',
-                            padding: 0,
-                            margin: '-1px',
-                            overflow: 'hidden',
-                            clip: 'rect(0, 0, 0, 0)',
-                            whiteSpace: 'nowrap',
-                            border: 0,
-                          }}
+                          style={{ cursor: 'pointer' }}
                         />
-                      </TableCheckboxCell>
+                      </td>
                     )}
 
                     {columns.map((col) => {
@@ -477,9 +446,11 @@ export function DataTable<T extends Record<string, any>>({
                         : row[col.key];
 
                       return (
-                        <TableCell
+                        <td
                           key={col.key}
+                          className={col.className}
                           style={{
+                            padding: 'var(--spectrum-global-dimension-size-150, 12px) var(--spectrum-global-dimension-size-200, 16px)',
                             textAlign: col.align || 'left',
                             fontFamily: 'var(--spectrum-alias-body-text-font-family, "Adobe Clean", sans-serif)',
                             fontSize: 'var(--spectrum-alias-font-size-default, 14px)',
@@ -489,14 +460,14 @@ export function DataTable<T extends Record<string, any>>({
                           {cellContent !== undefined && cellContent !== null
                             ? cellContent
                             : '—'}
-                        </TableCell>
+                        </td>
                       );
                     })}
-                  </TableRow>
+                  </tr>
                 );
               })}
-            </TableBody>
-          </Table>
+            </tbody>
+          </table>
         </div>
       )}
 
@@ -522,17 +493,25 @@ export function DataTable<T extends Record<string, any>>({
           </div>
 
           <div style={{ display: 'flex', gap: 'var(--spectrum-global-dimension-size-100, 8px)', alignItems: 'center' }}>
-            <Button
-              ref={(el: any) => {
-                if (el?.setAttribute) el.setAttribute('role', 'button');
-              }}
-              variant="secondary"
+            <button
+              type="button"
               disabled={safeCurrentPage <= 1}
               onClick={() => handlePageChange(safeCurrentPage - 1)}
               aria-label="Previous page"
+              style={{
+                padding: '6px 14px',
+                fontSize: '14px',
+                fontFamily: 'inherit',
+                fontWeight: 500,
+                borderRadius: '4px',
+                border: '1px solid var(--spectrum-global-color-gray-300, #e1e1e1)',
+                backgroundColor: safeCurrentPage <= 1 ? 'var(--spectrum-global-color-gray-100, #f4f4f4)' : 'var(--spectrum-global-color-gray-50, #ffffff)',
+                color: safeCurrentPage <= 1 ? 'var(--spectrum-global-color-gray-400, #a0a0a0)' : 'var(--spectrum-global-color-gray-800, #4b4b4b)',
+                cursor: safeCurrentPage <= 1 ? 'not-allowed' : 'pointer',
+              }}
             >
               Previous
-            </Button>
+            </button>
 
             <span
               style={{
@@ -543,17 +522,25 @@ export function DataTable<T extends Record<string, any>>({
               Page {safeCurrentPage} of {totalPages}
             </span>
 
-            <Button
-              ref={(el: any) => {
-                if (el?.setAttribute) el.setAttribute('role', 'button');
-              }}
-              variant="secondary"
+            <button
+              type="button"
               disabled={safeCurrentPage >= totalPages}
               onClick={() => handlePageChange(safeCurrentPage + 1)}
               aria-label="Next page"
+              style={{
+                padding: '6px 14px',
+                fontSize: '14px',
+                fontFamily: 'inherit',
+                fontWeight: 500,
+                borderRadius: '4px',
+                border: '1px solid var(--spectrum-global-color-gray-300, #e1e1e1)',
+                backgroundColor: safeCurrentPage >= totalPages ? 'var(--spectrum-global-color-gray-100, #f4f4f4)' : 'var(--spectrum-global-color-gray-50, #ffffff)',
+                color: safeCurrentPage >= totalPages ? 'var(--spectrum-global-color-gray-400, #a0a0a0)' : 'var(--spectrum-global-color-gray-800, #4b4b4b)',
+                cursor: safeCurrentPage >= totalPages ? 'not-allowed' : 'pointer',
+              }}
             >
               Next
-            </Button>
+            </button>
           </div>
         </nav>
       )}

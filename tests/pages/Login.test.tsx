@@ -1,10 +1,10 @@
-// tests/pages/Login.test.tsx
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { LoginPage } from '../../src/pages/Login/LoginPage';
 import { AuthProvider, useAuth } from '../../src/context/AuthContext';
+import { authApi } from '../../src/services/dataSource';
 import { setMockDelayEnabled } from '../../src/services/mockApi';
 import { REDIRECT_NOTICE_KEY } from '../../src/components/shared/RouteGuard';
 
@@ -24,9 +24,30 @@ const CurrentAuthDisplay: React.FC = () => {
 };
 
 describe('LoginPage', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     setMockDelayEnabled(false);
     sessionStorage.clear();
+    await authApi.logout().catch(() => {});
+    vi.unstubAllEnvs();
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('initially mounts in unauthenticated state with currentUser = null until login is triggered', () => {
+    render(
+      <MemoryRouter initialEntries={['/login']}>
+        <AuthProvider>
+          <LoginPage />
+          <CurrentAuthDisplay />
+        </AuthProvider>
+      </MemoryRouter>
+    );
+
+    expect(screen.getByTestId('auth-status').textContent).toBe('unauthenticated');
+    expect(screen.getByTestId('auth-user').textContent).toBe('none');
+    expect(screen.getByTestId('auth-email').textContent).toBe('none');
   });
 
   it('renders quick role selector buttons and signs in', () => {
@@ -39,9 +60,9 @@ describe('LoginPage', () => {
     );
 
     expect(screen.getByText(/Sign In to Invoice Platform/i)).toBeDefined();
-    expect(screen.getByText(/Admin/i)).toBeDefined();
-    expect(screen.getByText(/Approver/i)).toBeDefined();
-    expect(screen.getByText(/Requester/i)).toBeDefined();
+    expect(screen.getByTestId('quick-login-Admin')).toBeDefined();
+    expect(screen.getByTestId('quick-login-Approver')).toBeDefined();
+    expect(screen.getByTestId('quick-login-Requester')).toBeDefined();
   });
 
   it('renders branding logo and page container with data-testid', () => {
@@ -54,7 +75,7 @@ describe('LoginPage', () => {
     );
 
     expect(screen.getByTestId('page-login')).toBeDefined();
-    expect(screen.getByLabelText(/PayVerify Platform Logo/i)).toBeDefined();
+    expect(screen.getAllByLabelText(/PayVerify Platform Logo/i).length).toBeGreaterThan(0);
   });
 
   it('displays 1-click quick-role demo accounts with correct names and emails', () => {
@@ -77,6 +98,23 @@ describe('LoginPage', () => {
     // Requester demo account Jordan Lee
     expect(screen.getByText('Jordan Lee')).toBeDefined();
     expect(screen.getByText('jordan.lee@apex.corp')).toBeDefined();
+  });
+
+  it('hides 1-click quick-role demo accounts when VITE_DEMO_LOGINS is not true', () => {
+    vi.stubEnv('VITE_DEMO_LOGINS', 'false');
+
+    render(
+      <MemoryRouter initialEntries={['/login']}>
+        <AuthProvider>
+          <LoginPage />
+        </AuthProvider>
+      </MemoryRouter>
+    );
+
+    expect(screen.queryByTestId('quick-login-Admin')).toBeNull();
+    expect(screen.queryByTestId('quick-login-Approver')).toBeNull();
+    expect(screen.queryByTestId('quick-login-Requester')).toBeNull();
+    expect(screen.queryByText('1-Click Demo Accounts')).toBeNull();
   });
 
   it('logs in as Admin on clicking Admin quick-login button and redirects to /', async () => {

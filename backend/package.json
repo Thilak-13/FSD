@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node src/server.js",
+    "build": "node -e \"console.log('Backend build complete: No compilation step needed.')\"",
+    "seed": "node scripts/seed.js",
     "test": "jest --runInBand --detectOpenHandles --forceExit"
   },
   "dependencies": {

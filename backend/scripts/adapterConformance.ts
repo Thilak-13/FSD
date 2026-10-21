@@ -257,6 +257,7 @@ async function runConformance(): Promise<void> {
   let samplePO: PurchaseOrder | null = null;
   let sampleInvoice: Invoice | null = null;
   let sampleNotificationId: string | null = null;
+  let reqInvoiceId: string | null = null;
 
   try {
     // -------------------------------------------------------------------------
@@ -1108,6 +1109,7 @@ async function runConformance(): Promise<void> {
           },
         ],
       });
+      reqInvoiceId = reqInvoice.id;
 
       // 1. invoicesApi.getInvoices: assert only returns invoices submitted by this Requester
       try {
@@ -1217,6 +1219,72 @@ async function runConformance(): Promise<void> {
           );
         }
       }
+
+      // 6. auditLogApi.getAuditLog without invoiceId: assert throws 403 Forbidden
+      try {
+        await auditLogApi.getAuditLog();
+        console.log(
+          'Requester auditLogApi.getAuditLog (without invoiceId): FAIL - Expected 403 Forbidden, but call succeeded'
+        );
+      } catch (err: any) {
+        const is403 =
+          err?.message?.includes('403') ||
+          err?.message?.toLowerCase().includes('forbidden') ||
+          err?.status === 403 ||
+          err?.statusCode === 403;
+        if (is403) {
+          console.log('Requester auditLogApi.getAuditLog (without invoiceId): PASS (threw 403 Forbidden)');
+        } else {
+          console.log(
+            `Requester auditLogApi.getAuditLog (without invoiceId): FAIL - Unexpected error: ${err.message}`
+          );
+        }
+      }
+
+      // 7. auditLogApi.getAuditLog for own invoice: assert returns 200 array of entries
+      try {
+        const ownEntries = await auditLogApi.getAuditLog(reqInvoice.id);
+        if (!Array.isArray(ownEntries) || ownEntries.length === 0) {
+          console.log(
+            'Requester auditLogApi.getAuditLog (own invoice): FAIL - Expected non-empty array of audit entries'
+          );
+        } else {
+          const allMatch = ownEntries.every((e) => String(e.invoiceId) === String(reqInvoice.id));
+          if (allMatch) {
+            console.log(
+              `Requester auditLogApi.getAuditLog (own invoice): PASS (retrieved ${ownEntries.length} entries for owned invoice)`
+            );
+          } else {
+            console.log(
+              'Requester auditLogApi.getAuditLog (own invoice): FAIL - Some entries did not match invoice ID'
+            );
+          }
+        }
+      } catch (err: any) {
+        console.log(`Requester auditLogApi.getAuditLog (own invoice): FAIL - ${err.message}`);
+      }
+
+      // 8. auditLogApi.getAuditLog for other user's invoice: assert throws 404 Not Found
+      try {
+        const otherInvoiceId = sampleInvoice ? sampleInvoice.id : 'unknown';
+        await auditLogApi.getAuditLog(otherInvoiceId);
+        console.log(
+          'Requester auditLogApi.getAuditLog (other invoice): FAIL - Expected 404 Not Found, but call succeeded'
+        );
+      } catch (err: any) {
+        const is404 =
+          err?.message?.includes('404') ||
+          err?.message?.toLowerCase().includes('not found') ||
+          err?.status === 404 ||
+          err?.statusCode === 404;
+        if (is404) {
+          console.log('Requester auditLogApi.getAuditLog (other invoice): PASS (threw 404 Not Found)');
+        } else {
+          console.log(
+            `Requester auditLogApi.getAuditLog (other invoice): FAIL - Unexpected error: ${err.message}`
+          );
+        }
+      }
     } catch (err: any) {
       console.log(`Requester pass login: FAIL - ${err.message}`);
     }
@@ -1286,6 +1354,61 @@ async function runConformance(): Promise<void> {
         }
       } catch (err: any) {
         console.log(`Approver download attachment: FAIL - ${err.message}`);
+      }
+
+      // 4. auditLogApi.getAuditLog without invoiceId: assert throws 403 Forbidden
+      try {
+        await auditLogApi.getAuditLog();
+        console.log(
+          'Approver auditLogApi.getAuditLog (without invoiceId): FAIL - Expected 403 Forbidden, but call succeeded'
+        );
+      } catch (err: any) {
+        const is403 =
+          err?.message?.includes('403') ||
+          err?.message?.toLowerCase().includes('forbidden') ||
+          err?.status === 403 ||
+          err?.statusCode === 403;
+        if (is403) {
+          console.log('Approver auditLogApi.getAuditLog (without invoiceId): PASS (threw 403 Forbidden)');
+        } else {
+          console.log(
+            `Approver auditLogApi.getAuditLog (without invoiceId): FAIL - Unexpected error: ${err.message}`
+          );
+        }
+      }
+
+      // 5. auditLogApi.getAuditLog for Requester invoice: assert returns 200 array of entries
+      try {
+        const targetReqId = reqInvoiceId || 'unknown';
+        const reqEntries = await auditLogApi.getAuditLog(targetReqId);
+        if (!Array.isArray(reqEntries) || reqEntries.length === 0) {
+          console.log(
+            'Approver auditLogApi.getAuditLog (Requester invoice): FAIL - Expected non-empty array'
+          );
+        } else {
+          console.log(
+            `Approver auditLogApi.getAuditLog (Requester invoice): PASS (retrieved ${reqEntries.length} entries)`
+          );
+        }
+      } catch (err: any) {
+        console.log(`Approver auditLogApi.getAuditLog (Requester invoice): FAIL - ${err.message}`);
+      }
+
+      // 6. auditLogApi.getAuditLog for Admin/own invoice: assert returns 200 array of entries
+      try {
+        const targetAdminId = sampleInvoice ? sampleInvoice.id : 'unknown';
+        const adminEntries = await auditLogApi.getAuditLog(targetAdminId);
+        if (!Array.isArray(adminEntries) || adminEntries.length === 0) {
+          console.log(
+            'Approver auditLogApi.getAuditLog (Admin invoice): FAIL - Expected non-empty array'
+          );
+        } else {
+          console.log(
+            `Approver auditLogApi.getAuditLog (Admin invoice): PASS (retrieved ${adminEntries.length} entries)`
+          );
+        }
+      } catch (err: any) {
+        console.log(`Approver auditLogApi.getAuditLog (Admin invoice): FAIL - ${err.message}`);
       }
     } catch (err: any) {
       console.log(`Approver pass login: FAIL - ${err.message}`);

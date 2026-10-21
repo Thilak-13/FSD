@@ -1,6 +1,5 @@
 // src/pages/InvoiceDetail/ApprovalActions.tsx
 import React, { useState } from 'react';
-import { Button } from '@swc-react/button';
 import { Invoice } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { ConfirmDialog } from '../../components/shared/ConfirmDialog';
@@ -140,20 +139,22 @@ export const ApprovalActions: React.FC<ApprovalActionsProps> = ({
           <div className="approval-actions-buttons">
             {/* Approve Button */}
             {canApprove && !isApproved && !isPaymentScheduled && (
-              <Button
-                variant="accent"
+              <button
+                type="button"
+                className="approval-action-btn approval-action-btn-accent"
                 onClick={() => setIsApproveOpen(true)}
                 disabled={isSubmitting}
                 data-testid="approve-invoice-btn"
                 aria-label={`Approve invoice ${invoice.invoiceNumber}`}
               >
                 Approve Invoice
-              </Button>
+              </button>
             )}
 
             {/* Flag for Review Button */}
-            <Button
-              variant="negative"
+            <button
+              type="button"
+              className="approval-action-btn approval-action-btn-negative"
               onClick={() => {
                 setFlagReason(invoice.flagReason || '');
                 setIsFlagOpen(true);
@@ -163,30 +164,32 @@ export const ApprovalActions: React.FC<ApprovalActionsProps> = ({
               aria-label={`Flag invoice ${invoice.invoiceNumber} for review`}
             >
               Flag for Review
-            </Button>
+            </button>
 
             {/* Schedule Payment Button */}
-            <Button
-              variant="primary"
+            <button
+              type="button"
+              className="approval-action-btn approval-action-btn-primary"
               onClick={() => setIsScheduleOpen(true)}
               disabled={isSubmitting}
               data-testid="schedule-payment-btn"
               aria-label={`Schedule payment for invoice ${invoice.invoiceNumber}`}
             >
               Schedule Payment
-            </Button>
+            </button>
 
             {/* Mark as Paid (if already scheduled or admin) */}
             {(isPaymentScheduled || currentRole === 'Admin') && onMarkPaid && (
-              <Button
-                variant="secondary"
+              <button
+                type="button"
+                className="approval-action-btn approval-action-btn-secondary"
                 onClick={() => setIsMarkPaidOpen(true)}
                 disabled={isSubmitting}
                 data-testid="mark-paid-btn"
                 aria-label={`Mark invoice ${invoice.invoiceNumber} as paid`}
               >
                 Mark as Paid
-              </Button>
+              </button>
             )}
           </div>
         </div>
@@ -196,7 +199,7 @@ export const ApprovalActions: React.FC<ApprovalActionsProps> = ({
       <ConfirmDialog
         open={isApproveOpen}
         title="Approve Invoice"
-        message={`Are you sure you want to approve invoice ${invoice.invoiceNumber} for $${invoice.amount.toLocaleString(
+        message={`Are you sure you want to approve invoice ${invoice.invoiceNumber} for ₹${invoice.amount.toLocaleString(
           'en-US',
           { minimumFractionDigits: 2 }
         )}? This confirms line items and verification compliance.`}
@@ -248,7 +251,7 @@ export const ApprovalActions: React.FC<ApprovalActionsProps> = ({
       <ConfirmDialog
         open={isScheduleOpen}
         title="Schedule Payment Disbursement"
-        message={`Select disbursement date for invoice ${invoice.invoiceNumber} ($${invoice.amount.toLocaleString(
+        message={`Select disbursement date for invoice ${invoice.invoiceNumber} (₹${invoice.amount.toLocaleString(
           'en-US',
           { minimumFractionDigits: 2 }
         )}).`}

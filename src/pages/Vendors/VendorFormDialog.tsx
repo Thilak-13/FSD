@@ -1,9 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Button } from '@swc-react/button';
-import { ActionButton } from '@swc-react/action-button';
-import { Picker } from '@swc-react/picker';
-import { MenuItem } from '@swc-react/menu';
-import '@spectrum-web-components/menu/sp-menu-item.js';
 import { FormField } from '../../components/shared/FormField';
 import { useData } from '../../context/DataContext';
 import { Vendor, NewVendorInput, PaymentTerms } from '../../types';
@@ -160,16 +155,15 @@ export const VendorFormDialog: React.FC<VendorFormDialogProps> = ({
           <h2 id="new-vendor-heading" className="vendor-dialog-title">
             Add New Vendor
           </h2>
-          <ActionButton
-            quiet
-            size="s"
+          <button
+            type="button"
             className="vendor-dialog-close-btn"
             onClick={onClose}
             aria-label="Close dialog"
             data-testid="close-vendor-dialog"
           >
             &times;
-          </ActionButton>
+          </button>
         </div>
 
         {/* Form Body */}
@@ -282,20 +276,19 @@ export const VendorFormDialog: React.FC<VendorFormDialogProps> = ({
               label="Payment Terms"
               htmlFor="vendor-payment-terms-select"
             >
-              <Picker
+              <select
                 id="vendor-payment-terms-select"
                 data-testid="vendor-payment-terms-select"
                 className="vendor-form-select"
                 value={paymentTerms}
-                label="Payment Terms"
+                onChange={(e) => setPaymentTerms(e.target.value as PaymentTerms)}
                 aria-label="Payment Terms"
-                change={(e: any) => setPaymentTerms(e.target?.value as PaymentTerms)}
               >
-                <MenuItem value="Net 15">Net 15</MenuItem>
-                <MenuItem value="Net 30">Net 30</MenuItem>
-                <MenuItem value="Net 45">Net 45</MenuItem>
-                <MenuItem value="Net 60">Net 60</MenuItem>
-              </Picker>
+                <option value="Net 15">Net 15</option>
+                <option value="Net 30">Net 30</option>
+                <option value="Net 45">Net 45</option>
+                <option value="Net 60">Net 60</option>
+              </select>
             </FormField>
 
             <FormField
@@ -335,30 +328,46 @@ export const VendorFormDialog: React.FC<VendorFormDialogProps> = ({
 
           {/* Actions */}
           <div className="vendor-dialog-footer">
-            <Button
-              variant="secondary"
+            <button
               type="button"
+              className="vendor-btn-secondary"
               data-testid="cancel-vendor-button"
               onClick={onClose}
               disabled={isSubmitting}
               aria-label="Cancel"
+              style={{
+                padding: '7px 16px',
+                borderRadius: '16px',
+                border: '1px solid #cacaca',
+                backgroundColor: '#ffffff',
+                color: '#2c2c2c',
+                fontSize: '14px',
+                fontWeight: 600,
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              }}
             >
               Cancel
-            </Button>
-            <Button
-              variant="accent"
+            </button>
+            <button
               type="submit"
+              className="vendor-btn-accent"
               data-testid="submit-vendor-button"
               disabled={isSubmitting}
               aria-label={isSubmitting ? 'Adding...' : 'Add Vendor'}
-              onClick={(e: any) => {
-                if (e.target?.closest?.('form')) {
-                  handleSubmit(e);
-                }
+              style={{
+                padding: '7px 16px',
+                borderRadius: '16px',
+                border: 'none',
+                backgroundColor: '#0265dc',
+                color: '#ffffff',
+                fontSize: '14px',
+                fontWeight: 600,
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                opacity: isSubmitting ? 0.6 : 1,
               }}
             >
               {isSubmitting ? 'Adding...' : 'Add Vendor'}
-            </Button>
+            </button>
           </div>
         </form>
       </div>

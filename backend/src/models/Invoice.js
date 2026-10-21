@@ -68,6 +68,7 @@ const invoiceSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: [
+        'Draft',
         'Submitted',
         'Under Verification',
         'Approved',
@@ -80,7 +81,7 @@ const invoiceSchema = new mongoose.Schema(
       index: true,
     },
     submittedBy: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.Mixed,
       ref: 'User',
       required: true,
       index: true,

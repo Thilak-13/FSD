@@ -76,7 +76,7 @@ describe('InvoicesPage', () => {
 
     // Check data rows
     expect(screen.getAllByText('Apex Cloud Services').length).toBeGreaterThan(0);
-    expect(screen.getByText('$6,500.00')).toBeDefined();
+    expect(screen.getByText('₹6,500.00')).toBeDefined();
     expect(screen.getAllByText(INITIAL_INVOICES[0].submittedDate).length).toBeGreaterThan(0);
   });
 
@@ -349,9 +349,9 @@ describe('InvoicesPage', () => {
       fireEvent.change(qtyInput0, { target: { value: 'invalid' } });
       fireEvent.change(priceInput0, { target: { value: '' } });
 
-      // Total should safely be $0.00, not $NaN
-      expect(screen.getByTestId('line-item-total-0').textContent).toBe('$0.00');
-      expect(screen.getByTestId('invoice-aggregate-total').textContent).toBe('$0.00');
+      // Total should safely be ₹0.00, not ₹NaN
+      expect(screen.getByTestId('line-item-total-0').textContent).toBe('₹0.00');
+      expect(screen.getByTestId('invoice-aggregate-total').textContent).toBe('₹0.00');
     });
 
     it('filters Purchase Orders matching selected vendor', async () => {
@@ -395,8 +395,8 @@ describe('InvoicesPage', () => {
       fireEvent.change(qtyInput0, { target: { value: '2' } });
       fireEvent.change(priceInput0, { target: { value: '500' } });
 
-      expect(screen.getByTestId('line-item-total-0').textContent).toBe('$1000.00');
-      expect(screen.getByTestId('invoice-aggregate-total').textContent).toBe('$1000.00');
+      expect(screen.getByTestId('line-item-total-0').textContent).toBe('₹1000.00');
+      expect(screen.getByTestId('invoice-aggregate-total').textContent).toBe('₹1000.00');
 
       // Add second item
       const addItemBtn = screen.getByTestId('add-line-item-button');
@@ -412,8 +412,8 @@ describe('InvoicesPage', () => {
       fireEvent.change(qtyInput1, { target: { value: '3' } });
       fireEvent.change(priceInput1, { target: { value: '250' } });
 
-      expect(screen.getByTestId('line-item-total-1').textContent).toBe('$750.00');
-      expect(screen.getByTestId('invoice-aggregate-total').textContent).toBe('$1750.00');
+      expect(screen.getByTestId('line-item-total-1').textContent).toBe('₹750.00');
+      expect(screen.getByTestId('invoice-aggregate-total').textContent).toBe('₹1750.00');
 
       // Remove first item
       const removeBtn0 = screen.getByTestId('remove-line-item-0');
@@ -421,7 +421,7 @@ describe('InvoicesPage', () => {
 
       // Remaining item is now the only item
       expect(screen.queryByTestId('line-item-row-1')).toBeNull();
-      expect(screen.getByTestId('invoice-aggregate-total').textContent).toBe('$750.00');
+      expect(screen.getByTestId('invoice-aggregate-total').textContent).toBe('₹750.00');
     });
 
     it('simulates document attachment stub and allows clearing file', async () => {
@@ -506,7 +506,7 @@ describe('InvoicesPage', () => {
       // Newly submitted invoice should now appear in the table
       await waitFor(() => {
         expect(screen.getByText('INV-2026-999')).toBeDefined();
-        expect(screen.getByText('$3,500.00')).toBeDefined();
+        expect(screen.getByText('₹3,500.00')).toBeDefined();
       });
     });
   });

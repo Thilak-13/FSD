@@ -1,0 +1,1366 @@
+/* ==========================================================================
+   Modern Standard UI Design System & Component Library
+   Standard HTML5 + CSS React Primitives (No Web Components / Shadow DOM)
+   Supports Light & Dark Modes
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Tokens & Color Palettes
+   -------------------------------------------------------------------------- */
+:root {
+  /* Core brand & accent tokens */
+  --ui-primary: #1473e6;
+  --ui-primary-hover: #0d66d0;
+  --ui-primary-active: #095aba;
+  --ui-primary-subtle: #f0f7ff;
+  --ui-primary-border: #a0c7ff;
+  --ui-primary-contrast: #ffffff;
+
+  --ui-accent: #2680eb;
+  --ui-accent-hover: #1473e6;
+  --ui-accent-contrast: #ffffff;
+
+  --ui-cta: #1473e6;
+  --ui-cta-hover: #0d66d0;
+  --ui-cta-contrast: #ffffff;
+
+  /* Status Colors */
+  --ui-positive: #2d9d78;
+  --ui-positive-hover: #268e6c;
+  --ui-positive-bg: #ecfdf5;
+  --ui-positive-border: #6ee7b7;
+  --ui-positive-text: #065f46;
+
+  --ui-negative: #d7373f;
+  --ui-negative-hover: #c9252d;
+  --ui-negative-bg: #fef2f2;
+  --ui-negative-border: #fca5a5;
+  --ui-negative-text: #991b1b;
+
+  --ui-notice: #e68619;
+  --ui-notice-hover: #cb6f10;
+  --ui-notice-bg: #fffbeb;
+  --ui-notice-border: #fcd34d;
+  --ui-notice-text: #92400e;
+
+  --ui-info: #0284c7;
+  --ui-info-hover: #0369a1;
+  --ui-info-bg: #f0f9ff;
+  --ui-info-border: #7dd3fc;
+  --ui-info-text: #075985;
+
+  --ui-neutral: #64748b;
+  --ui-neutral-bg: #f8fafc;
+  --ui-neutral-border: #cbd5e1;
+  --ui-neutral-text: #334155;
+
+  /* Surfaces & Backgrounds */
+  --ui-bg-app: #f8f9fa;
+  --ui-bg-surface: #ffffff;
+  --ui-bg-card: #ffffff;
+  --ui-bg-subtle: #f9fafb;
+  --ui-bg-muted: #f3f4f6;
+  --ui-bg-hover: #f1f5f9;
+  --ui-bg-active: #e2e8f0;
+
+  /* Borders & Dividers */
+  --ui-border: #e2e8f0;
+  --ui-border-light: #f1f5f9;
+  --ui-border-strong: #cbd5e1;
+  --ui-border-focus: #1473e6;
+
+  /* Typography */
+  --ui-text-primary: #1e293b;
+  --ui-text-secondary: #64748b;
+  --ui-text-muted: #94a3b8;
+  --ui-text-disabled: #cbd5e1;
+  --ui-text-inverse: #ffffff;
+
+  /* Typography Sizing */
+  --ui-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --ui-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --ui-font-size-xs: 0.75rem;    /* 12px */
+  --ui-font-size-s: 0.8125rem;   /* 13px */
+  --ui-font-size-m: 0.875rem;    /* 14px */
+  --ui-font-size-l: 1rem;        /* 16px */
+  --ui-font-size-xl: 1.125rem;   /* 18px */
+  --ui-font-size-2xl: 1.25rem;   /* 20px */
+  --ui-font-size-3xl: 1.5rem;    /* 24px */
+
+  /* Spacing */
+  --ui-space-1: 0.25rem;  /* 4px */
+  --ui-space-2: 0.5rem;   /* 8px */
+  --ui-space-3: 0.75rem;  /* 12px */
+  --ui-space-4: 1rem;     /* 16px */
+  --ui-space-5: 1.25rem;  /* 20px */
+  --ui-space-6: 1.5rem;   /* 24px */
+  --ui-space-8: 2rem;     /* 32px */
+
+  /* Border Radii */
+  --ui-radius-sm: 4px;
+  --ui-radius-md: 6px;
+  --ui-radius-lg: 8px;
+  --ui-radius-xl: 12px;
+  --ui-radius-full: 9999px;
+
+  /* Elevation & Shadows */
+  --ui-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --ui-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --ui-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  --ui-shadow-modal: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+
+  /* Transitions */
+  --ui-transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --ui-transition-slow: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Focus ring */
+  --ui-focus-ring: 0 0 0 2px #ffffff, 0 0 0 4px #1473e6;
+  --ui-focus-outline: 2px solid #1473e6;
+
+  /* Spectrum Token Backwards Compatibility Aliases */
+  --spectrum-alias-body-text-font-family: var(--ui-font-family);
+  --spectrum-alias-border-radius-regular: var(--ui-radius-sm);
+  --spectrum-alias-border-radius-medium: var(--ui-radius-md);
+  --spectrum-alias-border-radius-large: var(--ui-radius-xl);
+  --spectrum-alias-font-size-default: var(--ui-font-size-m);
+  --spectrum-alias-font-size-large: var(--ui-font-size-l);
+  --spectrum-alias-font-size-heading: var(--ui-font-size-2xl);
+  --spectrum-global-color-gray-50: var(--ui-bg-surface);
+  --spectrum-global-color-gray-75: var(--ui-bg-subtle);
+  --spectrum-global-color-gray-100: var(--ui-bg-muted);
+  --spectrum-global-color-gray-200: var(--ui-border);
+  --spectrum-global-color-gray-300: var(--ui-border-strong);
+  --spectrum-global-color-gray-600: var(--ui-text-secondary);
+  --spectrum-global-color-gray-700: var(--ui-text-secondary);
+  --spectrum-global-color-gray-800: var(--ui-text-primary);
+  --spectrum-global-color-gray-900: var(--ui-text-primary);
+  --spectrum-global-color-blue-500: var(--ui-primary);
+  --spectrum-global-color-blue-600: var(--ui-primary-hover);
+  --spectrum-global-color-green-400: var(--ui-positive);
+  --spectrum-global-color-green-500: var(--ui-positive);
+  --spectrum-global-color-orange-400: var(--ui-notice);
+  --spectrum-global-color-red-500: var(--ui-negative);
+  --spectrum-global-color-red-600: var(--ui-negative-hover);
+  --spectrum-dialog-confirm-overlay-background-color: rgba(0, 0, 0, 0.5);
+  --spectrum-alias-drop-shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+/* --------------------------------------------------------------------------
+   Dark Mode Overrides
+   -------------------------------------------------------------------------- */
+[data-theme="dark"],
+.theme-dark,
+sp-theme[color="dark"],
+body.dark {
+  --ui-primary: #3b82f6;
+  --ui-primary-hover: #60a5fa;
+  --ui-primary-active: #2563eb;
+  --ui-primary-subtle: rgba(59, 130, 246, 0.15);
+  --ui-primary-border: #1d4ed8;
+  --ui-primary-contrast: #ffffff;
+
+  --ui-accent: #3b82f6;
+  --ui-accent-hover: #60a5fa;
+  --ui-accent-contrast: #ffffff;
+
+  --ui-cta: #3b82f6;
+  --ui-cta-hover: #60a5fa;
+  --ui-cta-contrast: #ffffff;
+
+  --ui-positive: #10b981;
+  --ui-positive-hover: #34d399;
+  --ui-positive-bg: rgba(16, 185, 129, 0.15);
+  --ui-positive-border: #065f46;
+  --ui-positive-text: #6ee7b7;
+
+  --ui-negative: #f87171;
+  --ui-negative-hover: #ef4444;
+  --ui-negative-bg: rgba(239, 68, 68, 0.15);
+  --ui-negative-border: #991b1b;
+  --ui-negative-text: #fca5a5;
+
+  --ui-notice: #fbbf24;
+  --ui-notice-hover: #f59e0b;
+  --ui-notice-bg: rgba(245, 158, 11, 0.15);
+  --ui-notice-border: #78350f;
+  --ui-notice-text: #fde68a;
+
+  --ui-info: #38bdf8;
+  --ui-info-hover: #0ea5e9;
+  --ui-info-bg: rgba(14, 165, 233, 0.15);
+  --ui-info-border: #0369a1;
+  --ui-info-text: #bae6fd;
+
+  --ui-neutral: #94a3b8;
+  --ui-neutral-bg: rgba(148, 163, 184, 0.15);
+  --ui-neutral-border: #334155;
+  --ui-neutral-text: #cbd5e1;
+
+  --ui-bg-app: #0f172a;
+  --ui-bg-surface: #1e293b;
+  --ui-bg-card: #1e293b;
+  --ui-bg-subtle: #182234;
+  --ui-bg-muted: #273549;
+  --ui-bg-hover: #334155;
+  --ui-bg-active: #475569;
+
+  --ui-border: #334155;
+  --ui-border-light: #243248;
+  --ui-border-strong: #475569;
+  --ui-border-focus: #3b82f6;
+
+  --ui-text-primary: #f8fafc;
+  --ui-text-secondary: #94a3b8;
+  --ui-text-muted: #64748b;
+  --ui-text-disabled: #475569;
+  --ui-text-inverse: #0f172a;
+
+  --ui-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --ui-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --ui-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --ui-shadow-modal: 0 20px 25px -5px rgba(0, 0, 0, 0.6);
+
+  --ui-focus-ring: 0 0 0 2px #0f172a, 0 0 0 4px #3b82f6;
+
+  /* Dark mode Spectrum Aliases */
+  --spectrum-global-color-gray-50: var(--ui-bg-surface);
+  --spectrum-global-color-gray-75: var(--ui-bg-subtle);
+  --spectrum-global-color-gray-100: var(--ui-bg-muted);
+  --spectrum-global-color-gray-200: var(--ui-border);
+  --spectrum-global-color-gray-300: var(--ui-border-strong);
+  --spectrum-global-color-gray-600: var(--ui-text-secondary);
+  --spectrum-global-color-gray-700: var(--ui-text-secondary);
+  --spectrum-global-color-gray-800: var(--ui-text-primary);
+  --spectrum-global-color-gray-900: var(--ui-text-primary);
+  --spectrum-dialog-confirm-overlay-background-color: rgba(0, 0, 0, 0.7);
+  --spectrum-alias-drop-shadow-color: rgba(0, 0, 0, 0.4);
+}
+
+/* --------------------------------------------------------------------------
+   1. Button & ActionButton
+   -------------------------------------------------------------------------- */
+.ui-button,
+.ui-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ui-space-2);
+  font-family: var(--ui-font-family);
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  border-radius: var(--ui-radius-sm);
+  border: 1px solid transparent;
+  transition: var(--ui-transition);
+  line-height: 1.3;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.ui-button:focus-visible,
+.ui-action-button:focus-visible {
+  outline: none;
+  box-shadow: var(--ui-focus-ring);
+}
+
+.ui-button:disabled,
+.ui-action-button:disabled,
+.ui-button.is-disabled,
+.ui-action-button.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Button Sizes */
+.ui-button-s,
+.ui-action-button-s {
+  font-size: var(--ui-font-size-xs);
+  padding: 4px 10px;
+  height: 28px;
+  min-width: 28px;
+}
+
+.ui-button-m,
+.ui-action-button-m {
+  font-size: var(--ui-font-size-m);
+  padding: 6px 14px;
+  height: 36px;
+  min-width: 36px;
+}
+
+.ui-button-l,
+.ui-action-button-l {
+  font-size: var(--ui-font-size-l);
+  padding: 8px 18px;
+  height: 42px;
+  min-width: 42px;
+}
+
+.ui-button-xl,
+.ui-action-button-xl {
+  font-size: var(--ui-font-size-xl);
+  padding: 10px 22px;
+  height: 48px;
+  min-width: 48px;
+}
+
+/* Button Variants */
+.ui-button-cta,
+.ui-button-accent {
+  background-color: var(--ui-primary);
+  color: var(--ui-primary-contrast);
+  border-color: var(--ui-primary);
+}
+.ui-button-cta:hover:not(:disabled),
+.ui-button-accent:hover:not(:disabled) {
+  background-color: var(--ui-primary-hover);
+  border-color: var(--ui-primary-hover);
+}
+.ui-button-cta:active:not(:disabled),
+.ui-button-accent:active:not(:disabled) {
+  background-color: var(--ui-primary-active);
+  border-color: var(--ui-primary-active);
+}
+
+.ui-button-primary {
+  background-color: var(--ui-primary);
+  color: var(--ui-primary-contrast);
+  border-color: var(--ui-primary);
+}
+.ui-button-primary:hover:not(:disabled) {
+  background-color: var(--ui-primary-hover);
+  border-color: var(--ui-primary-hover);
+}
+.ui-button-primary:active:not(:disabled) {
+  background-color: var(--ui-primary-active);
+  border-color: var(--ui-primary-active);
+}
+
+.ui-button-secondary {
+  background-color: var(--ui-bg-surface);
+  color: var(--ui-text-primary);
+  border-color: var(--ui-border-strong);
+}
+.ui-button-secondary:hover:not(:disabled) {
+  background-color: var(--ui-bg-hover);
+  border-color: var(--ui-neutral);
+}
+.ui-button-secondary:active:not(:disabled) {
+  background-color: var(--ui-bg-active);
+}
+
+.ui-button-negative {
+  background-color: var(--ui-negative);
+  color: #ffffff;
+  border-color: var(--ui-negative);
+}
+.ui-button-negative:hover:not(:disabled) {
+  background-color: var(--ui-negative-hover);
+  border-color: var(--ui-negative-hover);
+}
+
+.ui-button-action {
+  background-color: var(--ui-bg-surface);
+  color: var(--ui-text-primary);
+  border-color: var(--ui-border);
+}
+.ui-button-action:hover:not(:disabled) {
+  background-color: var(--ui-bg-hover);
+}
+
+/* Quiet Button Styling */
+.ui-button--quiet,
+.ui-action-button--quiet {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  color: var(--ui-text-primary);
+  box-shadow: none !important;
+}
+.ui-button--quiet:hover:not(:disabled),
+.ui-action-button--quiet:hover:not(:disabled) {
+  background-color: var(--ui-bg-hover) !important;
+}
+.ui-button--quiet:active:not(:disabled),
+.ui-action-button--quiet:active:not(:disabled) {
+  background-color: var(--ui-bg-active) !important;
+}
+
+/* Action Button specific styling */
+.ui-action-button {
+  background-color: var(--ui-bg-surface);
+  color: var(--ui-text-primary);
+  border: 1px solid var(--ui-border);
+  padding: 6px 10px;
+}
+.ui-action-button:hover:not(:disabled) {
+  background-color: var(--ui-bg-hover);
+  border-color: var(--ui-border-strong);
+}
+.ui-action-button.is-selected,
+.ui-action-button[aria-expanded="true"] {
+  background-color: var(--ui-primary-subtle);
+  border-color: var(--ui-primary);
+  color: var(--ui-primary);
+}
+
+/* --------------------------------------------------------------------------
+   2. Card
+   -------------------------------------------------------------------------- */
+.ui-card {
+  background-color: var(--ui-bg-card);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-lg);
+  box-shadow: var(--ui-shadow-sm);
+  display: flex;
+  flex-direction: column;
+  transition: var(--ui-transition);
+  position: relative;
+  box-sizing: border-box;
+}
+
+.ui-card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--ui-border-light);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-1);
+}
+
+.ui-card-title {
+  margin: 0;
+  font-size: var(--ui-font-size-xl);
+  font-weight: 600;
+  color: var(--ui-text-primary);
+  line-height: 1.3;
+}
+
+.ui-card-subtitle {
+  font-size: var(--ui-font-size-m);
+  color: var(--ui-text-secondary);
+}
+
+.ui-card-body {
+  padding: 20px;
+  flex: 1 1 auto;
+}
+
+.ui-card-footer {
+  padding: 14px 20px;
+  border-top: 1px solid var(--ui-border-light);
+  background-color: var(--ui-bg-subtle);
+  border-bottom-left-radius: var(--ui-radius-lg);
+  border-bottom-right-radius: var(--ui-radius-lg);
+}
+
+/* --------------------------------------------------------------------------
+   3. Badge
+   -------------------------------------------------------------------------- */
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  line-height: 1;
+  border-radius: var(--ui-radius-full);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+.ui-badge-s {
+  font-size: var(--ui-font-size-xs);
+  padding: 2px 6px;
+  height: 18px;
+}
+
+.ui-badge-m {
+  font-size: var(--ui-font-size-s);
+  padding: 3px 8px;
+  height: 22px;
+}
+
+.ui-badge-l {
+  font-size: var(--ui-font-size-m);
+  padding: 4px 12px;
+  height: 26px;
+}
+
+.ui-badge-positive {
+  background-color: var(--ui-positive-bg);
+  color: var(--ui-positive-text);
+  border-color: var(--ui-positive-border);
+}
+
+.ui-badge-negative {
+  background-color: var(--ui-negative-bg);
+  color: var(--ui-negative-text);
+  border-color: var(--ui-negative-border);
+}
+
+.ui-badge-notice {
+  background-color: var(--ui-notice-bg);
+  color: var(--ui-notice-text);
+  border-color: var(--ui-notice-border);
+}
+
+.ui-badge-info,
+.ui-badge-informative {
+  background-color: var(--ui-info-bg);
+  color: var(--ui-info-text);
+  border-color: var(--ui-info-border);
+}
+
+.ui-badge-neutral {
+  background-color: var(--ui-neutral-bg);
+  color: var(--ui-neutral-text);
+  border-color: var(--ui-neutral-border);
+}
+
+.ui-badge-accent {
+  background-color: var(--ui-primary-subtle);
+  color: var(--ui-primary);
+  border-color: var(--ui-primary-border);
+}
+
+/* --------------------------------------------------------------------------
+   4. StatusLight
+   -------------------------------------------------------------------------- */
+.ui-status-light {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+  font-family: var(--ui-font-family);
+  font-size: var(--ui-font-size-m);
+  color: var(--ui-text-primary);
+  line-height: 1.4;
+  vertical-align: middle;
+}
+
+.ui-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--ui-radius-full);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.ui-status-light-s .ui-status-dot { width: 6px; height: 6px; }
+.ui-status-light-m .ui-status-dot { width: 8px; height: 8px; }
+.ui-status-light-l .ui-status-dot { width: 10px; height: 10px; }
+.ui-status-light-xl .ui-status-dot { width: 12px; height: 12px; }
+
+.ui-status-positive .ui-status-dot {
+  background-color: var(--ui-positive);
+  box-shadow: 0 0 0 2px var(--ui-positive-bg);
+}
+
+.ui-status-negative .ui-status-dot {
+  background-color: var(--ui-negative);
+  box-shadow: 0 0 0 2px var(--ui-negative-bg);
+}
+
+.ui-status-notice .ui-status-dot {
+  background-color: var(--ui-notice);
+  box-shadow: 0 0 0 2px var(--ui-notice-bg);
+}
+
+.ui-status-info .ui-status-dot,
+.ui-status-informative .ui-status-dot {
+  background-color: var(--ui-info);
+  box-shadow: 0 0 0 2px var(--ui-info-bg);
+}
+
+.ui-status-neutral .ui-status-dot {
+  background-color: var(--ui-neutral);
+  box-shadow: 0 0 0 2px var(--ui-neutral-bg);
+}
+
+.ui-status-active .ui-status-dot {
+  background-color: var(--ui-primary);
+  box-shadow: 0 0 0 2px var(--ui-primary-subtle);
+}
+
+.ui-status-light.is-disabled {
+  opacity: 0.5;
+}
+
+/* --------------------------------------------------------------------------
+   5. TextField & Search
+   -------------------------------------------------------------------------- */
+.ui-textfield {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ui-space-1);
+  width: 100%;
+}
+
+.ui-label,
+.ui-field-label {
+  font-size: var(--ui-font-size-s);
+  font-weight: 500;
+  color: var(--ui-text-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ui-required-mark {
+  color: var(--ui-negative);
+  font-weight: 700;
+}
+
+.ui-input,
+.ui-select {
+  width: 100%;
+  height: 36px;
+  padding: 6px 12px;
+  font-family: var(--ui-font-family);
+  font-size: var(--ui-font-size-m);
+  color: var(--ui-text-primary);
+  background-color: var(--ui-bg-surface);
+  border: 1px solid var(--ui-border-strong);
+  border-radius: var(--ui-radius-sm);
+  transition: var(--ui-transition);
+  box-sizing: border-box;
+}
+
+.ui-input:focus,
+.ui-select:focus {
+  outline: none;
+  border-color: var(--ui-primary);
+  box-shadow: 0 0 0 1px var(--ui-primary);
+}
+
+.ui-input:disabled,
+.ui-select:disabled {
+  background-color: var(--ui-bg-muted);
+  color: var(--ui-text-disabled);
+  cursor: not-allowed;
+}
+
+.ui-input.is-invalid,
+.ui-select.is-invalid {
+  border-color: var(--ui-negative);
+}
+.ui-input.is-invalid:focus,
+.ui-select.is-invalid:focus {
+  box-shadow: 0 0 0 1px var(--ui-negative);
+}
+
+.ui-error-message {
+  font-size: var(--ui-font-size-xs);
+  color: var(--ui-negative);
+  margin-top: 2px;
+}
+
+.ui-hint {
+  font-size: var(--ui-font-size-xs);
+  color: var(--ui-text-secondary);
+  margin-top: 2px;
+}
+
+/* Search Input */
+.ui-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.ui-search-icon {
+  position: absolute;
+  left: 10px;
+  width: 16px;
+  height: 16px;
+  color: var(--ui-text-muted);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ui-search-input {
+  width: 100%;
+  height: 36px;
+  padding: 6px 32px 6px 34px;
+  font-family: var(--ui-font-family);
+  font-size: var(--ui-font-size-m);
+  color: var(--ui-text-primary);
+  background-color: var(--ui-bg-surface);
+  border: 1px solid var(--ui-border-strong);
+  border-radius: var(--ui-radius-sm);
+  transition: var(--ui-transition);
+  box-sizing: border-box;
+}
+
+.ui-search-input:focus {
+  outline: none;
+  border-color: var(--ui-primary);
+  box-shadow: 0 0 0 1px var(--ui-primary);
+}
+
+.ui-search-clear-btn {
+  position: absolute;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: var(--ui-text-muted);
+  cursor: pointer;
+  border-radius: var(--ui-radius-full);
+  font-size: 14px;
+}
+.ui-search-clear-btn:hover {
+  background-color: var(--ui-bg-muted);
+  color: var(--ui-text-primary);
+}
+
+/* --------------------------------------------------------------------------
+   6. Picker / Select & Menu
+   -------------------------------------------------------------------------- */
+.ui-picker-wrapper {
+  position: relative;
+  display: inline-flex;
+  width: 100%;
+}
+
+.ui-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 32px;
+  cursor: pointer;
+}
+
+.ui-select-arrow {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--ui-text-secondary);
+  font-size: 12px;
+}
+
+/* Standalone Menu */
+.ui-menu {
+  background-color: var(--ui-bg-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-md);
+  box-shadow: var(--ui-shadow-md);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  min-width: 160px;
+  z-index: 100;
+}
+
+.ui-menu-item {
+  padding: 8px 12px;
+  font-size: var(--ui-font-size-m);
+  color: var(--ui-text-primary);
+  border-radius: var(--ui-radius-sm);
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-space-2);
+  transition: var(--ui-transition);
+}
+
+.ui-menu-item:hover:not(.is-disabled) {
+  background-color: var(--ui-bg-hover);
+}
+
+.ui-menu-item.is-selected {
+  background-color: var(--ui-primary-subtle);
+  color: var(--ui-primary);
+  font-weight: 500;
+}
+
+.ui-menu-item.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------------------
+   7. Table & Data Grid
+   -------------------------------------------------------------------------- */
+.ui-table-container {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-md);
+  background-color: var(--ui-bg-surface);
+}
+
+.ui-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-family: var(--ui-font-family);
+  font-size: var(--ui-font-size-m);
+}
+
+.ui-table-head {
+  background-color: var(--ui-bg-subtle);
+  border-bottom: 2px solid var(--ui-border);
+}
+
+.ui-table-head-cell {
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: var(--ui-font-size-m);
+  color: var(--ui-text-primary);
+  user-select: none;
+}
+
+.ui-table-head-cell.is-sortable {
+  cursor: pointer;
+}
+.ui-table-head-cell.is-sortable:hover {
+  background-color: var(--ui-bg-hover);
+}
+
+.ui-table-head-cell-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ui-table-sort-icon {
+  font-size: 11px;
+  color: var(--ui-text-muted);
+}
+
+.ui-table-body .ui-table-row {
+  border-bottom: 1px solid var(--ui-border-light);
+  transition: background-color 0.15s ease;
+}
+
+.ui-table-body .ui-table-row:last-child {
+  border-bottom: none;
+}
+
+.ui-table-body .ui-table-row:hover {
+  background-color: var(--ui-bg-hover);
+}
+
+.ui-table-body .ui-table-row.is-selected {
+  background-color: var(--ui-primary-subtle);
+}
+
+.ui-table-body .ui-table-row.is-clickable {
+  cursor: pointer;
+}
+
+.ui-table-cell {
+  padding: 12px 16px;
+  color: var(--ui-text-primary);
+  vertical-align: middle;
+}
+
+.ui-table-checkbox-cell {
+  width: 40px;
+  padding: 8px 12px;
+  text-align: center;
+}
+
+/* --------------------------------------------------------------------------
+   8. Modal Dialog & DialogWrapper
+   -------------------------------------------------------------------------- */
+.ui-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: var(--spectrum-dialog-confirm-overlay-background-color, rgba(0, 0, 0, 0.5));
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+  animation: ui-fade-in 0.15s ease-out;
+}
+
+@keyframes ui-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.ui-dialog {
+  background-color: var(--ui-bg-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-lg);
+  box-shadow: var(--ui-shadow-modal);
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  outline: none;
+  animation: ui-dialog-pop 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes ui-dialog-pop {
+  from { transform: scale(0.97); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.ui-dialog-s { max-width: 400px; }
+.ui-dialog-m { max-width: 540px; }
+.ui-dialog-l { max-width: 720px; }
+.ui-dialog-xl { max-width: 900px; }
+.ui-dialog-fullscreen {
+  max-width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
+  border-radius: 0;
+}
+
+.ui-dialog-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--ui-border-light);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-space-3);
+}
+
+.ui-dialog-title {
+  margin: 0;
+  font-size: var(--ui-font-size-2xl);
+  font-weight: 600;
+  color: var(--ui-text-primary);
+  line-height: 1.3;
+}
+
+.ui-dialog-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--ui-text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: var(--ui-radius-full);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--ui-transition);
+}
+.ui-dialog-close-btn:hover {
+  background-color: var(--ui-bg-muted);
+  color: var(--ui-text-primary);
+}
+
+.ui-dialog-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  color: var(--ui-text-secondary);
+  line-height: 1.5;
+}
+
+.ui-dialog-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--ui-border-light);
+  background-color: var(--ui-bg-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--ui-space-3);
+}
+
+/* --------------------------------------------------------------------------
+   9. Switch & Checkbox
+   -------------------------------------------------------------------------- */
+.ui-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+  cursor: pointer;
+  user-select: none;
+  font-family: var(--ui-font-family);
+  font-size: var(--ui-font-size-m);
+  color: var(--ui-text-primary);
+}
+
+.ui-switch-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.ui-switch-track {
+  width: 40px;
+  height: 22px;
+  background-color: var(--ui-border-strong);
+  border-radius: var(--ui-radius-full);
+  position: relative;
+  transition: var(--ui-transition);
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.ui-switch-handle {
+  width: 18px;
+  height: 18px;
+  background-color: #ffffff;
+  border-radius: var(--ui-radius-full);
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  box-shadow: var(--ui-shadow-sm);
+  transition: var(--ui-transition);
+}
+
+.ui-switch-input:checked + .ui-switch-track {
+  background-color: var(--ui-primary);
+}
+
+.ui-switch-input:checked + .ui-switch-track .ui-switch-handle {
+  transform: translateX(18px);
+}
+
+.ui-switch-input:focus-visible + .ui-switch-track {
+  box-shadow: var(--ui-focus-ring);
+}
+
+.ui-switch.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Checkbox */
+.ui-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ui-space-2);
+  cursor: pointer;
+  user-select: none;
+  font-family: var(--ui-font-family);
+  font-size: var(--ui-font-size-m);
+  color: var(--ui-text-primary);
+}
+
+.ui-checkbox-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.ui-checkbox-box {
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--ui-border-strong);
+  border-radius: var(--ui-radius-sm);
+  background-color: var(--ui-bg-surface);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--ui-transition);
+  flex-shrink: 0;
+}
+
+.ui-checkbox-icon {
+  width: 12px;
+  height: 12px;
+  color: #ffffff;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+}
+
+.ui-checkbox-input:checked + .ui-checkbox-box,
+.ui-checkbox-input:indeterminate + .ui-checkbox-box {
+  background-color: var(--ui-primary);
+  border-color: var(--ui-primary);
+}
+
+.ui-checkbox-input:checked + .ui-checkbox-box .ui-checkbox-icon,
+.ui-checkbox-input:indeterminate + .ui-checkbox-box .ui-checkbox-icon {
+  opacity: 1;
+}
+
+.ui-checkbox-input:focus-visible + .ui-checkbox-box {
+  box-shadow: var(--ui-focus-ring);
+}
+
+.ui-checkbox.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* --------------------------------------------------------------------------
+   10. Tabs, Tab, TabPanel
+   -------------------------------------------------------------------------- */
+.ui-tabs {
+  display: flex;
+  width: 100%;
+}
+
+.ui-tabs-horizontal {
+  flex-direction: column;
+}
+
+.ui-tabs-vertical {
+  flex-direction: row;
+  gap: var(--ui-space-4);
+}
+
+.ui-tablist {
+  display: flex;
+  border-bottom: 1px solid var(--ui-border);
+  gap: var(--ui-space-2);
+}
+
+.ui-tabs-vertical .ui-tablist {
+  flex-direction: column;
+  border-bottom: none;
+  border-right: 1px solid var(--ui-border);
+}
+
+.ui-tab {
+  background: transparent;
+  border: none;
+  padding: 10px 16px;
+  font-family: var(--ui-font-family);
+  font-size: var(--ui-font-size-m);
+  font-weight: 500;
+  color: var(--ui-text-secondary);
+  cursor: pointer;
+  position: relative;
+  transition: var(--ui-transition);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.ui-tab:hover:not(:disabled) {
+  color: var(--ui-text-primary);
+}
+
+.ui-tab.is-selected {
+  color: var(--ui-primary);
+  font-weight: 600;
+  border-bottom-color: var(--ui-primary);
+}
+
+.ui-tabs-vertical .ui-tab {
+  border-bottom: none;
+  border-right: 2px solid transparent;
+  margin-right: -1px;
+  text-align: left;
+}
+
+.ui-tabs-vertical .ui-tab.is-selected {
+  border-right-color: var(--ui-primary);
+}
+
+.ui-tabpanel {
+  padding: 16px 0;
+  width: 100%;
+}
+
+/* --------------------------------------------------------------------------
+   11. Avatar
+   -------------------------------------------------------------------------- */
+.ui-avatar {
+  border-radius: var(--ui-radius-full);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: var(--ui-primary-subtle);
+  color: var(--ui-primary);
+  font-weight: 600;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.ui-avatar-xs { width: 24px; height: 24px; font-size: 10px; }
+.ui-avatar-s { width: 32px; height: 32px; font-size: 12px; }
+.ui-avatar-m { width: 40px; height: 40px; font-size: 14px; }
+.ui-avatar-l { width: 48px; height: 48px; font-size: 16px; }
+.ui-avatar-xl { width: 64px; height: 64px; font-size: 20px; }
+
+.ui-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* --------------------------------------------------------------------------
+   12. ProgressCircle (Spinner)
+   -------------------------------------------------------------------------- */
+.ui-spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+.ui-spinner.is-indeterminate {
+  animation: ui-spin 1s linear infinite;
+}
+
+@keyframes ui-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.ui-spinner-track {
+  fill: none;
+  stroke: var(--ui-border);
+}
+
+.ui-spinner-fill {
+  fill: none;
+  stroke: var(--ui-primary);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.2s ease;
+}
+
+.ui-spinner-accent .ui-spinner-fill { stroke: var(--ui-accent); }
+.ui-spinner-negative .ui-spinner-fill { stroke: var(--ui-negative); }
+.ui-spinner-positive .ui-spinner-fill { stroke: var(--ui-positive); }
+.ui-spinner-overBackground .ui-spinner-track { stroke: rgba(255, 255, 255, 0.3); }
+.ui-spinner-overBackground .ui-spinner-fill { stroke: #ffffff; }
+
+/* --------------------------------------------------------------------------
+   13. Toast
+   -------------------------------------------------------------------------- */
+.ui-toast {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-space-3);
+  padding: 12px 16px;
+  border-radius: var(--ui-radius-md);
+  border: 1px solid var(--ui-border);
+  background-color: var(--ui-bg-surface);
+  box-shadow: var(--ui-shadow-md);
+  font-size: var(--ui-font-size-m);
+  color: var(--ui-text-primary);
+  min-width: 280px;
+  max-width: 480px;
+}
+
+.ui-toast-positive {
+  border-color: var(--ui-positive-border);
+  background-color: var(--ui-positive-bg);
+  color: var(--ui-positive-text);
+}
+
+.ui-toast-negative {
+  border-color: var(--ui-negative-border);
+  background-color: var(--ui-negative-bg);
+  color: var(--ui-negative-text);
+}
+
+.ui-toast-notice {
+  border-color: var(--ui-notice-border);
+  background-color: var(--ui-notice-bg);
+  color: var(--ui-notice-text);
+}
+
+.ui-toast-info {
+  border-color: var(--ui-info-border);
+  background-color: var(--ui-info-bg);
+  color: var(--ui-info-text);
+}
+
+.ui-toast-content {
+  flex: 1 1 auto;
+}
+
+.ui-toast-title {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.ui-toast-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: currentColor;
+  opacity: 0.7;
+  font-size: 16px;
+  padding: 2px 4px;
+}
+.ui-toast-close:hover { opacity: 1; }
+
+/* --------------------------------------------------------------------------
+   14. Divider
+   -------------------------------------------------------------------------- */
+.ui-divider {
+  border: none;
+  background-color: var(--ui-border);
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.ui-divider-horizontal {
+  width: 100%;
+}
+.ui-divider-horizontal.ui-divider-s { height: 1px; }
+.ui-divider-horizontal.ui-divider-m { height: 2px; }
+.ui-divider-horizontal.ui-divider-l { height: 4px; }
+
+.ui-divider-vertical {
+  height: 100%;
+  display: inline-block;
+}
+.ui-divider-vertical.ui-divider-s { width: 1px; }
+.ui-divider-vertical.ui-divider-m { width: 2px; }
+.ui-divider-vertical.ui-divider-l { width: 4px; }
+
+/* --------------------------------------------------------------------------
+   15. SideNav & Navigation
+   -------------------------------------------------------------------------- */
+.ui-sidenav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+}
+
+.ui-sidenav-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  font-size: var(--ui-font-size-m);
+  font-weight: 500;
+  color: var(--ui-text-secondary);
+  text-decoration: none;
+  border-radius: var(--ui-radius-sm);
+  transition: var(--ui-transition);
+}
+
+.ui-sidenav-item:hover {
+  background-color: var(--ui-bg-hover);
+  color: var(--ui-text-primary);
+}
+
+.ui-sidenav-item.is-selected,
+.ui-sidenav-item.active {
+  background-color: var(--ui-primary-subtle);
+  color: var(--ui-primary);
+  font-weight: 600;
+}

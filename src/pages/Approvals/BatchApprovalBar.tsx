@@ -1,6 +1,5 @@
 // src/pages/Approvals/BatchApprovalBar.tsx
 import React from 'react';
-import { Button } from '@swc-react/button';
 
 export interface BatchApprovalBarProps {
   selectedCount: number;
@@ -40,25 +39,27 @@ export const BatchApprovalBar: React.FC<BatchApprovalBarProps> = ({
       </div>
 
       <div className="batch-approval-actions">
-        <Button
-          variant="secondary"
+        <button
+          type="button"
+          className="batch-approval-btn batch-approval-btn-secondary"
           data-testid="batch-clear-btn"
           onClick={onClearSelection}
           disabled={loading}
           aria-label="Clear selected invoices"
         >
           Clear Selection
-        </Button>
+        </button>
 
-        <Button
-          variant="accent"
+        <button
+          type="button"
+          className="batch-approval-btn batch-approval-btn-accent"
           data-testid="batch-approve-btn"
           onClick={onApproveSelected}
           disabled={loading}
           aria-label={`Approve ${selectedCount} selected invoices`}
         >
           Approve Selected ({selectedCount})
-        </Button>
+        </button>
       </div>
     </aside>
   );

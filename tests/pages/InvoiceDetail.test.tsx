@@ -7,6 +7,7 @@ import { InvoiceDetailPage } from '../../src/pages/InvoiceDetail/InvoiceDetailPa
 import { VerificationPanel } from '../../src/pages/InvoiceDetail/VerificationPanel';
 import { AuthProvider } from '../../src/context/AuthContext';
 import { DataProvider } from '../../src/context/DataContext';
+import { dataApi } from '../../src/services/dataSource';
 import { setMockDelayEnabled, resetInvoices, INITIAL_INVOICES } from '../../src/services/mockApi';
 
 // Helper component to track navigation destination
@@ -69,7 +70,7 @@ describe('InvoiceDetailPage', () => {
       });
 
       expect(screen.getByTestId('meta-vendor-name').textContent).toContain('Apex Cloud Services');
-      expect(screen.getByTestId('meta-amount').textContent).toBe('$6,500.00');
+      expect(screen.getByTestId('meta-amount').textContent).toBe('₹6,500.00');
       expect(screen.getByTestId('meta-due-date').textContent).toBe(INITIAL_INVOICES[0].dueDate);
       expect(screen.getByTestId('meta-submitted-date').textContent).toBe(INITIAL_INVOICES[0].submittedDate);
       expect(screen.getByTestId('invoice-status-badge')).toBeDefined();
@@ -163,7 +164,7 @@ describe('InvoiceDetailPage', () => {
       });
 
       expect(screen.getByTestId('verification-po-number').textContent).toBe('PO-2026-001');
-      expect(screen.getByTestId('verification-po-amount').textContent).toBe('$14,500.00');
+      expect(screen.getByTestId('verification-po-amount').textContent).toBe('₹14,500.00');
       expect(screen.getByTestId('verification-vendor-name').textContent).toContain('Apex Cloud Services');
     });
 
@@ -460,6 +461,20 @@ describe('InvoiceDetailPage', () => {
       });
 
       expect(screen.getByTestId('empty-activity-message')).toBeDefined();
+    });
+
+    it('loads invoice-specific audit trail via dataApi.getAuditLog for Requester role', async () => {
+      const getAuditLogSpy = vi.spyOn(dataApi, 'getAuditLog');
+      renderInvoiceDetailPage('inv-1', 'Requester');
+
+      await waitFor(() => {
+        expect(screen.getByTestId('activity-feed')).toBeDefined();
+      });
+
+      expect(getAuditLogSpy).toHaveBeenCalledWith('inv-1');
+      expect(screen.getByTestId('activity-count').textContent).toContain('Event');
+      expect(screen.getByText('Elena Rodriguez')).toBeDefined();
+      getAuditLogSpy.mockRestore();
     });
   });
 });

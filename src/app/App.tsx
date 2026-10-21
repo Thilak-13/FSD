@@ -5,12 +5,7 @@ import {
   useLocation,
   useInRouterContext,
 } from 'react-router-dom';
-import { Theme } from '@swc-react/theme';
-import '@spectrum-web-components/theme/theme-light.js';
-import '@spectrum-web-components/theme/theme-dark.js';
-import '@spectrum-web-components/theme/scale-medium.js';
-import '@spectrum-web-components/theme/sp-theme.js';
-import { AuthProvider } from '../context/AuthContext';
+import { useAuth, AuthProvider } from '../context/AuthContext';
 import { DataProvider } from '../context/DataContext';
 import { AppRoutes } from './routes';
 import { AppShell } from '../components/layout/AppShell';
@@ -21,10 +16,11 @@ interface AppContentProps {
 }
 
 const AppContent: React.FC<AppContentProps> = ({ themeMode, toggleTheme }) => {
+  const { isAuthenticated } = useAuth();
   const location = useLocation();
-  const isLoginPage = location.pathname === '/login';
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/landing';
 
-  if (isLoginPage) {
+  if (!isAuthenticated || isAuthPage) {
     return <AppRoutes />;
   }
 
@@ -51,7 +47,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <Theme system="spectrum" color={themeMode} scale="medium">
+    <div className={`app-root theme-${themeMode}`} data-theme={themeMode}>
       <AuthProvider>
         <DataProvider>
           <SafeRouter>
@@ -59,7 +55,7 @@ export const App: React.FC = () => {
           </SafeRouter>
         </DataProvider>
       </AuthProvider>
-    </Theme>
+    </div>
   );
 };
 

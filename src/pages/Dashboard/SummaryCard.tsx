@@ -1,6 +1,5 @@
 // src/pages/Dashboard/SummaryCard.tsx
 import React from 'react';
-import { Card } from '@swc-react/card';
 
 export interface SummaryCardProps {
   id: string;
@@ -35,18 +34,22 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
   };
 
   return (
-    <Card
-      heading={title}
-      className="summary-card"
-      data-testid={id}
-    >
+    <div className="summary-card" data-testid={id}>
+      <div className="summary-card-header">
+        <span className="summary-card-title">{title}</span>
+        {icon && (
+          <div className="summary-card-icon" aria-hidden="true">
+            {icon}
+          </div>
+        )}
+      </div>
       <div className="summary-card-body">
-        {icon && <div className="summary-card-icon" aria-hidden="true">{icon}</div>}
         <div className="summary-card-value">{value}</div>
         {(subtitle || trend) && (
           <div className="summary-card-sub">
             {trend && (
               <span
+                className="summary-card-trend"
                 style={{
                   color: getTrendColor(),
                   fontWeight: 600,
@@ -60,6 +63,6 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
           </div>
         )}
       </div>
-    </Card>
+    </div>
   );
 };

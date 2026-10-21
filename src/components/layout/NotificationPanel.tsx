@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { DataContext } from '../../context/DataContext';
 import { Notification } from '../../types';
 import { StatusBadge } from '../shared/StatusBadge';
-import { ActionButton } from '@swc-react/action-button';
 
 export interface NotificationPanelProps {
   isOpen: boolean;
@@ -108,23 +107,15 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
     >
       <div className="notification-panel-header">
         <h2 className="notification-panel-title">Notifications</h2>
-        <ActionButton
-          quiet
-          size="s"
+        <button
+          type="button"
           className="mark-all-read-btn"
           onClick={handleMarkAllRead}
           disabled={unreadCount === 0}
           aria-label="Mark all as read"
-          role="button"
-          ref={(el: any) => {
-            if (el) {
-              el.setAttribute('role', 'button');
-              el.disabled = unreadCount === 0;
-            }
-          }}
         >
           Mark all as read
-        </ActionButton>
+        </button>
       </div>
 
       {unreadCount === 0 ? (
@@ -135,20 +126,18 @@ export const NotificationPanel: React.FC<NotificationPanelProps> = ({
         <ul className="notification-list" role="list">
           {unreadNotifications.map((notif) => (
             <li key={notif.id} className="notification-item-container">
-              <ActionButton
-                quiet
+              <button
+                type="button"
                 className={`notification-item ${notif.read ? 'read' : 'unread'}`}
                 onClick={() => handleItemClick(notif)}
                 aria-label={`${notif.read ? 'Read' : 'Unread'} notification: ${notif.message}`}
-                role="button"
-                ref={(el: any) => el?.setAttribute('role', 'button')}
               >
                 <p className="notification-item-message">{notif.message}</p>
                 <div className="notification-item-meta">
                   <StatusBadge status={notif.type} />
                   <span>{formatTimestamp(notif.createdAt)}</span>
                 </div>
-              </ActionButton>
+              </button>
             </li>
           ))}
         </ul>

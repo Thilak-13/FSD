@@ -5,11 +5,12 @@ import React, {
   useState,
   useCallback,
   useEffect,
+  useRef,
 } from 'react';
 import { User, Role } from '../types';
 import { INITIAL_USERS } from '../services/mockApi/users';
 import { authApi } from '../services/dataSource';
-import { getStoredToken, clearStoredToken } from '../services/api/client';
+import { getStoredToken, setStoredToken, clearStoredToken } from '../services/api/client';
 
 const ROLE_STORAGE_KEY = 'active_role';
 const USER_STORAGE_KEY = 'active_user';
@@ -19,7 +20,7 @@ export interface AuthContextType {
   currentRole: Role;
   isAuthenticated: boolean;
   loading: boolean;
-  switchRole: (role: Role) => void;
+  switchRole: (role: Role) => Promise<void> | void;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
@@ -36,6 +37,12 @@ export const DEMO_ACCOUNTS: Record<string, { name: string; role: Role; email: st
   'sarah@platform.io': { name: 'Sarah Chen', role: 'Admin', email: 'sarah@platform.io' },
   'marcus@platform.io': { name: 'Marcus Vance', role: 'Approver', email: 'marcus@platform.io' },
   'elena@platform.io': { name: 'Elena Rodriguez', role: 'Requester', email: 'elena@platform.io' },
+};
+
+export const DEMO_ROLE_CREDENTIALS: Record<Role, { email: string; password: string }> = {
+  Admin: { email: 'alex.rivera@apex.corp', password: 'DemoPassword!2026' },
+  Approver: { email: 'sarah.chen@apex.corp', password: 'DemoPassword!2026' },
+  Requester: { email: 'jordan.lee@apex.corp', password: 'DemoPassword!2026' },
 };
 
 const findUserForRole = (role: Role): User => {
@@ -57,18 +64,19 @@ const getInitialRole = (): Role => {
   return 'Requester';
 };
 
-const getInitialUser = (role: Role): User | null => {
+const getInitialUser = (): User | null => {
   if (typeof window !== 'undefined' && window.sessionStorage) {
     try {
+      const token = getStoredToken();
       const storedUser = sessionStorage.getItem(USER_STORAGE_KEY);
-      if (storedUser) {
+      if (token && storedUser) {
         return JSON.parse(storedUser);
       }
     } catch {
       // Ignore
     }
   }
-  return findUserForRole(role);
+  return null;
 };
 
 export interface AuthProviderProps {
@@ -82,11 +90,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
 }) => {
   const [currentRole, setCurrentRole] = useState<Role>(() => initialRole || getInitialRole());
   const [currentUser, setCurrentUser] = useState<User | null>(() =>
-    initialRole ? findUserForRole(initialRole) : getInitialUser(getInitialRole())
+    initialRole ? findUserForRole(initialRole) : getInitialUser()
   );
   const [loading, setLoading] = useState<boolean>(() => {
     return Boolean(getStoredToken());
   });
+
+  const isLoggingOutRef = useRef(false);
 
   // Sync role and user with session storage
   const saveSession = (role: Role, user: User | null) => {
@@ -104,36 +114,83 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({
     }
   };
 
-  const switchRole = useCallback((role: Role) => {
-    const user = findUserForRole(role);
-    setCurrentRole(role);
-    setCurrentUser(user);
-    saveSession(role, user);
-  }, []);
-
   const logout = useCallback(() => {
-    authApi.logout().catch(() => {});
-    setCurrentUser(null);
-    setCurrentRole('Requester');
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      try {
-        sessionStorage.removeItem(ROLE_STORAGE_KEY);
-        sessionStorage.removeItem(USER_STORAGE_KEY);
-      } catch {
-        // Ignore
+    if (isLoggingOutRef.current) return;
+    isLoggingOutRef.current = true;
+    try {
+      authApi.logout().catch(() => {});
+      setCurrentUser(null);
+      setCurrentRole('Requester');
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        try {
+          sessionStorage.removeItem(ROLE_STORAGE_KEY);
+          sessionStorage.removeItem(USER_STORAGE_KEY);
+        } catch {
+          // Ignore
+        }
       }
+      clearStoredToken();
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new Event('payverify:logout'));
+        window.dispatchEvent(new Event('payverify:unauthorized'));
+        window.dispatchEvent(
+          new CustomEvent('payverify:session-update', {
+            detail: { user: null, role: 'Requester', token: null },
+          })
+        );
+      }
+    } finally {
+      isLoggingOutRef.current = false;
     }
-    clearStoredToken();
   }, []);
 
   const login = useCallback(
     async (email: string, password: string): Promise<void> => {
       const res = await authApi.login(email, password);
+      if (res?.token) {
+        setStoredToken(res.token);
+      }
       setCurrentUser(res.user);
       setCurrentRole(res.user.role);
       saveSession(res.user.role, res.user);
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('payverify:session-update', {
+            detail: { user: res.user, role: res.user.role, token: res.token },
+          })
+        );
+        window.dispatchEvent(
+          new CustomEvent('session-update', {
+            detail: { user: res.user, role: res.user.role, token: res.token },
+          })
+        );
+      }
     },
     []
+  );
+
+  const switchRole = useCallback(
+    async (role: Role): Promise<void> => {
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        try {
+          sessionStorage.setItem(ROLE_STORAGE_KEY, role);
+        } catch {
+          // Ignore
+        }
+      }
+      setCurrentRole(role);
+
+      const creds = DEMO_ROLE_CREDENTIALS[role] || {
+        email:
+          Object.values(DEMO_ACCOUNTS).find((acc) => acc.role === role)?.email ||
+          `${role.toLowerCase()}@apex.corp`,
+        password: 'DemoPassword!2026',
+      };
+      await login(creds.email, creds.password);
+    },
+    [login]
   );
 
   // Session restore on app mount

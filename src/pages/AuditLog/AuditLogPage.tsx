@@ -2,9 +2,6 @@
 import React, { useState, useMemo, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { DataContext } from '../../context/DataContext';
-import { Picker } from '@swc-react/picker';
-import { MenuItem } from '@swc-react/menu';
-import { Card } from '@swc-react/card';
 import { DataTable, Column } from '../../components/shared/DataTable';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { AuditEntry, StatusLightVariant } from '../../types';
@@ -140,37 +137,27 @@ export const AuditLogPage: React.FC = () => {
           <label htmlFor="audit-action-filter" className="audit-filter-label">
             Action Type:
           </label>
-          <Picker
+          <select
             id="audit-action-filter"
             data-testid="audit-action-filter"
             value={actionFilter}
-            label="Action Type"
             aria-label="Filter by action"
             className="audit-filter-select"
-            change={(e: any) => setActionFilter(e.target?.value || '')}
-            ref={(node: any) => {
-              if (node && !node.__hasChangeListener) {
-                node.__hasChangeListener = true;
-                node.addEventListener('change', (e: any) => {
-                  const val = e.target?.value !== undefined ? e.target.value : (node.value || '');
-                  setActionFilter(val);
-                });
-              }
-            }}
+            onChange={(e) => setActionFilter(e.target.value)}
           >
-            <MenuItem value="all">All Actions</MenuItem>
-            <MenuItem value="SUBMISSION">SUBMISSION</MenuItem>
-            <MenuItem value="VERIFICATION">VERIFICATION</MenuItem>
-            <MenuItem value="APPROVAL">APPROVAL</MenuItem>
-            <MenuItem value="FLAGGED">FLAGGED</MenuItem>
-            <MenuItem value="PAYMENT_SCHEDULED">PAYMENT_SCHEDULED</MenuItem>
-            <MenuItem value="PAYMENT_COMPLETED">PAYMENT_COMPLETED</MenuItem>
-          </Picker>
+            <option value="all">All Actions</option>
+            <option value="SUBMISSION">SUBMISSION</option>
+            <option value="VERIFICATION">VERIFICATION</option>
+            <option value="APPROVAL">APPROVAL</option>
+            <option value="FLAGGED">FLAGGED</option>
+            <option value="PAYMENT_SCHEDULED">PAYMENT_SCHEDULED</option>
+            <option value="PAYMENT_COMPLETED">PAYMENT_COMPLETED</option>
+          </select>
         </div>
       </div>
 
       {/* Table Card */}
-      <Card data-testid="audit-log-table" className="audit-table-card">
+      <div data-testid="audit-log-table" className="audit-table-card">
         <DataTable<AuditEntry>
           columns={columns}
           data={filteredEntries}
@@ -182,7 +169,7 @@ export const AuditLogPage: React.FC = () => {
           emptyTitle="No audit records"
           emptyMessage="No audit trail events match your criteria."
         />
-      </Card>
+      </div>
     </div>
   );
 };

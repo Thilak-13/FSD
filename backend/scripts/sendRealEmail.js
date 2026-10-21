@@ -51,7 +51,7 @@ async function sendRealEmailViaAppPath() {
       dueDate: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
       submittedBy: new mongoose.Types.ObjectId(),
     });
-    console.log(`Seeded overdue invoice: ${overdueInvoice.invoiceNumber} (Amount: $${overdueInvoice.amount}, Status: ${overdueInvoice.status})`);
+    console.log(`Seeded overdue invoice: ${overdueInvoice.invoiceNumber} (Amount: ₹${overdueInvoice.amount}, Status: ${overdueInvoice.status})`);
 
     console.log('--- Invoking runReminderScan through app path ---');
     const scanResult = await runReminderScan(new Date(), testAccount.user);

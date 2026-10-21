@@ -62,12 +62,12 @@ describe('PaymentsPage', () => {
     it('calculates and displays accurate summary totals from invoice data', async () => {
       renderPaymentsPage('Approver');
 
-      // Payment Scheduled: INV-2026-014 ($8,000), INV-2026-015 ($4,500), INV-2026-016 ($5,500) = $18,000.00
-      // Paid: INV-2026-017 ($4,000), INV-2026-018 ($2,500) = $6,500.00
+      // Payment Scheduled: INV-2026-014 (₹8,000), INV-2026-015 (₹4,500), INV-2026-016 (₹5,500) = ₹18,000.00
+      // Paid: INV-2026-017 (₹4,000), INV-2026-018 (₹2,500) = ₹6,500.00
       // Overdue (Approved or Payment Scheduled with dueDate < today [2026-09-16]): INV-2026-008 (due 2026-09-05) = 1
       await waitFor(() => {
-        expect(screen.getByTestId('metric-scheduled-total').textContent).toContain('$18,000.00');
-        expect(screen.getByTestId('metric-paid-mtd').textContent).toContain('$6,500.00');
+        expect(screen.getByTestId('metric-scheduled-total').textContent).toContain('₹18,000.00');
+        expect(screen.getByTestId('metric-paid-mtd').textContent).toContain('₹6,500.00');
         expect(screen.getByTestId('metric-overdue-count').textContent).toContain('1');
       });
     });

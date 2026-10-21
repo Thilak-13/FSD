@@ -10,7 +10,6 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { Card } from '@swc-react/card';
 import { Invoice } from '../../types';
 
 export interface VolumeChartProps {
@@ -68,7 +67,7 @@ export const VolumeChart: React.FC<VolumeChartProps> = ({ invoices }) => {
   }, [invoices]);
 
   return (
-    <Card className="chart-card" data-testid="dashboard-volume-chart">
+    <div className="chart-card" data-testid="dashboard-volume-chart">
       <div className="chart-header">
         <h3 className="chart-title">Monthly Spend & Invoice Volume</h3>
       </div>
@@ -92,7 +91,7 @@ export const VolumeChart: React.FC<VolumeChartProps> = ({ invoices }) => {
               orientation="left"
               stroke="var(--spectrum-indigo-visual-color, #686df4)"
               fontSize={12}
-              tickFormatter={(val) => `$${(val / 1000).toFixed(0)}k`}
+              tickFormatter={(val) => `₹${(val / 1000).toFixed(0)}k`}
             />
             <YAxis
               yAxisId="right"
@@ -102,8 +101,8 @@ export const VolumeChart: React.FC<VolumeChartProps> = ({ invoices }) => {
             />
             <Tooltip
               formatter={(value: any, name: string) => [
-                name === 'Spend ($)'
-                  ? `$${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+                name === 'Spend (₹)'
+                  ? `₹${Number(value).toLocaleString('en-US', { minimumFractionDigits: 2 })}`
                   : value,
                 name,
               ]}
@@ -112,7 +111,7 @@ export const VolumeChart: React.FC<VolumeChartProps> = ({ invoices }) => {
             <Bar
               yAxisId="left"
               dataKey="spend"
-              name="Spend ($)"
+              name="Spend (₹)"
               fill="var(--spectrum-indigo-visual-color, #686df4)"
               radius={[4, 4, 0, 0]}
             />
@@ -126,6 +125,6 @@ export const VolumeChart: React.FC<VolumeChartProps> = ({ invoices }) => {
           </BarChart>
         </ResponsiveContainer>
       </div>
-    </Card>
+    </div>
   );
 };

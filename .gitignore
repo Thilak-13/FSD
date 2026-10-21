@@ -3,6 +3,9 @@ dist
 dist-ssr
 *.local
 .DS_Store
+.env
 backend/.env
 backend/data/
 backend/uploads/
+test-results/
+playwright-report/

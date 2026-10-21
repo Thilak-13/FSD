@@ -102,7 +102,7 @@ describe('DashboardPage', () => {
       await waitFor(() => {
         const pendingSpendCard = screen.getByTestId('kpi-spend-pending');
         expect(pendingSpendCard).toBeDefined();
-        expect(pendingSpendCard.textContent).toContain('$');
+        expect(pendingSpendCard.textContent).toContain('₹');
 
         const approvalsCard = screen.getByTestId('kpi-requires-approval');
         expect(approvalsCard).toBeDefined();
@@ -111,7 +111,7 @@ describe('DashboardPage', () => {
         expect(flaggedCard).toBeDefined();
 
         const scheduledCard = screen.getByTestId('kpi-scheduled-disbursements');
-        expect(scheduledCard.textContent).toContain('$');
+        expect(scheduledCard.textContent).toContain('₹');
       });
     });
   });
@@ -252,7 +252,7 @@ describe('DashboardPage', () => {
       );
 
       expect(screen.getByText(/Executive Dashboard/i)).toBeDefined();
-      expect(screen.getByTestId('kpi-spend-pending').textContent).toContain('$0.00');
+      expect(screen.getByTestId('kpi-spend-pending').textContent).toContain('₹0.00');
       expect(screen.getByTestId('kpi-requires-approval').textContent).toContain('0');
       expect(screen.getByText(/No recent invoices found/i)).toBeDefined();
     });

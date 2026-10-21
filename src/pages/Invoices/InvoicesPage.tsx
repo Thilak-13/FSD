@@ -1,9 +1,6 @@
 // src/pages/Invoices/InvoicesPage.tsx
 import React, { useState, useMemo, useContext, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@swc-react/button';
-import { ActionButton } from '@swc-react/action-button';
-import { Card } from '@swc-react/card';
 import { DataTable, Column } from '../../components/shared/DataTable';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { useAuth } from '../../context/AuthContext';
@@ -125,7 +122,7 @@ export const InvoicesPage: React.FC = () => {
         sortable: true,
         align: 'right',
         render: (inv) =>
-          `$${inv.amount.toLocaleString('en-US', {
+          `₹${inv.amount.toLocaleString('en-US', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })}`,
@@ -153,18 +150,29 @@ export const InvoicesPage: React.FC = () => {
         title: 'Action',
         align: 'center',
         render: (inv) => (
-          <Button
-            variant="secondary"
-            size="s"
+          <button
+            type="button"
+            className="invoice-view-details-btn"
             data-testid={`view-details-${inv.id}`}
             onClick={(e: any) => {
               e.stopPropagation();
               navigate(`/invoices/${inv.id}`);
             }}
             aria-label={`View details for ${inv.invoiceNumber}`}
+            style={{
+              padding: '4px 10px',
+              fontSize: '12px',
+              fontWeight: 500,
+              fontFamily: 'inherit',
+              border: '1px solid var(--spectrum-global-color-gray-300, #e1e1e1)',
+              borderRadius: '4px',
+              backgroundColor: 'var(--spectrum-global-color-gray-50, #ffffff)',
+              color: 'var(--spectrum-global-color-gray-800, #4b4b4b)',
+              cursor: 'pointer',
+            }}
           >
             View Details
-          </Button>
+          </button>
         ),
       },
     ],
@@ -193,14 +201,26 @@ export const InvoicesPage: React.FC = () => {
         </div>
 
         <div className="invoices-header-actions">
-          <Button
-            variant="accent"
+          <button
+            type="button"
+            className="invoice-new-btn"
             data-testid="new-invoice-trigger"
             onClick={() => setIsDialogOpen(true)}
             aria-label="Submit a new invoice"
+            style={{
+              padding: '8px 16px',
+              fontSize: '14px',
+              fontWeight: 600,
+              fontFamily: 'inherit',
+              border: 'none',
+              borderRadius: '4px',
+              backgroundColor: 'var(--spectrum-global-color-blue-600, #0d66d0)',
+              color: '#ffffff',
+              cursor: 'pointer',
+            }}
           >
             + New Invoice
-          </Button>
+          </button>
         </div>
       </header>
 
@@ -228,15 +248,14 @@ export const InvoicesPage: React.FC = () => {
             </svg>
             <span>{toastMessage}</span>
           </div>
-          <ActionButton
-            quiet
-            size="s"
+          <button
+            type="button"
             className="invoices-toast-dismiss"
             onClick={() => setToastMessage(null)}
             aria-label="Dismiss notification"
           >
             &times;
-          </ActionButton>
+          </button>
         </div>
       )}
 
@@ -254,14 +273,14 @@ export const InvoicesPage: React.FC = () => {
       />
 
       {/* Invoices DataTable */}
-      <Card className="invoices-table-card">
+      <div className="invoices-table-card">
         <DataTable
           columns={columns}
           data={filteredInvoices}
           loading={loading}
           onRowClick={(inv) => navigate(`/invoices/${inv.id}`)}
           pagination
-          pageSize={10}
+          pageSize={50}
           emptyTitle="No Invoices Found"
           emptyMessage={
             hasActiveFilters
@@ -272,7 +291,7 @@ export const InvoicesPage: React.FC = () => {
           onEmptyAction={hasActiveFilters ? handleClearFilters : undefined}
           ariaLabel="Invoices Directory Table"
         />
-      </Card>
+      </div>
 
       {/* Invoice Form Dialog */}
       <InvoiceFormDialog

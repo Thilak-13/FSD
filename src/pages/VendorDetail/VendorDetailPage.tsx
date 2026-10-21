@@ -1,9 +1,6 @@
 // src/pages/VendorDetail/VendorDetailPage.tsx
 import React, { useContext, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button } from '@swc-react/button';
-import { ActionButton } from '@swc-react/action-button';
-import { Card } from '@swc-react/card';
 import { DataContext } from '../../context/DataContext';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { DataTable, Column } from '../../components/shared/DataTable';
@@ -71,7 +68,7 @@ export const VendorDetailPage: React.FC = () => {
         sortable: true,
         align: 'right',
         render: (po) =>
-          `$${po.amount.toLocaleString('en-US', {
+          `₹${po.amount.toLocaleString('en-US', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })}`,
@@ -116,7 +113,7 @@ export const VendorDetailPage: React.FC = () => {
         sortable: true,
         align: 'right',
         render: (inv) =>
-          `$${inv.amount.toLocaleString('en-US', {
+          `₹${inv.amount.toLocaleString('en-US', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })}`,
@@ -138,18 +135,28 @@ export const VendorDetailPage: React.FC = () => {
         title: 'Actions',
         align: 'center',
         render: (inv) => (
-          <Button
-            variant="secondary"
-            size="s"
+          <button
+            type="button"
+            className="vendor-btn-secondary"
             data-testid={`view-invoice-${inv.id}`}
-            onClick={(e: any) => {
+            onClick={(e) => {
               e.stopPropagation();
               navigate(`/invoices/${inv.id}`);
             }}
             aria-label={`View invoice ${inv.invoiceNumber}`}
+            style={{
+              padding: '5px 12px',
+              borderRadius: '14px',
+              border: '1px solid #cacaca',
+              backgroundColor: '#ffffff',
+              color: '#2c2c2c',
+              fontSize: '12px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
           >
             View Invoice
-          </Button>
+          </button>
         ),
       },
     ],
@@ -162,7 +169,7 @@ export const VendorDetailPage: React.FC = () => {
         className="vendor-detail-container"
         data-testid="page-vendor-detail"
         role="main"
-        aria-label="Vendor Details"
+        aria-label="Loading vendor details"
       >
         <LoadingSkeleton lines={8} ariaLabel="Loading vendor profile..." />
       </main>
@@ -177,16 +184,15 @@ export const VendorDetailPage: React.FC = () => {
         role="main"
         aria-label="Vendor Not Found"
       >
-        <ActionButton
-          quiet
+        <button
+          type="button"
           className="vendor-detail-back-btn"
           data-testid="vendor-back-button"
           onClick={() => navigate('/vendors')}
           aria-label="Back to vendors directory"
-          role="button"
         >
           &larr; Back to Vendors
-        </ActionButton>
+        </button>
         <EmptyState
           title="Vendor Not Found"
           message={`No vendor could be found with ID "${id}".`}
@@ -205,20 +211,19 @@ export const VendorDetailPage: React.FC = () => {
       aria-label={`Vendor Profile: ${vendor.name}`}
     >
       {/* Back Link */}
-      <ActionButton
-        quiet
+      <button
+        type="button"
         className="vendor-detail-back-btn"
         data-testid="vendor-back-button"
         onClick={() => navigate('/vendors')}
         aria-label="Back to vendors directory"
-        role="button"
       >
         &larr; Back to Vendors
-      </ActionButton>
+      </button>
 
       {/* Vendor Profile Header Card */}
-      <Card className="vendor-detail-card" data-testid="vendor-detail-header">
-        <div slot="heading" className="vendor-detail-header-main">
+      <div className="vendor-detail-card" data-testid="vendor-detail-header">
+        <div className="vendor-detail-header-main">
           <div className="vendor-detail-name-group">
             <h1 className="vendor-detail-name" data-testid="vendor-name">
               {vendor.name}
@@ -228,7 +233,7 @@ export const VendorDetailPage: React.FC = () => {
         </div>
 
         {/* Metadata Grid */}
-        <div slot="description" className="vendor-detail-meta-grid">
+        <div className="vendor-detail-meta-grid">
           <div className="vendor-detail-meta-item">
             <span className="vendor-detail-meta-label">Payment Terms</span>
             <span className="vendor-detail-meta-value" data-testid="vendor-payment-terms">
@@ -272,49 +277,49 @@ export const VendorDetailPage: React.FC = () => {
             </span>
           </div>
         </div>
-      </Card>
+      </div>
 
       {/* Tabs Switcher */}
       <div className="vendor-tabs-bar" role="tablist" aria-label="Vendor related records">
-        <ActionButton
+        <button
+          type="button"
           role="tab"
           aria-selected={activeTab === 'all'}
-          selected={activeTab === 'all'}
           className={`vendor-tab-btn ${activeTab === 'all' ? 'active' : ''}`}
           data-testid="tab-all"
           onClick={() => setActiveTab('all')}
         >
           Overview
-        </ActionButton>
-        <ActionButton
+        </button>
+        <button
+          type="button"
           role="tab"
           aria-selected={activeTab === 'pos'}
-          selected={activeTab === 'pos'}
           className={`vendor-tab-btn ${activeTab === 'pos' ? 'active' : ''}`}
           data-testid="tab-pos"
           onClick={() => setActiveTab('pos')}
         >
           Purchase Orders
           <span className="vendor-tab-count">{vendorPOs.length}</span>
-        </ActionButton>
-        <ActionButton
+        </button>
+        <button
+          type="button"
           role="tab"
           aria-selected={activeTab === 'invoices'}
-          selected={activeTab === 'invoices'}
           className={`vendor-tab-btn ${activeTab === 'invoices' ? 'active' : ''}`}
           data-testid="tab-invoices"
           onClick={() => setActiveTab('invoices')}
         >
           Invoices
           <span className="vendor-tab-count">{vendorInvoices.length}</span>
-        </ActionButton>
+        </button>
       </div>
 
       {/* Sections Breakdown */}
       <div className="vendor-sections-container">
         {/* Section 1: Active Purchase Orders */}
         {(activeTab === 'all' || activeTab === 'pos') && (
-          <Card
+          <div
             className="vendor-section-card"
             data-testid="vendor-pos-section"
             aria-labelledby="heading-active-pos"
@@ -335,12 +340,12 @@ export const VendorDetailPage: React.FC = () => {
               emptyMessage="There are no active purchase orders for this vendor."
               ariaLabel="Active Purchase Orders Table"
             />
-          </Card>
+          </div>
         )}
 
         {/* Section 2: Invoices History */}
         {(activeTab === 'all' || activeTab === 'invoices') && (
-          <Card
+          <div
             className="vendor-section-card"
             data-testid="vendor-invoices-section"
             aria-labelledby="heading-invoices-history"
@@ -362,7 +367,7 @@ export const VendorDetailPage: React.FC = () => {
               emptyMessage="There is no invoice history for this vendor."
               ariaLabel="Vendor Invoices History Table"
             />
-          </Card>
+          </div>
         )}
       </div>
     </main>

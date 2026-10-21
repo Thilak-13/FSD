@@ -1,12 +1,6 @@
 // src/pages/Payments/PaymentsPage.tsx
 import React, { useState, useMemo, useContext, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@swc-react/button';
-import { ActionButton } from '@swc-react/action-button';
-import { Card } from '@swc-react/card';
-import { Picker } from '@swc-react/picker';
-import { MenuItem } from '@swc-react/menu';
-import '@spectrum-web-components/menu/sp-menu-item.js';
 import { DataTable, Column } from '../../components/shared/DataTable';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { ConfirmDialog } from '../../components/shared/ConfirmDialog';
@@ -160,7 +154,7 @@ export const PaymentsPage: React.FC = () => {
         sortable: true,
         align: 'right',
         render: (inv) =>
-          `$${inv.amount.toLocaleString('en-US', {
+          `₹${inv.amount.toLocaleString('en-US', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })}`,
@@ -217,47 +211,77 @@ export const PaymentsPage: React.FC = () => {
         render: (inv) => (
           <div className="payments-row-actions">
             {inv.status === 'Approved' && (
-              <Button
-                variant="accent"
-                size="s"
+              <button
+                type="button"
+                className="payments-btn-accent"
                 data-testid={`action-schedule-${inv.id}`}
-                onClick={(e: any) => {
+                onClick={(e) => {
                   e.stopPropagation();
                   setSchedulingInvoice(inv);
                 }}
                 aria-label={`Schedule payment for ${inv.invoiceNumber}`}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: '14px',
+                  border: 'none',
+                  backgroundColor: '#0265dc',
+                  color: '#ffffff',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
               >
                 Schedule Payment
-              </Button>
+              </button>
             )}
 
             {inv.status === 'Payment Scheduled' && (
-              <Button
-                variant="accent"
-                size="s"
+              <button
+                type="button"
+                className="payments-btn-accent"
                 data-testid={`action-mark-paid-${inv.id}`}
-                onClick={(e: any) => {
+                onClick={(e) => {
                   e.stopPropagation();
                   setPayingInvoice(inv);
                 }}
                 aria-label={`Mark invoice ${inv.invoiceNumber} as paid`}
+                style={{
+                  padding: '5px 12px',
+                  borderRadius: '14px',
+                  border: 'none',
+                  backgroundColor: '#0265dc',
+                  color: '#ffffff',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                }}
               >
                 Mark as Paid
-              </Button>
+              </button>
             )}
 
-            <Button
-              variant="secondary"
-              size="s"
+            <button
+              type="button"
+              className="payments-btn-secondary"
               data-testid={`action-view-${inv.id}`}
-              onClick={(e: any) => {
+              onClick={(e) => {
                 e.stopPropagation();
                 navigate(`/invoices/${inv.id}`);
               }}
               aria-label={`View details for ${inv.invoiceNumber}`}
+              style={{
+                padding: '5px 12px',
+                borderRadius: '14px',
+                border: '1px solid #cacaca',
+                backgroundColor: '#ffffff',
+                color: '#2c2c2c',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
             >
               View
-            </Button>
+            </button>
           </div>
         ),
       },
@@ -320,16 +344,14 @@ export const PaymentsPage: React.FC = () => {
             </svg>
             <span>{toastMessage}</span>
           </div>
-          <ActionButton
-            quiet
-            size="s"
+          <button
+            type="button"
             className="payments-toast-dismiss"
             onClick={() => setToastMessage(null)}
             aria-label="Dismiss notification"
-            role="button"
           >
             &times;
-          </ActionButton>
+          </button>
         </div>
       )}
 
@@ -364,52 +386,52 @@ export const PaymentsPage: React.FC = () => {
             htmlFor="payments-status-filter"
             className="payments-filter-select-group"
           >
-            <Picker
+            <select
               id="payments-status-filter"
               data-testid="payments-status-filter"
               className="payments-filter-select"
               value={statusFilter}
-              label="Payment Status"
+              onChange={(e) => setStatusFilter(e.target.value)}
               aria-label="Filter by payment status"
-              change={(e: any) => {
-                const val = e.target?.value !== undefined ? e.target.value : (e.detail?.value || '');
-                setStatusFilter(val || '');
-              }}
-              ref={(node: any) => {
-                if (node && !node.__hasChangeListener) {
-                  node.__hasChangeListener = true;
-                  node.addEventListener('change', (e: any) => {
-                    const val = e.target?.value !== undefined ? e.target.value : (node.value || '');
-                    setStatusFilter(val || '');
-                  });
-                }
-              }}
             >
-              <MenuItem value="all">All Payments</MenuItem>
-              <MenuItem value="Approved">Approved (Awaiting Scheduling)</MenuItem>
-              <MenuItem value="Payment Scheduled">Payment Scheduled</MenuItem>
-              <MenuItem value="Paid">Paid</MenuItem>
-            </Picker>
+              <option value="all">All Payments</option>
+              <option value="Approved">Approved (Awaiting Scheduling)</option>
+              <option value="Payment Scheduled">Payment Scheduled</option>
+              <option value="Paid">Paid</option>
+            </select>
           </FormField>
 
           {/* Clear Filters Button */}
           {hasActiveFilters && (
             <div style={{ marginBottom: 'var(--spectrum-global-dimension-size-200, 16px)' }}>
-              <Button
-                variant="secondary"
+              <button
+                type="button"
+                className="payments-btn-secondary"
                 data-testid="clear-payments-filters-btn"
                 onClick={handleClearFilters}
                 aria-label="Clear payment filters"
+                style={{
+                  padding: '7px 16px',
+                  borderRadius: '16px',
+                  border: '1px solid #cacaca',
+                  backgroundColor: '#ffffff',
+                  color: '#2c2c2c',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  height: '32px',
+                  boxSizing: 'border-box',
+                }}
               >
                 Clear Filters
-              </Button>
+              </button>
             </div>
           )}
         </div>
       </section>
 
       {/* DataTable */}
-      <Card className="payments-table-card">
+      <div className="payments-table-card">
         <DataTable
           columns={columns}
           data={filteredInvoices}
@@ -428,7 +450,7 @@ export const PaymentsPage: React.FC = () => {
           onEmptyAction={hasActiveFilters ? handleClearFilters : undefined}
           ariaLabel="Vendor Payments Table"
         />
-      </Card>
+      </div>
 
       {/* Schedule Payment Modal */}
       <SchedulePaymentModal
@@ -449,7 +471,7 @@ export const PaymentsPage: React.FC = () => {
               <strong>{payingInvoice?.invoiceNumber}</strong> (Vendor:{' '}
               <strong>{payingInvoice?.vendorName}</strong>) for{' '}
               <strong>
-                $
+                ₹
                 {payingInvoice?.amount.toLocaleString('en-US', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,

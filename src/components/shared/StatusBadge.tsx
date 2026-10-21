@@ -1,9 +1,8 @@
 import React from 'react';
-import { StatusLight } from '@swc-react/status-light';
 import { StatusLightVariant } from '../../types';
 
 /**
- * Maps invoice, payment, PO, or vendor status string to Spectrum StatusLight variant
+ * Maps invoice, payment, PO, or vendor status string to StatusLight variant
  */
 export function getStatusVariant(status?: string): StatusLightVariant {
   if (!status) return 'info';
@@ -46,8 +45,7 @@ export interface StatusBadgeProps {
 }
 
 /**
- * StatusBadge wraps <sp-status-light> from @swc-react/status-light.
- * Never uses <sp-badge> for status, as <sp-badge> is strictly reserved for count indicators.
+ * Accessible StatusBadge using standard React and HTML5 elements.
  */
 export const StatusBadge: React.FC<StatusBadgeProps> = ({
   status,
@@ -60,24 +58,46 @@ export const StatusBadge: React.FC<StatusBadgeProps> = ({
 }) => {
   const effectiveVariant = variant || getStatusVariant(status);
   const content = label || children || status || '';
-  const lightRef = React.useRef<any>(null);
 
-  React.useEffect(() => {
-    if (lightRef.current && typeof lightRef.current.setAttribute === 'function') {
-      lightRef.current.setAttribute('variant', effectiveVariant);
+  const getDotColor = (v: StatusLightVariant) => {
+    switch (v) {
+      case 'positive':
+        return 'var(--spectrum-global-color-green-600, #2680eb)';
+      case 'negative':
+        return 'var(--spectrum-global-color-red-600, #d7373f)';
+      case 'notice':
+        return 'var(--spectrum-global-color-orange-600, #e68619)';
+      case 'info':
+      default:
+        return 'var(--spectrum-global-color-gray-600, #8e8e8e)';
     }
-  }, [effectiveVariant]);
+  };
 
   return (
-    <StatusLight
-      ref={lightRef}
-      variant={effectiveVariant}
-      size={size}
-      disabled={disabled}
-      className={className}
+    <span
       role="status"
+      className={`status-badge status-badge-${effectiveVariant} ${className || ''}`.trim()}
+      data-variant={effectiveVariant}
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '6px',
+        fontSize: size === 's' ? '12px' : '14px',
+        fontWeight: 500,
+        opacity: disabled ? 0.6 : 1,
+      }}
     >
+      <span
+        aria-hidden="true"
+        style={{
+          width: '8px',
+          height: '8px',
+          borderRadius: '50%',
+          backgroundColor: getDotColor(effectiveVariant),
+          flexShrink: 0,
+        }}
+      />
       {content}
-    </StatusLight>
+    </span>
   );
 };

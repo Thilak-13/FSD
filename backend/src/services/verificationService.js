@@ -42,7 +42,7 @@ function validateInvoice(invoiceData) {
  * Verifies an invoice against PO and checks for duplicates.
  *
  * Rules:
- * 1. Amount vs PO match: tolerance of ±$0.01. If Math.abs(invoice.amount - po.amount) > 0.01, flagged.
+ * 1. Amount vs PO match: tolerance of ±₹0.01. If Math.abs(invoice.amount - po.amount) > 0.01, flagged.
  * 2. Duplicate invoice-number check: check if invoiceNumber already exists in DB. If yes, flag as duplicate.
  * 3. Required field validation: vendorId, amount, dueDate.
  * 4. Status outcome:
@@ -115,13 +115,13 @@ async function verifyInvoice(invoiceData, poDoc, currentInvoiceId) {
     }
   }
 
-  // 3. Amount vs PO match with tolerance of ±$0.01
+  // 3. Amount vs PO match with tolerance of ±₹0.01
   if (po && po.amount !== undefined && po.amount !== null) {
     const amountDifference = Math.abs(invoiceData.amount - po.amount);
     // Allow precision up to 0.01 inclusive
     if (amountDifference > 0.010001) {
       discrepancies.push(
-        `Amount mismatch: Invoice amount $${invoiceData.amount.toFixed(2)} differs from PO amount $${po.amount.toFixed(2)} (variance: $${amountDifference.toFixed(2)} exceeds ±$0.01 tolerance)`
+        `Amount mismatch: Invoice amount ₹${invoiceData.amount.toFixed(2)} differs from PO amount ₹${po.amount.toFixed(2)} (variance: ₹${amountDifference.toFixed(2)} exceeds ±₹0.01 tolerance)`
       );
     }
   }

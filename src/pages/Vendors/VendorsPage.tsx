@@ -1,9 +1,6 @@
 // src/pages/Vendors/VendorsPage.tsx
 import React, { useState, useMemo, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@swc-react/button';
-import { ActionButton } from '@swc-react/action-button';
-import { Card } from '@swc-react/card';
 import { DataTable, Column } from '../../components/shared/DataTable';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { AuthContext } from '../../context/AuthContext';
@@ -102,18 +99,28 @@ export const VendorsPage: React.FC = () => {
         title: 'Actions',
         align: 'center',
         render: (vendor) => (
-          <Button
-            variant="secondary"
-            size="s"
+          <button
+            type="button"
+            className="vendor-btn-secondary"
             data-testid={`view-details-${vendor.id}`}
-            onClick={(e: any) => {
+            onClick={(e) => {
               e.stopPropagation();
               navigate(`/vendors/${vendor.id}`);
             }}
             aria-label={`View details for ${vendor.name}`}
+            style={{
+              padding: '5px 12px',
+              borderRadius: '14px',
+              border: '1px solid #cacaca',
+              backgroundColor: '#ffffff',
+              color: '#2c2c2c',
+              fontSize: '12px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
           >
             View Details
-          </Button>
+          </button>
         ),
       },
     ],
@@ -143,14 +150,25 @@ export const VendorsPage: React.FC = () => {
 
         <div className="vendors-header-actions">
           {currentRole === 'Admin' && (
-            <Button
-              variant="accent"
+            <button
+              type="button"
+              className="vendor-btn-accent"
               data-testid="add-vendor-trigger"
               onClick={() => setIsDialogOpen(true)}
               aria-label="Add a new vendor"
+              style={{
+                padding: '7px 16px',
+                borderRadius: '16px',
+                border: 'none',
+                backgroundColor: '#0265dc',
+                color: '#ffffff',
+                fontSize: '14px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
             >
               + Add Vendor
-            </Button>
+            </button>
           )}
         </div>
       </header>
@@ -179,21 +197,19 @@ export const VendorsPage: React.FC = () => {
             </svg>
             <span>{toastMessage}</span>
           </div>
-          <ActionButton
-            quiet
-            size="s"
+          <button
+            type="button"
             className="vendors-toast-dismiss"
             onClick={() => setToastMessage(null)}
             aria-label="Dismiss notification"
-            role="button"
           >
             &times;
-          </ActionButton>
+          </button>
         </div>
       )}
 
       {/* Search Toolbar */}
-      <Card className="vendors-search-card">
+      <div className="vendors-search-card">
         <input
           type="search"
           data-testid="vendor-search-input"
@@ -204,20 +220,30 @@ export const VendorsPage: React.FC = () => {
           aria-label="Search vendors"
         />
         {searchTerm && (
-          <Button
-            variant="secondary"
-            size="s"
+          <button
+            type="button"
+            className="vendor-btn-secondary"
             data-testid="clear-search-button"
             onClick={() => setSearchTerm('')}
             aria-label="Clear search"
+            style={{
+              padding: '6px 14px',
+              borderRadius: '14px',
+              border: '1px solid #cacaca',
+              backgroundColor: '#ffffff',
+              color: '#2c2c2c',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
           >
             Clear
-          </Button>
+          </button>
         )}
-      </Card>
+      </div>
 
       {/* Vendors DataTable */}
-      <Card className="vendors-table-card">
+      <div className="vendors-table-card">
         <DataTable
           columns={columns}
           data={filteredVendors}
@@ -235,7 +261,7 @@ export const VendorsPage: React.FC = () => {
           onEmptyAction={searchTerm ? () => setSearchTerm('') : undefined}
           ariaLabel="Vendors Directory Table"
         />
-      </Card>
+      </div>
 
       {/* Add Vendor Form Dialog */}
       <VendorFormDialog

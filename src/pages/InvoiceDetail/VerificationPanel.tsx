@@ -1,14 +1,5 @@
 // src/pages/InvoiceDetail/VerificationPanel.tsx
 import React, { useMemo } from 'react';
-import {
-  Table,
-  TableHead,
-  TableRow,
-  TableHeadCell,
-  TableBody,
-  TableCell,
-} from '@swc-react/table';
-import { Card } from '@swc-react/card';
 import { Invoice, PurchaseOrder, InvoiceLineItem, PurchaseOrderItem } from '../../types';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 
@@ -95,7 +86,7 @@ export const VerificationPanel: React.FC<VerificationPanelProps> = ({
 
       {/* Linked PO Details */}
       {linkedPo ? (
-        <Card className="verification-po-card" data-testid="verification-po-details">
+        <div className="verification-po-card" data-testid="verification-po-details">
           <div className="invoice-detail-meta-item">
             <span className="invoice-detail-meta-label">Linked Purchase Order</span>
             <span className="invoice-detail-meta-value" data-testid="verification-po-number">
@@ -105,7 +96,7 @@ export const VerificationPanel: React.FC<VerificationPanelProps> = ({
           <div className="invoice-detail-meta-item">
             <span className="invoice-detail-meta-label">PO Total Value</span>
             <span className="invoice-detail-meta-value" data-testid="verification-po-amount">
-              ${linkedPo.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ₹{linkedPo.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
           <div className="invoice-detail-meta-item">
@@ -120,7 +111,7 @@ export const VerificationPanel: React.FC<VerificationPanelProps> = ({
               <StatusBadge status={linkedPo.status || 'Open'} />
             </span>
           </div>
-        </Card>
+        </div>
       ) : (
         <div
           className="status-stepper-flagged-warning"
@@ -134,34 +125,34 @@ export const VerificationPanel: React.FC<VerificationPanelProps> = ({
 
       {/* Side-by-side line item comparison table */}
       <div className="verification-table-wrapper">
-        <Table
+        <table
           className="verification-table"
           aria-label="PO Match Line Item Comparison Table"
           data-testid="verification-table"
         >
-          <TableHead>
-            <TableRow>
-              <TableHeadCell>Item Description</TableHeadCell>
-              <TableHeadCell className="align-right">Invoice Qty</TableHeadCell>
-              <TableHeadCell className="align-right">PO Qty</TableHeadCell>
-              <TableHeadCell className="align-right">Invoice Unit Price</TableHeadCell>
-              <TableHeadCell className="align-right">PO Unit Price</TableHeadCell>
-              <TableHeadCell className="align-right">Line Total</TableHeadCell>
-              <TableHeadCell>Match Verification</TableHeadCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
+          <thead>
+            <tr>
+              <th>Item Description</th>
+              <th className="align-right">Invoice Qty</th>
+              <th className="align-right">PO Qty</th>
+              <th className="align-right">Invoice Unit Price</th>
+              <th className="align-right">PO Unit Price</th>
+              <th className="align-right">Line Total</th>
+              <th>Match Verification</th>
+            </tr>
+          </thead>
+          <tbody>
             {comparisons.map((comp, idx) => {
               const { invoiceItem, poItem, priceMismatch, quantityMismatch, isMatched } = comp;
               const hasMismatch = priceMismatch || quantityMismatch;
 
               return (
-                <TableRow
+                <tr
                   key={invoiceItem.id || idx}
                   className={hasMismatch ? 'has-mismatch' : undefined}
                   data-testid={`verification-row-${idx}`}
                 >
-                  <TableCell>
+                  <td>
                     <strong style={{ display: 'block' }}>{invoiceItem.description}</strong>
                     {poItem && poItem.description !== invoiceItem.description && (
                       <span
@@ -173,27 +164,27 @@ export const VerificationPanel: React.FC<VerificationPanelProps> = ({
                         PO Item: {poItem.description}
                       </span>
                     )}
-                  </TableCell>
-                  <TableCell className="align-right" data-testid={`row-${idx}-inv-qty`}>
+                  </td>
+                  <td className="align-right" data-testid={`row-${idx}-inv-qty`}>
                     {invoiceItem.quantity}
-                  </TableCell>
-                  <TableCell className="align-right" data-testid={`row-${idx}-po-qty`}>
+                  </td>
+                  <td className="align-right" data-testid={`row-${idx}-po-qty`}>
                     {poItem ? poItem.quantity : '—'}
-                  </TableCell>
-                  <TableCell className="align-right" data-testid={`row-${idx}-inv-price`}>
-                    ${invoiceItem.unitPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </TableCell>
-                  <TableCell className="align-right" data-testid={`row-${idx}-po-price`}>
+                  </td>
+                  <td className="align-right" data-testid={`row-${idx}-inv-price`}>
+                    ₹{invoiceItem.unitPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </td>
+                  <td className="align-right" data-testid={`row-${idx}-po-price`}>
                     {poItem
-                      ? `$${poItem.unitPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                      ? `₹${poItem.unitPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                       : '—'}
-                  </TableCell>
-                  <TableCell className="align-right" data-testid={`row-${idx}-total`}>
+                  </td>
+                  <td className="align-right" data-testid={`row-${idx}-total`}>
                     <strong>
-                      ${invoiceItem.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      ₹{invoiceItem.total.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </strong>
-                  </TableCell>
-                  <TableCell data-testid={`row-${idx}-status`}>
+                  </td>
+                  <td data-testid={`row-${idx}-status`}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                       {priceMismatch && (
                         <span data-testid="badge-price-mismatch">
@@ -228,12 +219,12 @@ export const VerificationPanel: React.FC<VerificationPanelProps> = ({
                         </span>
                       )}
                     </div>
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
               );
             })}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
 
       {/* Overall verification summary */}
@@ -260,7 +251,7 @@ export const VerificationPanel: React.FC<VerificationPanelProps> = ({
               Invoice Total
             </span>
             <strong>
-              ${invoice.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ₹{invoice.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </strong>
           </div>
           {linkedPo && (
@@ -270,7 +261,7 @@ export const VerificationPanel: React.FC<VerificationPanelProps> = ({
                   PO Reference Value
                 </span>
                 <strong>
-                  ${linkedPo.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ₹{linkedPo.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </strong>
               </div>
               <div>
@@ -278,7 +269,7 @@ export const VerificationPanel: React.FC<VerificationPanelProps> = ({
                   Variance
                 </span>
                 <strong data-testid="variance-amount">
-                  ${Math.abs(varianceAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  ₹{Math.abs(varianceAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </strong>
               </div>
             </>

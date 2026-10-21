@@ -122,7 +122,7 @@ const runReminderScan = async (referenceDate, recipientOverride) => {
             ${overdue
               .map(
                 (item) =>
-                  `<li><strong>Invoice ${item.invoiceNumber}</strong>: $${item.amount.toFixed(
+                  `<li><strong>Invoice ${item.invoiceNumber}</strong>: ₹${item.amount.toFixed(
                     2
                   )} is overdue by ${item.daysOverdue} day(s) (due ${item.dueDate})</li>`
               )
@@ -139,7 +139,7 @@ const runReminderScan = async (referenceDate, recipientOverride) => {
             ${dueSoon
               .map(
                 (item) =>
-                  `<li><strong>Invoice ${item.invoiceNumber}</strong>: $${item.amount.toFixed(
+                  `<li><strong>Invoice ${item.invoiceNumber}</strong>: ₹${item.amount.toFixed(
                     2
                   )} is due in ${item.daysUntilDue} day(s) (due ${item.dueDate})</li>`
               )
@@ -156,7 +156,7 @@ const runReminderScan = async (referenceDate, recipientOverride) => {
             ${pending
               .map(
                 (item) =>
-                  `<li><strong>Invoice ${item.invoiceNumber}</strong>: $${item.amount.toFixed(
+                  `<li><strong>Invoice ${item.invoiceNumber}</strong>: ₹${item.amount.toFixed(
                     2
                   )} pending approval for ${item.daysPending} day(s)</li>`
               )
@@ -178,7 +178,7 @@ const runReminderScan = async (referenceDate, recipientOverride) => {
           overdue
             .map(
               (i) =>
-                `- Invoice ${i.invoiceNumber}: $${i.amount.toFixed(2)} (${
+                `- Invoice ${i.invoiceNumber}: ₹${i.amount.toFixed(2)} (${
                   i.daysOverdue
                 }d overdue)`
             )
@@ -189,7 +189,7 @@ const runReminderScan = async (referenceDate, recipientOverride) => {
           dueSoon
             .map(
               (i) =>
-                `- Invoice ${i.invoiceNumber}: $${i.amount.toFixed(2)} (${
+                `- Invoice ${i.invoiceNumber}: ₹${i.amount.toFixed(2)} (${
                   i.daysUntilDue
                 }d until due)`
             )
@@ -200,7 +200,7 @@ const runReminderScan = async (referenceDate, recipientOverride) => {
           pending
             .map(
               (i) =>
-                `- Invoice ${i.invoiceNumber}: $${i.amount.toFixed(2)} (${
+                `- Invoice ${i.invoiceNumber}: ₹${i.amount.toFixed(2)} (${
                   i.daysPending
                 }d pending)`
             )

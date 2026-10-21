@@ -8,7 +8,6 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { Card } from '@swc-react/card';
 import { Invoice, InvoiceStatus } from '../../types';
 
 export interface StatusBreakdownChartProps {
@@ -54,7 +53,7 @@ export const StatusBreakdownChart: React.FC<StatusBreakdownChartProps> = ({ invo
   }, [invoices]);
 
   return (
-    <Card className="chart-card" data-testid="dashboard-status-chart">
+    <div className="chart-card" data-testid="dashboard-status-chart">
       <div className="chart-header">
         <h3 className="chart-title">Invoice Distribution by Status</h3>
       </div>
@@ -89,6 +88,6 @@ export const StatusBreakdownChart: React.FC<StatusBreakdownChartProps> = ({ invo
           </PieChart>
         </ResponsiveContainer>
       </div>
-    </Card>
+    </div>
   );
 };

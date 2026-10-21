@@ -1,10 +1,6 @@
 // src/pages/Approvals/ApprovalsPage.tsx
 import React, { useState, useMemo, useContext, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@swc-react/button';
-import { ActionButton } from '@swc-react/action-button';
-import { Card } from '@swc-react/card';
-import { Search } from '@swc-react/search';
 import { DataTable, Column } from '../../components/shared/DataTable';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { ConfirmDialog } from '../../components/shared/ConfirmDialog';
@@ -206,7 +202,7 @@ export const ApprovalsPage: React.FC = () => {
         sortable: true,
         align: 'right',
         render: (inv) =>
-          `$${inv.amount.toLocaleString('en-US', {
+          `₹${inv.amount.toLocaleString('en-US', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })}`,
@@ -248,9 +244,9 @@ export const ApprovalsPage: React.FC = () => {
         align: 'center',
         render: (inv) => (
           <div className="approval-row-actions">
-            <Button
-              variant="accent"
-              size="s"
+            <button
+              type="button"
+              className="approval-row-btn approval-row-btn-accent"
               data-testid={`approve-btn-${inv.id}`}
               onClick={(e: any) => {
                 e.stopPropagation();
@@ -259,11 +255,11 @@ export const ApprovalsPage: React.FC = () => {
               aria-label={`Approve invoice ${inv.invoiceNumber}`}
             >
               Approve
-            </Button>
+            </button>
 
-            <Button
-              variant="secondary"
-              size="s"
+            <button
+              type="button"
+              className="approval-row-btn approval-row-btn-secondary"
               data-testid={`flag-btn-${inv.id}`}
               onClick={(e: any) => {
                 e.stopPropagation();
@@ -272,11 +268,11 @@ export const ApprovalsPage: React.FC = () => {
               aria-label={`Flag invoice ${inv.invoiceNumber}`}
             >
               Flag
-            </Button>
+            </button>
 
-            <Button
-              variant="secondary"
-              size="s"
+            <button
+              type="button"
+              className="approval-row-btn approval-row-btn-secondary"
               data-testid={`view-btn-${inv.id}`}
               onClick={(e: any) => {
                 e.stopPropagation();
@@ -285,7 +281,7 @@ export const ApprovalsPage: React.FC = () => {
               aria-label={`View details for ${inv.invoiceNumber}`}
             >
               View
-            </Button>
+            </button>
           </div>
         ),
       },
@@ -321,46 +317,34 @@ export const ApprovalsPage: React.FC = () => {
         className="approvals-metrics-grid"
         aria-label="Queue Summary Metrics"
       >
-        <Card
+        <div
           className="approvals-metric-card metric-pending"
           data-testid="metric-awaiting-approval"
         >
-          <div slot="heading">
-            <span className="approvals-metric-label">Total Awaiting Approval</span>
-          </div>
-          <div slot="subheading">
-            <span className="approvals-metric-value">{metrics.totalAwaiting}</span>
-          </div>
-        </Card>
+          <span className="approvals-metric-label">Total Awaiting Approval</span>
+          <span className="approvals-metric-value">{metrics.totalAwaiting}</span>
+        </div>
 
-        <Card
+        <div
           className="approvals-metric-card metric-flagged"
           data-testid="metric-flagged-count"
         >
-          <div slot="heading">
-            <span className="approvals-metric-label">Flagged Discrepancies</span>
-          </div>
-          <div slot="subheading">
-            <span className="approvals-metric-value">{metrics.flaggedCount}</span>
-          </div>
-        </Card>
+          <span className="approvals-metric-label">Flagged Discrepancies</span>
+          <span className="approvals-metric-value">{metrics.flaggedCount}</span>
+        </div>
 
-        <Card
+        <div
           className="approvals-metric-card metric-amount"
           data-testid="metric-pending-amount"
         >
-          <div slot="heading">
-            <span className="approvals-metric-label">Total Amount Pending</span>
-          </div>
-          <div slot="subheading">
-            <span className="approvals-metric-value">
-              ${metrics.totalPendingAmount.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>
-          </div>
-        </Card>
+          <span className="approvals-metric-label">Total Amount Pending</span>
+          <span className="approvals-metric-value">
+            ₹{metrics.totalPendingAmount.toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}
+          </span>
+        </div>
       </section>
 
       {/* Toast Notification Banner */}
@@ -387,16 +371,14 @@ export const ApprovalsPage: React.FC = () => {
             </svg>
             <span>{toastMessage}</span>
           </div>
-          <ActionButton
-            quiet
-            size="s"
+          <button
+            type="button"
             className="approvals-toast-dismiss"
             onClick={() => setToastMessage(null)}
             aria-label="Dismiss notification"
-            role="button"
           >
             &times;
-          </ActionButton>
+          </button>
         </div>
       )}
 
@@ -418,40 +400,30 @@ export const ApprovalsPage: React.FC = () => {
           gap: 'var(--spectrum-global-dimension-size-150, 12px)',
         }}
       >
-        <div style={{ maxWidth: '360px', width: '100%', position: 'relative' }}>
-          <Search
-            placeholder="Search queue by invoice, vendor, or discrepancy..."
-            value={searchTerm}
-            input={(e: any) => setSearchTerm(e.target.value)}
-            aria-label="Search queue by invoice, vendor, or discrepancy..."
-            style={{ width: '100%' }}
-          />
+        <div className="approvals-search-wrapper">
+          <span className="approvals-search-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
+              <path
+                fillRule="evenodd"
+                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </span>
           <input
             type="search"
             data-testid="approvals-search-input"
+            className="approvals-search-input"
             placeholder="Search queue by invoice, vendor, or discrepancy..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             aria-label="Search queue by invoice, vendor, or discrepancy..."
-            aria-hidden="true"
-            tabIndex={-1}
-            style={{
-              position: 'absolute',
-              width: '1px',
-              height: '1px',
-              padding: 0,
-              margin: '-1px',
-              overflow: 'hidden',
-              clip: 'rect(0, 0, 0, 0)',
-              whiteSpace: 'nowrap',
-              border: 0,
-            }}
           />
         </div>
       </div>
 
       {/* DataTable (searchable={false} prevents secondary column-filtering bug) */}
-      <Card className="approvals-table-card">
+      <div className="approvals-table-card">
         <DataTable
           columns={columns}
           data={filteredQueueInvoices}
@@ -462,7 +434,7 @@ export const ApprovalsPage: React.FC = () => {
           getRowId={(inv) => inv.id}
           searchable={false}
           pagination
-          pageSize={10}
+          pageSize={50}
           emptyTitle="No Invoices Awaiting Approval"
           emptyMessage={
             searchTerm.trim()
@@ -473,7 +445,7 @@ export const ApprovalsPage: React.FC = () => {
           onEmptyAction={searchTerm.trim() ? handleClearSearch : undefined}
           ariaLabel="Approvals Triage Queue Table"
         />
-      </Card>
+      </div>
 
       {/* Inline Approve Confirmation Dialog */}
       <ConfirmDialog
@@ -485,7 +457,7 @@ export const ApprovalsPage: React.FC = () => {
               Are you sure you want to approve invoice{' '}
               <strong>{approvingInvoice?.invoiceNumber}</strong> for{' '}
               <strong>
-                ${approvingInvoice?.amount.toLocaleString('en-US', {
+                ₹{approvingInvoice?.amount.toLocaleString('en-US', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}

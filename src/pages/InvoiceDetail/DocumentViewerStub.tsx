@@ -1,6 +1,5 @@
 // src/pages/InvoiceDetail/DocumentViewerStub.tsx
 import React, { useState } from 'react';
-import { Button } from '@swc-react/button';
 import { Invoice } from '../../types';
 
 export interface DocumentViewerStubProps {
@@ -61,15 +60,15 @@ export const DocumentViewerStub: React.FC<DocumentViewerStubProps> = ({
             <span>PDF</span>
           </div>
         </div>
-        <Button
-          variant="secondary"
-          size="s"
+        <button
+          type="button"
+          className="document-viewer-btn"
           onClick={handleDownload}
           data-testid="download-document-btn"
           aria-label={`Download ${documentName}`}
         >
           Download PDF
-        </Button>
+        </button>
       </div>
 
       <div className="document-viewer-preview" data-testid="document-preview-container">
@@ -89,7 +88,7 @@ export const DocumentViewerStub: React.FC<DocumentViewerStubProps> = ({
           <div style={{ margin: '8px 0', fontSize: '12px', color: 'var(--spectrum-global-color-gray-700, #6e6e6e)' }}>
             <strong>Vendor ID:</strong> {invoice.vendorId}
             <br />
-            <strong>Total Due:</strong> ${invoice.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+            <strong>Total Due:</strong> ₹{invoice.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
           </div>
 
           <div className="document-mock-line" style={{ width: '100%' }} />
@@ -105,38 +104,38 @@ export const DocumentViewerStub: React.FC<DocumentViewerStubProps> = ({
 
       <div className="document-viewer-controls">
         <div className="document-viewer-zoom-controls">
-          <Button
-            variant="secondary"
-            size="s"
+          <button
+            type="button"
+            className="document-viewer-btn"
             onClick={handleZoomOut}
             disabled={zoomLevel <= 50}
             data-testid="zoom-out-btn"
             aria-label="Zoom Out"
           >
             -
-          </Button>
+          </button>
           <span style={{ fontSize: '12px', fontWeight: 600, minWidth: '45px', textAlign: 'center' }} data-testid="zoom-display">
             {zoomLevel}%
           </span>
-          <Button
-            variant="secondary"
-            size="s"
+          <button
+            type="button"
+            className="document-viewer-btn"
             onClick={handleZoomIn}
             disabled={zoomLevel >= 200}
             data-testid="zoom-in-btn"
             aria-label="Zoom In"
           >
             +
-          </Button>
+          </button>
           {zoomLevel !== 100 && (
-            <Button
-              variant="secondary"
-              size="s"
+            <button
+              type="button"
+              className="document-viewer-btn"
               onClick={handleResetZoom}
               data-testid="zoom-reset-btn"
             >
               Reset
-            </Button>
+            </button>
           )}
         </div>
 

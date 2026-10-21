@@ -1,14 +1,4 @@
 import React from 'react';
-import { createComponent } from '@lit/react';
-import { FieldLabel as SpFieldLabel } from '@spectrum-web-components/field-label';
-import '@spectrum-web-components/field-label/sp-field-label.js';
-
-export const SpFieldLabelComponent = createComponent({
-  displayName: 'SpFieldLabel',
-  elementClass: SpFieldLabel,
-  react: React,
-  tagName: 'sp-field-label',
-});
 
 export interface FormFieldProps {
   label: string;
@@ -23,7 +13,7 @@ export interface FormFieldProps {
 }
 
 /**
- * Accessible FormField wrapping inputs with <sp-field-label> and validation alerts.
+ * Accessible FormField wrapping inputs with standard HTML5 <label> and validation alerts.
  * Implements WCAG 2.1 AA requirements:
  * - Proper label-to-control binding via htmlFor
  * - role="alert" + aria-live="polite" region for error states
@@ -43,17 +33,6 @@ export const FormField: React.FC<FormFieldProps> = ({
   const displayHint = hint || helperText;
   const errorId = htmlFor ? `${htmlFor}-error` : undefined;
   const hintId = htmlFor ? `${htmlFor}-hint` : undefined;
-  const labelRef = React.useRef<any>(null);
-
-  React.useEffect(() => {
-    if (labelRef.current && typeof labelRef.current.setAttribute === 'function') {
-      if (required) {
-        labelRef.current.setAttribute('required', '');
-      } else {
-        labelRef.current.removeAttribute('required');
-      }
-    }
-  }, [required]);
 
   return (
     <div
@@ -65,12 +44,10 @@ export const FormField: React.FC<FormFieldProps> = ({
         width: '100%',
       }}
     >
-      <SpFieldLabelComponent
-        ref={labelRef}
-        for={htmlFor}
-        required={required}
-        disabled={disabled}
+      <label
+        htmlFor={htmlFor}
         style={{
+          display: 'block',
           marginBottom: 'var(--spectrum-global-dimension-size-50, 4px)',
           fontFamily: 'var(--spectrum-alias-body-text-font-family, "Adobe Clean", sans-serif)',
           fontSize: 'var(--spectrum-alias-font-size-default, 14px)',
@@ -81,7 +58,12 @@ export const FormField: React.FC<FormFieldProps> = ({
         }}
       >
         {label}
-      </SpFieldLabelComponent>
+        {required && (
+          <span aria-hidden="true" style={{ color: 'var(--spectrum-global-color-red-600, #d7373f)', marginLeft: '4px' }}>
+            *
+          </span>
+        )}
+      </label>
 
       <div style={{ position: 'relative', width: '100%' }}>
         {children}

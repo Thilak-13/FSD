@@ -1,7 +1,5 @@
 // src/pages/Approvals/FlagModal.tsx
 import React, { useState, useEffect, useRef } from 'react';
-import { Dialog } from '@swc-react/dialog';
-import { Button } from '@swc-react/button';
 import { FormField } from '../../components/shared/FormField';
 import { Invoice } from '../../types';
 
@@ -13,7 +11,7 @@ export interface FlagModalProps {
 }
 
 /**
- * Accessible FlagModal wrapping @swc-react/dialog and FormField.
+ * Accessible FlagModal using standard React and HTML5 elements.
  * Requires a reason before confirming the transition to 'Flagged' status.
  * Resets reason strictly on open transitions to avoid clearing text on parent re-renders.
  */
@@ -127,87 +125,112 @@ export const FlagModal: React.FC<FlagModalProps> = ({
           maxWidth: '520px',
           width: '100%',
           outline: 'none',
+          backgroundColor: '#ffffff',
+          borderRadius: '4px',
+          padding: '24px',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+          boxSizing: 'border-box',
         }}
       >
-        <Dialog
-          size="m"
-          dismissable
-          close={handleCancel}
-          aria-label={`Flag Invoice ${invoice.invoiceNumber}`}
+        <h2
+          id="flag-dialog-heading"
+          style={{
+            margin: '0 0 12px 0',
+            fontFamily: 'var(--spectrum-alias-body-text-font-family, "Adobe Clean", sans-serif)',
+            fontSize: 'var(--spectrum-alias-font-size-heading, 20px)',
+            color: 'var(--spectrum-global-color-gray-900, #2c2c2c)',
+          }}
         >
-          <h2
-            slot="heading"
-            id="flag-dialog-heading"
-            style={{
-              margin: 0,
-              fontFamily: 'var(--spectrum-alias-body-text-font-family, "Adobe Clean", sans-serif)',
-              fontSize: 'var(--spectrum-alias-font-size-heading, 20px)',
-              color: 'var(--spectrum-global-color-gray-900, #2c2c2c)',
-            }}
-          >
-            Flag Invoice {invoice.invoiceNumber}
-          </h2>
+          Flag Invoice {invoice.invoiceNumber}
+        </h2>
 
-          <div
-            id="flag-dialog-message"
-            style={{
-              marginTop: 'var(--spectrum-global-dimension-size-100, 8px)',
-              marginBottom: 'var(--spectrum-global-dimension-size-200, 16px)',
-              fontFamily: 'var(--spectrum-alias-body-text-font-family, "Adobe Clean", sans-serif)',
-              fontSize: 'var(--spectrum-alias-font-size-default, 14px)',
-              color: 'var(--spectrum-global-color-gray-700, #6e6e6e)',
-              lineHeight: 1.5,
-            }}
-          >
-            Please specify the discrepancy or issue with this invoice. The requester and finance operations will be notified.
-          </div>
+        <div
+          id="flag-dialog-message"
+          style={{
+            marginTop: 'var(--spectrum-global-dimension-size-100, 8px)',
+            marginBottom: 'var(--spectrum-global-dimension-size-200, 16px)',
+            fontFamily: 'var(--spectrum-alias-body-text-font-family, "Adobe Clean", sans-serif)',
+            fontSize: 'var(--spectrum-alias-font-size-default, 14px)',
+            color: 'var(--spectrum-global-color-gray-700, #6e6e6e)',
+            lineHeight: 1.5,
+          }}
+        >
+          Please specify the discrepancy or issue with this invoice. The requester and finance operations will be notified.
+        </div>
 
-          <FormField
-            label="Flag Reason"
-            htmlFor="flag-reason-input"
+        <FormField
+          label="Flag Reason"
+          htmlFor="flag-reason-input"
+          required
+          error={validationError}
+          hint="Specify reason for discrepancy (e.g., price discrepancy, quantity mismatch)"
+        >
+          <textarea
+            id="flag-reason-input"
+            data-testid="flag-reason-input"
+            className="flag-reason-textarea"
+            rows={3}
+            value={reason}
+            onChange={(e) => {
+              setReason(e.target.value);
+              if (e.target.value.trim()) {
+                setValidationError(undefined);
+              }
+            }}
+            placeholder="e.g., Unit price invoiced exceeds authorized PO rate..."
             required
-            error={validationError}
-            hint="Specify reason for discrepancy (e.g., price discrepancy, quantity mismatch)"
-          >
-            <textarea
-              id="flag-reason-input"
-              data-testid="flag-reason-input"
-              className="flag-reason-textarea"
-              rows={3}
-              value={reason}
-              onChange={(e) => {
-                setReason(e.target.value);
-                if (e.target.value.trim()) {
-                  setValidationError(undefined);
-                }
-              }}
-              placeholder="e.g., Unit price invoiced exceeds authorized PO rate..."
-              required
-              aria-required="true"
-              aria-invalid={!!validationError}
-              autoFocus
-            />
-          </FormField>
+            aria-required="true"
+            aria-invalid={!!validationError}
+            autoFocus
+          />
+        </FormField>
 
-          <Button
-            slot="button"
-            variant="secondary"
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: '12px',
+            marginTop: '20px',
+          }}
+        >
+          <button
+            type="button"
             data-testid="cancel-flag-btn"
             onClick={handleCancel}
+            style={{
+              padding: '7px 16px',
+              borderRadius: '16px',
+              border: '1px solid #cacaca',
+              backgroundColor: '#ffffff',
+              color: '#2c2c2c',
+              fontSize: '14px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
           >
             Cancel
-          </Button>
+          </button>
 
-          <Button
-            slot="button"
-            variant="negative"
+          <button
+            type="button"
             data-testid="confirm-flag-btn"
             disabled={!reason.trim() || submitting}
             onClick={handleConfirm}
+            style={{
+              padding: '7px 16px',
+              borderRadius: '16px',
+              border: 'none',
+              backgroundColor: '#d7373f',
+              color: '#ffffff',
+              fontSize: '14px',
+              fontWeight: 600,
+              cursor: (!reason.trim() || submitting) ? 'not-allowed' : 'pointer',
+              opacity: (!reason.trim() || submitting) ? 0.6 : 1,
+            }}
           >
             {submitting ? 'Flagging...' : 'Flag Invoice'}
-          </Button>
-        </Dialog>
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -1,9 +1,4 @@
 import React from 'react';
-import { Button } from '@swc-react/button';
-import { Card } from '@swc-react/card';
-import { Picker } from '@swc-react/picker';
-import { MenuItem } from '@swc-react/menu';
-import '@spectrum-web-components/menu/sp-menu-item.js';
 import { FormField } from '../../components/shared/FormField';
 import { Vendor, InvoiceStatus } from '../../types';
 
@@ -40,7 +35,7 @@ export const InvoiceFilters: React.FC<InvoiceFiltersProps> = ({
   hasActiveFilters,
 }) => {
   return (
-    <Card
+    <div
       className="invoices-filters-card"
       aria-label="Invoice Filters"
       role="search"
@@ -71,31 +66,21 @@ export const InvoiceFilters: React.FC<InvoiceFiltersProps> = ({
         htmlFor="invoice-status-filter"
         className="invoice-filter-select-group"
       >
-        <Picker
+        <select
           id="invoice-status-filter"
           data-testid="invoice-status-filter"
           className="invoice-filter-select"
           value={status}
-          change={(e: any) => onStatusChange(e.target?.value !== undefined ? e.target.value : (e.target as any)?.value)}
-          ref={(node: any) => {
-            if (node && !node.__hasChangeListener) {
-              node.__hasChangeListener = true;
-              node.addEventListener('change', (e: any) => {
-                const val = e.target?.value !== undefined ? e.target.value : (node.value || '');
-                onStatusChange(val);
-              });
-            }
-          }}
+          onChange={(e) => onStatusChange(e.target.value)}
           aria-label="Filter by invoice status"
-          label="Status"
         >
-          <MenuItem value="all">All Statuses</MenuItem>
+          <option value="all">All Statuses</option>
           {INVOICE_STATUSES.map((st) => (
-            <MenuItem key={st} value={st}>
+            <option key={st} value={st}>
               {st}
-            </MenuItem>
+            </option>
           ))}
-        </Picker>
+        </select>
       </FormField>
 
       {/* Vendor Filter Dropdown */}
@@ -104,45 +89,47 @@ export const InvoiceFilters: React.FC<InvoiceFiltersProps> = ({
         htmlFor="invoice-vendor-filter"
         className="invoice-filter-select-group"
       >
-        <Picker
+        <select
           id="invoice-vendor-filter"
           data-testid="invoice-vendor-filter"
           className="invoice-filter-select"
           value={vendorId}
-          change={(e: any) => onVendorChange(e.target?.value !== undefined ? e.target.value : (e.target as any)?.value)}
-          ref={(node: any) => {
-            if (node && !node.__hasChangeListener) {
-              node.__hasChangeListener = true;
-              node.addEventListener('change', (e: any) => {
-                const val = e.target?.value !== undefined ? e.target.value : (node.value || '');
-                onVendorChange(val);
-              });
-            }
-          }}
+          onChange={(e) => onVendorChange(e.target.value)}
           aria-label="Filter by vendor"
-          label="Vendor"
         >
-          <MenuItem value="all">All Vendors</MenuItem>
+          <option value="all">All Vendors</option>
           {vendors.map((v) => (
-            <MenuItem key={v.id} value={v.id}>
+            <option key={v.id} value={v.id}>
               {v.name}
-            </MenuItem>
+            </option>
           ))}
-        </Picker>
+        </select>
       </FormField>
 
       {/* Clear Filters Button */}
       <div className="invoice-clear-filters-btn">
-        <Button
-          variant="secondary"
+        <button
+          type="button"
           data-testid="clear-filters-button"
           onClick={onClearFilters}
           disabled={!hasActiveFilters}
           aria-label="Clear all applied filters"
+          style={{
+            padding: '8px 16px',
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'inherit',
+            borderRadius: '4px',
+            border: '1px solid var(--spectrum-global-color-gray-300, #e1e1e1)',
+            backgroundColor: !hasActiveFilters ? 'var(--spectrum-global-color-gray-100, #f4f4f4)' : 'var(--spectrum-global-color-gray-50, #ffffff)',
+            color: !hasActiveFilters ? 'var(--spectrum-global-color-gray-400, #a0a0a0)' : 'var(--spectrum-global-color-gray-800, #4b4b4b)',
+            cursor: !hasActiveFilters ? 'not-allowed' : 'pointer',
+            transition: 'background-color 0.15s ease',
+          }}
         >
           Clear Filters
-        </Button>
+        </button>
       </div>
-    </Card>
+    </div>
   );
 };

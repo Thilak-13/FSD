@@ -2,7 +2,9 @@
 import React from 'react';
 import { RouteObject, Navigate, useRoutes } from 'react-router-dom';
 import { RouteGuard } from '../components/shared/RouteGuard';
+import { useAuth } from '../context/AuthContext';
 import { LoginPage } from '../pages/Login/LoginPage';
+import { LandingPage } from '../pages/Landing/LandingPage';
 import { DashboardPage } from '../pages/Dashboard/DashboardPage';
 import { InvoicesPage } from '../pages/Invoices/InvoicesPage';
 import { InvoiceDetailPage } from '../pages/InvoiceDetail/InvoiceDetailPage';
@@ -15,6 +17,7 @@ import { AuditLogPage } from '../pages/AuditLog/AuditLogPage';
 
 // Placeholder components until dedicated page implementations (Tasks 5-11) are attached
 export const LoginPlaceholder: React.FC = LoginPage;
+export const LandingPlaceholder: React.FC = LandingPage;
 export const DashboardPlaceholder: React.FC = DashboardPage;
 export const InvoicesPlaceholder: React.FC = InvoicesPage;
 export const InvoiceDetailPlaceholder: React.FC = InvoiceDetailPage;
@@ -25,18 +28,43 @@ export const VendorDetailPlaceholder: React.FC = VendorDetailPage;
 export const ReportsPlaceholder: React.FC = ReportsPage;
 export const AuditLogPlaceholder: React.FC = AuditLogPage;
 
+export { LandingPage };
+
+/**
+ * RootRoute Component:
+ * - When an unauthenticated visitor accesses '/', renders LandingPage (which includes the embedded login interface).
+ * - When an authenticated visitor accesses '/', renders DashboardPage wrapped with RouteGuard.
+ */
+export const RootRoute: React.FC = () => {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return null;
+  }
+
+  if (!isAuthenticated) {
+    return <LandingPage />;
+  }
+
+  return (
+    <RouteGuard>
+      <DashboardPage />
+    </RouteGuard>
+  );
+};
+
 export const routeConfig: RouteObject[] = [
   {
     path: '/login',
     element: <LoginPage />,
   },
   {
+    path: '/landing',
+    element: <LandingPage />,
+  },
+  {
     path: '/',
-    element: (
-      <RouteGuard>
-        <DashboardPage />
-      </RouteGuard>
-    ),
+    element: <RootRoute />,
   },
   {
     path: '/invoices',
@@ -98,7 +126,7 @@ export const routeConfig: RouteObject[] = [
     path: '/audit-log',
     element: (
       <RouteGuard allowedRoles={['Admin']}>
-        <AuditLogPlaceholder />
+        <AuditLogPage />
       </RouteGuard>
     ),
   },
