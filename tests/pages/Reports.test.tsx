@@ -100,23 +100,33 @@ describe('ReportsPage', () => {
       });
     });
 
-    it('triggers stubbed PDF export with console log and notification toast', async () => {
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    it('opens the browser print dialog for PDF export once report data has loaded', async () => {
+      const printSpy = vi.spyOn(window, 'print').mockImplementation(() => {});
       renderReportsPage('Approver');
 
       await waitFor(() => {
-        expect(screen.getByTestId('export-pdf-btn')).toBeDefined();
+        expect(screen.getByText('Apex Cloud Services')).toBeDefined();
       });
 
-      const pdfBtn = screen.getByTestId('export-pdf-btn');
-      fireEvent.click(pdfBtn);
+      fireEvent.click(screen.getByTestId('export-pdf-btn'));
+
+      expect(printSpy).toHaveBeenCalledTimes(1);
+      expect(screen.getByText(/Save as PDF/i)).toBeDefined();
+      expect(screen.getByTestId('reports-print-meta').textContent).toContain('All Time');
+    });
+
+    it('does not print while there are no report rows', async () => {
+      const printSpy = vi.spyOn(window, 'print').mockImplementation(() => {});
+      vi.spyOn(dataApi, 'getVendorBreakdown').mockResolvedValueOnce([]);
+      renderReportsPage('Approver');
 
       await waitFor(() => {
-        expect(consoleSpy).toHaveBeenCalledWith(
-          expect.stringContaining('[PDF Export Stub]')
-        );
-        expect(screen.getByText(/PDF report generation initiated/i)).toBeDefined();
+        expect(screen.getByTestId('report-metric-total-billed').textContent).toMatch(/₹/);
       });
+      fireEvent.click(screen.getByTestId('export-pdf-btn'));
+
+      expect(printSpy).not.toHaveBeenCalled();
+      expect(screen.getByText(/Nothing to export yet/i)).toBeDefined();
     });
   });
 

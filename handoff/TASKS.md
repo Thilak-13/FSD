@@ -90,10 +90,14 @@ Deduplicated master task list for project stabilization and feature completion.
 
 ### Priority 2: Polish & Code Hygiene
 
-11. [ ] **[P2] [CC] Implement PDF Export for Reports**
+11. [x] ✅ **[P2] [CC] Implement PDF Export for Reports**
     - **Files**: `src/pages/Reports/ExportButtons.tsx:68-80`
     - **Problem**: "Export PDF (Stub)" button only logs to console and displays a toast without generating a file.
     - **Fix**: Implement printable PDF generation using browser print stylesheets or a client-side PDF export utility.
+    - **Done**: "Export PDF" calls `window.print()`, and the toast tells the user to pick "Save as PDF". The `@media print` block in `reports.css` prints only the report (A4 landscape): app shell, filter/export controls, toast and error banner are hidden. A print-only line shows the period and generation date. The button does nothing (with a toast) until report rows have loaded.
+    - **Decision (made unattended)**: Browser print-to-PDF instead of a library, because no PDF library is in `package.json` and adding one wasn't needed for the demo. Marked in code as `shortcut:`. Switch to a client-side PDF library if one-click file download is required.
+    - **Not auto-verified**: jsdom can't render print CSS, so the printed layout was not checked automatically. Tests cover only the button logic.
+    - **How to test manually**: `npm start`, log in as Admin or Approver, open Reports, and pick a date range. Click "Export PDF", choose "Save as PDF" in the print dialog, and check the preview. It should show only the title, the "Period: … · Generated …" line, the four metric cards and the vendor table, with no sidebar, top bar or buttons. Save it and open the PDF.
 
 12. [x] **[P2] [AG] Return 400 Bad Request on Invalid `vendorId` in Invoice Creation**
     - **Files**: `backend/src/controllers/invoiceController.js:237`, `src/types/index.ts:134`

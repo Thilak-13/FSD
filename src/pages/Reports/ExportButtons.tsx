@@ -64,9 +64,15 @@ export const ExportButtons: React.FC<ExportButtonsProps> = ({ rows, onNotify }) 
     onNotify('CSV export downloaded successfully.');
   };
 
+  // shortcut: relies on the browser's "Save as PDF" print destination (print styles in reports.css);
+  // switch to a client-side PDF library if a one-click file download is required.
   const handleExportPDF = () => {
-    console.log('[PDF Export Stub] Generating PDF financial report with current filters...');
-    onNotify('PDF report generation initiated. Preparing formatted statement...');
+    if (rows.length === 0) {
+      onNotify('Nothing to export yet. Wait for the report to load.');
+      return;
+    }
+    onNotify('Choose "Save as PDF" in the print dialog to download the report.');
+    window.print();
   };
 
   return (
@@ -85,7 +91,7 @@ export const ExportButtons: React.FC<ExportButtonsProps> = ({ rows, onNotify }) 
         data-testid="export-pdf-btn"
         onClick={handleExportPDF}
       >
-        Export PDF (Stub)
+        Export PDF
       </button>
     </div>
   );

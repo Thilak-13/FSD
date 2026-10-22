@@ -20,7 +20,15 @@ export const getRangeStart = (range: string, today: Date = new Date()): string |
   return undefined;
 };
 
-export const formatCurrency = (amt: number) =>
+// Mirrors the DateRangeFilter options; used in the printed (PDF) report header.
+const RANGE_LABELS: Record<string, string> = {
+  all: 'All Time',
+  '30d': 'Last 30 Days',
+  quarter: 'Last Quarter',
+  ytd: 'Year to Date',
+};
+
+export const formatCurrency =(amt: number) =>
   `₹${amt.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export const ReportsPage: React.FC = () => {
@@ -97,6 +105,10 @@ export const ReportsPage: React.FC = () => {
           <h1 className="reports-title">Financial Reports & Spend Analytics</h1>
           <p className="reports-subtitle">
             Comprehensive spend analysis, cycle times, and vendor disbursement reporting
+          </p>
+          <p className="reports-print-meta" data-testid="reports-print-meta">
+            Period: {RANGE_LABELS[dateRange] || dateRange} · Generated{' '}
+            {new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
           </p>
         </div>
       </div>
