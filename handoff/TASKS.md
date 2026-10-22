@@ -29,11 +29,14 @@ Deduplicated master task list for project stabilization and feature completion.
      4. Try a `.txt` file or a file over 10 MB in the dialog: an inline error appears and the file is not attached.
      5. Seeded invoices list a document name but have no file on disk, so their panel shows "The document file is not available on the server." This is expected.
 
-3. [ ] **[P0] [CC] Connect Reports Page to Backend Analytics API**
+3. [x] ✅ **[P0] [CC] Connect Reports Page to Backend Analytics API**
    - **Files**: `src/pages/Reports/ReportsPage.tsx:21-65`, `src/services/api/reports.ts:35-50`, `src/context/DataContext.tsx:120`, `backend/src/controllers/reportsController.js:14,82`
    - **Problem**: `ReportsPage` bypasses backend `/api/reports/summary` and `/api/reports/vendor-breakdown` endpoints, calculating metrics client-side with a hardcoded reference date `'2026-09-15'`.
    - **Fix**: Refactor `ReportsPage` to consume `reportsSummary` and `vendorBreakdown` from `DataContext`/API, and dynamically pass user-selected date ranges instead of hardcoded date math.
    - **Notes**: `src/context/DataContext.tsx` was updated during Task 10 to safely export the `useDataContext()` hook.
+   - **Done**: `ReportsPage` now calls `dataApi.getReportsSummary(from)` and `dataApi.getVendorBreakdown(from)` (real API or mock, per `VITE_API_MODE`) and re-fetches when the range changes. `from` is computed from today's date (`getRangeStart`): 30 days, 90 days, or 1 Jan. There are no client-side totals and no hardcoded date. Metric cards show `—` while loading, and a red banner with a Retry button appears on failure. Amounts are `₹` / `en-IN`.
+   - **Decisions (made unattended)**: The page fetches directly instead of going through `DataContext`, because the context only holds an all-time summary with no range parameter. The page no longer needs a `DataProvider`, so the old "fallback without DataContext" test was replaced. "Active Vendors" now counts vendors with status `Active` instead of all vendors, matching its label.
+   - **How to test manually**: `npm start`, log in as an Admin or Approver, open Reports. The totals and vendor table load from `/api/reports/*` (visible in the browser Network tab). Switch Date Range to "Last 30 Days" and both requests repeat with `?from=YYYY-MM-DD`, and the numbers change. Stop the backend and switch the range: the error banner appears. Restart the backend, click Retry, and the data comes back.
 
 ---
 

@@ -2,7 +2,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
-import { ReportsPage } from '../../src/pages/Reports/ReportsPage';
+import { ReportsPage, getRangeStart } from '../../src/pages/Reports/ReportsPage';
+import { dataApi } from '../../src/services/dataSource';
 import { AuthProvider } from '../../src/context/AuthContext';
 import { DataProvider } from '../../src/context/DataContext';
 import { AppRoutes } from '../../src/app/routes';
@@ -137,16 +138,55 @@ describe('ReportsPage', () => {
       });
     });
 
-    it('renders fallback when DataContext is not provided', () => {
-      render(
-        <MemoryRouter>
-          <AuthProvider initialRole="Admin">
-            <ReportsPage />
-          </AuthProvider>
-        </MemoryRouter>
-      );
+  });
 
-      expect(screen.getByTestId('page-reports')).toBeDefined();
+  describe('Backend analytics API', () => {
+    it('loads summary and breakdown from the reports API with the selected range', async () => {
+      const summarySpy = vi.spyOn(dataApi, 'getReportsSummary');
+      const breakdownSpy = vi.spyOn(dataApi, 'getVendorBreakdown');
+      renderReportsPage('Admin');
+
+      await waitFor(() => {
+        expect(screen.getByTestId('report-metric-total-billed').textContent).toMatch(/₹[\d,]+\.\d{2}/);
+      });
+      expect(summarySpy).toHaveBeenCalledWith(undefined);
+      expect(breakdownSpy).toHaveBeenCalledWith(undefined);
+
+      fireEvent.change(screen.getByTestId('date-range-filter-select'), { target: { value: '30d' } });
+      await waitFor(() => {
+        expect(summarySpy).toHaveBeenLastCalledWith(getRangeStart('30d'));
+        expect(breakdownSpy).toHaveBeenLastCalledWith(getRangeStart('30d'));
+      });
+    });
+
+    it('shows an error banner and retries successfully', async () => {
+      vi
+        .spyOn(dataApi, 'getReportsSummary')
+        .mockRejectedValueOnce(new Error('Service unavailable'));
+      renderReportsPage('Admin');
+
+      await waitFor(() => {
+        expect(screen.getByTestId('reports-error').textContent).toContain('Service unavailable');
+      });
+      expect(screen.getByTestId('report-metric-total-billed').textContent).toContain('—');
+
+      fireEvent.click(screen.getByTestId('reports-retry-btn'));
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('reports-error')).toBeNull();
+        expect(screen.getByTestId('report-metric-total-billed').textContent).toMatch(/₹/);
+      });
+    });
+  });
+
+  describe('getRangeStart', () => {
+    const today = new Date(2026, 9, 22); // 22 Oct 2026, local time
+
+    it('maps each range to a from-date relative to today', () => {
+      expect(getRangeStart('all', today)).toBeUndefined();
+      expect(getRangeStart('30d', today)).toBe('2026-09-22');
+      expect(getRangeStart('quarter', today)).toBe('2026-07-24');
+      expect(getRangeStart('ytd', today)).toBe('2026-01-01');
     });
   });
 });

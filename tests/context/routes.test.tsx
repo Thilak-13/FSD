@@ -289,7 +289,7 @@ describe('AppRoutes', () => {
         </MemoryRouter>
       );
 
-      expect(screen.getByTestId('page-reports')).toBeDefined();
+      expect(screen.getByTestId('reports-page-view')).toBeDefined();
       unmount();
 
       render(
@@ -300,7 +300,7 @@ describe('AppRoutes', () => {
         </MemoryRouter>
       );
 
-      expect(screen.getByTestId('page-reports')).toBeDefined();
+      expect(screen.getByTestId('reports-page-view')).toBeDefined();
     });
 
     it('redirects unauthorized Requester and Approver away from /audit-log to /', () => {
