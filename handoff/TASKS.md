@@ -17,10 +17,17 @@ Deduplicated master task list for project stabilization and feature completion.
    - **Problem**: Inconsistent currency symbols between backend verification messages (`₹`), test assertions (`$`), and frontend locale formatting.
    - **Fix**: Standardize on Indian Rupee (`₹` / `en-IN` locale) everywhere across verificationService, seed data, backend tests, and frontend components.
 
-2. [ ] **[P0] [CC] Implement End-to-End Invoice Document Upload and Attachment Viewing**
+2. [x] ✅ **[P0] [CC] Implement End-to-End Invoice Document Upload and Attachment Viewing**
    - **Files**: `src/pages/Invoices/InvoiceFormDialog.tsx:214-222,271`, `src/pages/InvoiceDetail/DocumentViewerStub.tsx:41-43,75`, `src/services/api/invoices.ts:71,82`, `backend/src/routes/invoices.routes.js:10,21`
    - **Problem**: Document upload in invoice dialog saves only the filename string and discards binary data, while document viewer renders wireframe CSS and logs downloads to console.
    - **Fix**: Wire `InvoiceFormDialog` to send the `File` object via `uploadInvoiceAttachment` API, and replace `DocumentViewerStub` with real document fetching via `downloadInvoiceAttachment` with PDF/image preview.
+   - **Done**: Files are stored on local disk (`backend/uploads/`, gitignored) through the existing Multer route. Server accepts only PDF/PNG/JPEG (MIME type **and** extension), max 10 MB, and returns a 400 `{ error }` otherwise; the dialog runs the same checks before submit. The dialog creates the invoice, then uploads the file. `DocumentViewerStub` fetches the file and shows a PDF (iframe) or image preview with a real Download button. In `VITE_API_MODE=mock` only the file name is kept (no file store).
+   - **How to test it manually**:
+     1. `npm start`, log in as `jordan.lee@apex.corp` / `DemoPassword!2026` (or any demo persona).
+     2. Invoices → New Invoice → fill vendor, due date, one line item → Choose File → pick a PDF or PNG under 10 MB → Submit.
+     3. Open the new invoice: the Attached Document panel shows the file name, real size, and a PDF/image preview. Click Download and the original file is saved.
+     4. Try a `.txt` file or a file over 10 MB in the dialog: an inline error appears and the file is not attached.
+     5. Seeded invoices list a document name but have no file on disk, so their panel shows "The document file is not available on the server." This is expected.
 
 3. [ ] **[P0] [CC] Connect Reports Page to Backend Analytics API**
    - **Files**: `src/pages/Reports/ReportsPage.tsx:21-65`, `src/services/api/reports.ts:35-50`, `src/context/DataContext.tsx:120`, `backend/src/controllers/reportsController.js:14,82`

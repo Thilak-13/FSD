@@ -9,6 +9,16 @@ import { AuthProvider } from '../../src/context/AuthContext';
 import { DataProvider } from '../../src/context/DataContext';
 import { dataApi } from '../../src/services/dataSource';
 import { setMockDelayEnabled, resetInvoices, INITIAL_INVOICES } from '../../src/services/mockApi';
+import { DocumentViewerStub } from '../../src/pages/InvoiceDetail/DocumentViewerStub';
+import { downloadInvoiceAttachment } from '../../src/services/api/invoices';
+
+// Only the attachment download is stubbed; the rest of the real-API module stays intact.
+vi.mock('../../src/services/api/invoices', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../src/services/api/invoices')>()),
+  downloadInvoiceAttachment: vi.fn(() =>
+    Promise.reject(Object.assign(new Error('Not found'), { status: 404 }))
+  ),
+}));
 
 // Helper component to track navigation destination
 const LocationDisplay: React.FC = () => {
@@ -229,60 +239,72 @@ describe('InvoiceDetailPage', () => {
   });
 
   describe('DocumentViewerStub', () => {
-    it('renders attached document details: filename, file size, format and preview mockup', async () => {
-      renderInvoiceDetailPage('inv-1', 'Admin');
+    const invoice = INITIAL_INVOICES[0]; // attachedDocumentName: INV-2026-001_Apex.pdf
+    const mockDownload = vi.mocked(downloadInvoiceAttachment);
 
-      await waitFor(() => {
-        expect(screen.getByTestId('document-viewer-stub')).toBeDefined();
-      });
-
-      expect(screen.getByTestId('document-filename').textContent).toBe('INV-2026-001_Apex.pdf');
-      expect(screen.getByTestId('document-size').textContent).toBe('1.4 MB');
-      expect(screen.getByTestId('document-mock-sheet')).toBeDefined();
+    beforeEach(() => {
+      URL.createObjectURL = vi.fn(() => 'blob:mock-url');
+      URL.revokeObjectURL = vi.fn();
+      mockDownload.mockClear();
     });
 
-    it('handles document zoom in, zoom out, and reset zoom controls', async () => {
-      renderInvoiceDetailPage('inv-1', 'Admin');
-
-      await waitFor(() => {
-        expect(screen.getByTestId('zoom-display')).toBeDefined();
-      });
-
-      expect(screen.getByTestId('zoom-display').textContent).toBe('100%');
-
-      // Zoom In
-      const zoomInBtn = screen.getByTestId('zoom-in-btn');
-      fireEvent.click(zoomInBtn);
-      expect(screen.getByTestId('zoom-display').textContent).toBe('125%');
-
-      // Reset Zoom button appears
-      const resetBtn = screen.getByTestId('zoom-reset-btn');
-      fireEvent.click(resetBtn);
-      expect(screen.getByTestId('zoom-display').textContent).toBe('100%');
-
-      // Zoom Out
-      const zoomOutBtn = screen.getByTestId('zoom-out-btn');
-      fireEvent.click(zoomOutBtn);
-      expect(screen.getByTestId('zoom-display').textContent).toBe('75%');
-    });
-
-    it('triggers download button with console log and notification toast', async () => {
-      const consoleSpy = vi.spyOn(console, 'log');
-      renderInvoiceDetailPage('inv-1', 'Admin');
-
-      await waitFor(() => {
-        expect(screen.getByTestId('download-document-btn')).toBeDefined();
-      });
-
-      const downloadBtn = screen.getByTestId('download-document-btn');
-      fireEvent.click(downloadBtn);
-
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Downloading attached document: INV-2026-001_Apex.pdf')
+    it('fetches the attachment and renders a PDF preview with name and size', async () => {
+      mockDownload.mockResolvedValueOnce(
+        new Blob([new Uint8Array(1024 * 1024)], { type: 'application/pdf' })
       );
+      render(<DocumentViewerStub invoice={invoice} />);
 
-      expect(screen.getByTestId('invoice-detail-toast')).toBeDefined();
-      expect(screen.getByText(/Downloading INV-2026-001_Apex.pdf.../i)).toBeDefined();
+      await waitFor(() => {
+        expect(screen.getByTestId('document-pdf-preview')).toBeDefined();
+      });
+
+      expect(mockDownload).toHaveBeenCalledWith(invoice.id);
+      expect(screen.getByTestId('document-filename').textContent).toBe('INV-2026-001_Apex.pdf');
+      expect(screen.getByTestId('document-size').textContent).toBe('1.0 MB');
+      expect(screen.getByTestId('document-pdf-preview').getAttribute('src')).toBe('blob:mock-url');
+    });
+
+    it('renders an image preview for image attachments', async () => {
+      mockDownload.mockResolvedValueOnce(new Blob(['png'], { type: 'image/png' }));
+      render(<DocumentViewerStub invoice={{ ...invoice, attachedDocumentName: 'scan.png' }} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('document-image-preview')).toBeDefined();
+      });
+    });
+
+    it('shows an error when the file is missing on the server', async () => {
+      mockDownload.mockRejectedValueOnce(Object.assign(new Error('Not found'), { status: 404 }));
+      render(<DocumentViewerStub invoice={invoice} />);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('document-error').textContent).toMatch(/not available/i);
+      });
+      expect((screen.getByTestId('download-document-btn') as HTMLButtonElement).disabled).toBe(true);
+    });
+
+    it('shows an empty state and does not fetch when nothing is attached', () => {
+      render(<DocumentViewerStub invoice={{ ...invoice, attachedDocumentName: undefined }} />);
+
+      expect(screen.getByTestId('document-empty')).toBeDefined();
+      expect(screen.queryByTestId('download-document-btn')).toBeNull();
+      expect(mockDownload).not.toHaveBeenCalled();
+    });
+
+    it('downloads the fetched file and reports it through onNotice', async () => {
+      mockDownload.mockResolvedValueOnce(new Blob(['pdf'], { type: 'application/pdf' }));
+      const onNotice = vi.fn();
+      const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+      render(<DocumentViewerStub invoice={invoice} onNotice={onNotice} />);
+
+      await waitFor(() => {
+        expect((screen.getByTestId('download-document-btn') as HTMLButtonElement).disabled).toBe(false);
+      });
+      fireEvent.click(screen.getByTestId('download-document-btn'));
+
+      expect(clickSpy).toHaveBeenCalled();
+      expect(onNotice).toHaveBeenCalledWith('Downloading INV-2026-001_Apex.pdf...');
+      clickSpy.mockRestore();
     });
   });
 

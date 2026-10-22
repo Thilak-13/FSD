@@ -4,6 +4,23 @@ import { FormField } from '../../components/shared/FormField';
 import { useData } from '../../context/DataContext';
 import { useAuth } from '../../context/AuthContext';
 import { Invoice, NewInvoiceInput } from '../../types';
+import { uploadInvoiceAttachment } from '../../services/api/invoices';
+
+// Mirrors backend/src/middleware/upload.js so users get feedback before submitting.
+const ALLOWED_ATTACHMENT_EXTENSIONS = ['.pdf', '.png', '.jpg', '.jpeg'];
+const MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024;
+const IS_MOCK_API = (import.meta as Record<string, any>).env?.VITE_API_MODE === 'mock';
+
+export const validateAttachment = (file: File): string | undefined => {
+  const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
+  if (!ALLOWED_ATTACHMENT_EXTENSIONS.includes(ext)) {
+    return 'Only PDF, PNG, and JPG files are allowed.';
+  }
+  if (file.size > MAX_ATTACHMENT_BYTES) {
+    return 'File too large. Maximum size is 10 MB.';
+  }
+  return undefined;
+};
 
 export interface InvoiceFormDialogProps {
   open: boolean;
@@ -31,8 +48,7 @@ export const InvoiceFormDialog: React.FC<InvoiceFormDialogProps> = ({
   const [invoiceNumber, setInvoiceNumber] = useState<string>('');
   const [dueDate, setDueDate] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
-  const [attachedFileName, setAttachedFileName] = useState<string>('');
-  const [attachedFileSize, setAttachedFileSize] = useState<string>('');
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const [lineItems, setLineItems] = useState<LineItemFormState[]>([
@@ -49,6 +65,7 @@ export const InvoiceFormDialog: React.FC<InvoiceFormDialogProps> = ({
     invoiceNumber?: string;
     dueDate?: string;
     lineItems?: string;
+    attachment?: string;
     submit?: string;
   }>({});
 
@@ -87,8 +104,7 @@ export const InvoiceFormDialog: React.FC<InvoiceFormDialogProps> = ({
       setInvoiceNumber('');
       setDueDate('');
       setNotes('');
-      setAttachedFileName('');
-      setAttachedFileSize('');
+      setAttachedFile(null);
       setLineItems([
         {
           id: `item-${Date.now()}-1`,
@@ -210,20 +226,20 @@ export const InvoiceFormDialog: React.FC<InvoiceFormDialogProps> = ({
     }
   };
 
-  // File attachment simulation
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setAttachedFileName(file.name);
-      // Format file size
-      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
-      setAttachedFileSize(file.size > 0 ? `${sizeMb} MB` : '1.2 MB');
+    if (!file) return;
+    const attachmentError = validateAttachment(file);
+    setErrors((prev) => ({ ...prev, attachment: attachmentError }));
+    if (attachmentError) {
+      e.target.value = '';
+      return;
     }
+    setAttachedFile(file);
   };
 
   const handleRemoveFile = () => {
-    setAttachedFileName('');
-    setAttachedFileSize('');
+    setAttachedFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -268,7 +284,7 @@ export const InvoiceFormDialog: React.FC<InvoiceFormDialogProps> = ({
         amount: aggregateAmount,
         dueDate,
         submittedBy: currentUser?.id || '',
-        attachedDocumentName: attachedFileName || undefined,
+        attachedDocumentName: attachedFile?.name,
         notes: notes.trim() || undefined,
         items: lineItems.map((item) => {
           const q = Number(item.quantity);
@@ -285,8 +301,25 @@ export const InvoiceFormDialog: React.FC<InvoiceFormDialogProps> = ({
       };
 
       const created = await createInvoice(invoiceData);
+      let saved = created;
+      // shortcut: mock mode has no file store, so only the name is kept there.
+      if (attachedFile && !IS_MOCK_API) {
+        try {
+          saved = await uploadInvoiceAttachment(created.id, attachedFile);
+        } catch (uploadErr: any) {
+          // The invoice exists already; keep the dialog open so the failure is seen, not resubmitted.
+          onSuccess?.(created);
+          setErrors((prev) => ({
+            ...prev,
+            submit: `Invoice ${created.invoiceNumber} was created, but the document failed to upload: ${
+              uploadErr.message || 'unknown error'
+            }. You can close this dialog.`,
+          }));
+          return;
+        }
+      }
       if (onSuccess) {
-        onSuccess(created);
+        onSuccess(saved);
       }
       onClose();
     } catch (err: any) {
@@ -621,11 +654,13 @@ export const InvoiceFormDialog: React.FC<InvoiceFormDialogProps> = ({
             </div>
           </section>
 
-          {/* Document Attachment Stub */}
+          {/* Document Attachment */}
           <section className="attachment-section" aria-label="Document Attachment">
             <FormField
               label="Supporting Document (PDF, PNG, JPG)"
               htmlFor="invoice-file-input"
+              hint="Max 10 MB"
+              error={errors.attachment}
             >
               <input
                 ref={fileInputRef}
@@ -638,7 +673,7 @@ export const InvoiceFormDialog: React.FC<InvoiceFormDialogProps> = ({
                 aria-label="Upload supporting document"
               />
 
-              {attachedFileName ? (
+              {attachedFile ? (
                 <div
                   className="attachment-badge-pill"
                   data-testid="attachment-badge"
@@ -657,7 +692,7 @@ export const InvoiceFormDialog: React.FC<InvoiceFormDialogProps> = ({
                     />
                   </svg>
                   <span data-testid="attachment-name">
-                    {attachedFileName} ({attachedFileSize || '1.2 MB'})
+                    {attachedFile.name} ({(attachedFile.size / (1024 * 1024)).toFixed(1)} MB)
                   </span>
                   <button
                     type="button"

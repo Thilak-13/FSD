@@ -1,6 +1,7 @@
 // src/pages/InvoiceDetail/DocumentViewerStub.tsx
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Invoice } from '../../types';
+import { downloadInvoiceAttachment } from '../../services/api/invoices';
 
 export interface DocumentViewerStubProps {
   invoice: Invoice;
@@ -8,38 +9,54 @@ export interface DocumentViewerStubProps {
   className?: string;
 }
 
+type LoadState =
+  | { status: 'loading' }
+  | { status: 'error'; message: string }
+  | { status: 'ready'; url: string; type: string; size: number };
+
 export const DocumentViewerStub: React.FC<DocumentViewerStubProps> = ({
   invoice,
   onNotice,
   className,
 }) => {
-  const [zoomLevel, setZoomLevel] = useState<number>(100);
+  const documentName = invoice.attachedDocumentName;
+  const [state, setState] = useState<LoadState>({ status: 'loading' });
 
-  const documentName = invoice.attachedDocumentName || `${invoice.invoiceNumber || 'INV'}_Document.pdf`;
-  const simulatedSize = '1.4 MB';
+  useEffect(() => {
+    if (!documentName) return;
+    let cancelled = false;
+    let objectUrl: string | undefined;
+    setState({ status: 'loading' });
 
-  const handleZoomIn = () => {
-    const nextZoom = Math.min(zoomLevel + 25, 200);
-    setZoomLevel(nextZoom);
-    console.log(`Document zoom increased to ${nextZoom}%`);
-    onNotice?.(`Document zoom set to ${nextZoom}%`);
-  };
+    downloadInvoiceAttachment(invoice.id)
+      .then((blob) => {
+        if (cancelled) return;
+        objectUrl = URL.createObjectURL(blob);
+        setState({ status: 'ready', url: objectUrl, type: blob.type, size: blob.size });
+      })
+      .catch((err: any) => {
+        if (cancelled) return;
+        setState({
+          status: 'error',
+          message:
+            err?.status === 404
+              ? 'The document file is not available on the server.'
+              : 'Could not load the document.',
+        });
+      });
 
-  const handleZoomOut = () => {
-    const nextZoom = Math.max(zoomLevel - 25, 50);
-    setZoomLevel(nextZoom);
-    console.log(`Document zoom decreased to ${nextZoom}%`);
-    onNotice?.(`Document zoom set to ${nextZoom}%`);
-  };
-
-  const handleResetZoom = () => {
-    setZoomLevel(100);
-    console.log('Document zoom reset to 100%');
-    onNotice?.('Document zoom reset to 100%');
-  };
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [invoice.id, documentName]);
 
   const handleDownload = () => {
-    console.log(`Downloading attached document: ${documentName}`);
+    if (state.status !== 'ready' || !documentName) return;
+    const link = document.createElement('a');
+    link.href = state.url;
+    link.download = documentName;
+    link.click();
     onNotice?.(`Downloading ${documentName}...`);
   };
 
@@ -53,95 +70,53 @@ export const DocumentViewerStub: React.FC<DocumentViewerStubProps> = ({
         <div>
           <h2 className="document-viewer-title">Attached Document</h2>
           <div className="document-viewer-meta">
-            <span data-testid="document-filename">{documentName}</span>
-            <span>•</span>
-            <span data-testid="document-size">{simulatedSize}</span>
-            <span>•</span>
-            <span>PDF</span>
+            <span data-testid="document-filename">{documentName || 'No document attached'}</span>
+            {state.status === 'ready' && (
+              <>
+                <span>•</span>
+                <span data-testid="document-size">
+                  {(state.size / (1024 * 1024)).toFixed(1)} MB
+                </span>
+              </>
+            )}
           </div>
         </div>
-        <button
-          type="button"
-          className="document-viewer-btn"
-          onClick={handleDownload}
-          data-testid="download-document-btn"
-          aria-label={`Download ${documentName}`}
-        >
-          Download PDF
-        </button>
+        {documentName && (
+          <button
+            type="button"
+            className="document-viewer-btn"
+            onClick={handleDownload}
+            disabled={state.status !== 'ready'}
+            data-testid="download-document-btn"
+            aria-label={`Download ${documentName}`}
+          >
+            Download
+          </button>
+        )}
       </div>
 
       <div className="document-viewer-preview" data-testid="document-preview-container">
-        <div
-          className="document-viewer-mock-sheet"
-          data-testid="document-mock-sheet"
-          style={{
-            transform: `scale(${zoomLevel / 100})`,
-            transformOrigin: 'top center',
-          }}
-        >
-          <div className="document-mock-header">
-            <span>INVOICE #{invoice.invoiceNumber}</span>
-            <span>DATE: {invoice.submittedDate}</span>
-          </div>
-
-          <div style={{ margin: '8px 0', fontSize: '12px', color: 'var(--spectrum-global-color-gray-700, #6e6e6e)' }}>
-            <strong>Vendor ID:</strong> {invoice.vendorId}
-            <br />
-            <strong>Total Due:</strong> ₹{invoice.amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-          </div>
-
-          <div className="document-mock-line" style={{ width: '100%' }} />
-          <div className="document-mock-line" style={{ width: '85%' }} />
-          <div className="document-mock-line" style={{ width: '92%' }} />
-          <div className="document-mock-line" style={{ width: '60%' }} />
-
-          <div style={{ marginTop: '16px', fontSize: '10px', textAlign: 'center', color: 'var(--spectrum-global-color-gray-600, #8e8e8e)' }}>
-            Page 1 of 1 • Attached original vendor statement
-          </div>
-        </div>
-      </div>
-
-      <div className="document-viewer-controls">
-        <div className="document-viewer-zoom-controls">
-          <button
-            type="button"
-            className="document-viewer-btn"
-            onClick={handleZoomOut}
-            disabled={zoomLevel <= 50}
-            data-testid="zoom-out-btn"
-            aria-label="Zoom Out"
-          >
-            -
-          </button>
-          <span style={{ fontSize: '12px', fontWeight: 600, minWidth: '45px', textAlign: 'center' }} data-testid="zoom-display">
-            {zoomLevel}%
-          </span>
-          <button
-            type="button"
-            className="document-viewer-btn"
-            onClick={handleZoomIn}
-            disabled={zoomLevel >= 200}
-            data-testid="zoom-in-btn"
-            aria-label="Zoom In"
-          >
-            +
-          </button>
-          {zoomLevel !== 100 && (
-            <button
-              type="button"
-              className="document-viewer-btn"
-              onClick={handleResetZoom}
-              data-testid="zoom-reset-btn"
-            >
-              Reset
-            </button>
-          )}
-        </div>
-
-        <span style={{ fontSize: '12px', color: 'var(--spectrum-global-color-gray-600, #8e8e8e)' }}>
-          Simulated PDF Viewer
-        </span>
+        {!documentName ? (
+          <p data-testid="document-empty">No supporting document was uploaded for this invoice.</p>
+        ) : state.status === 'loading' ? (
+          <p role="status" data-testid="document-loading">Loading document…</p>
+        ) : state.status === 'error' ? (
+          <p role="alert" data-testid="document-error">{state.message}</p>
+        ) : state.type === 'application/pdf' ? (
+          <iframe
+            src={state.url}
+            title={documentName}
+            data-testid="document-pdf-preview"
+            style={{ width: '100%', height: '600px', border: 'none' }}
+          />
+        ) : (
+          <img
+            src={state.url}
+            alt={`Attached document ${documentName}`}
+            data-testid="document-image-preview"
+            style={{ maxWidth: '100%', height: 'auto' }}
+          />
+        )}
       </div>
     </section>
   );

@@ -27,7 +27,10 @@ const fileFilter = (req, file, cb) => {
     'image/jpg',
   ];
 
-  if (allowedMimeTypes.includes(file.mimetype)) {
+  const allowedExtensions = ['.pdf', '.png', '.jpg', '.jpeg'];
+  const ext = path.extname(file.originalname).toLowerCase();
+
+  if (allowedMimeTypes.includes(file.mimetype) && allowedExtensions.includes(ext)) {
     cb(null, true);
   } else {
     const error = new Error(
