@@ -132,7 +132,7 @@ invoiceSchema.virtual('id').get(function () {
  * Returns { migrated, unresolved } counts; unresolved documents are left untouched.
  */
 invoiceSchema.statics.migrateLegacySubmittedBy = async function () {
-  const User = mongoose.model('User');
+  const User = require('./User');
   const legacy = await this.collection
     .find({ submittedBy: { $not: { $type: 'objectId' } } })
     .toArray();

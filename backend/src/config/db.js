@@ -36,6 +36,20 @@ function sanitizeMessage(msg, targetUri) {
 }
 
 /**
+ * Converts legacy Invoice.submittedBy values to User ObjectIds.
+ * Logs and swallows failures so a bad legacy row never blocks server boot.
+ */
+async function migrateLegacyInvoices() {
+  try {
+    const Invoice = require('../models/Invoice');
+    const { migrated, unresolved } = await Invoice.migrateLegacySubmittedBy();
+    console.log(`[MongoDB] submittedBy migration: ${migrated} converted, ${unresolved} unresolved`);
+  } catch (err) {
+    console.error('[MongoDB] submittedBy migration failed:', err.message);
+  }
+}
+
+/**
  * Connect to MongoDB database.
  * Handles existing active connection or in-progress connecting states gracefully.
  * In-memory fallback is strictly opt-in: only when NODE_ENV === 'development' AND USE_MEMORY_DB === 'true'.
@@ -71,6 +85,7 @@ const connectDB = async (uri, options = {}) => {
       ...options,
     });
     isUsingMemoryServer = false;
+    await migrateLegacyInvoices();
     return conn;
   } catch (error) {
     const isDev = (process.env.NODE_ENV || 'development') === 'development';
@@ -94,6 +109,7 @@ const connectDB = async (uri, options = {}) => {
         console.warn('====================================================================');
 
         const conn = await mongoose.connect(memUri);
+        await migrateLegacyInvoices();
         return conn;
       } catch (memErr) {
         console.error('[MongoDB] Failed to start in-memory MongoDB fallback:', memErr.message);
