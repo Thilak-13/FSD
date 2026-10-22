@@ -30,7 +30,7 @@ describe('Layout Components', () => {
           </AuthProvider>
         </MemoryRouter>
       );
-      expect(screen.getByRole('searchbox')).toBeDefined();
+      expect(screen.getByRole('combobox', { name: 'Search' })).toBeDefined();
       expect(screen.getByRole('button', { name: /notifications/i })).toBeDefined();
       expect(screen.getByRole('button', { name: /log out/i })).toBeDefined();
     });
@@ -64,7 +64,7 @@ describe('Layout Components', () => {
         </MemoryRouter>
       );
 
-      const search = container.querySelector('sp-search') || screen.getByRole('searchbox', { hidden: true });
+      const search = container.querySelector('sp-search') || screen.getByRole('combobox', { name: 'Search', hidden: true });
       expect(search).toBeDefined();
     });
 

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { DataContext } from '../../context/DataContext';
 import { NotificationPanel } from './NotificationPanel';
+import { GlobalSearch } from './GlobalSearch';
 
 export interface TopBarProps {
   onToggleSidebar?: () => void;
@@ -25,7 +26,6 @@ export const TopBar: React.FC<TopBarProps> = ({
 
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [localTheme, setLocalTheme] = useState<'light' | 'dark'>(theme);
-  const [searchTerm, setSearchTerm] = useState('');
 
   // Sync prop theme with local state
   useEffect(() => {
@@ -61,17 +61,7 @@ export const TopBar: React.FC<TopBarProps> = ({
           </svg>
         </button>
 
-        <div className="global-search-container">
-          <input
-            type="search"
-            role="searchbox"
-            placeholder="Search invoices, vendors..."
-            aria-label="Search"
-            className="global-search-input"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+        <GlobalSearch />
       </div>
 
       <div className="top-bar-right">

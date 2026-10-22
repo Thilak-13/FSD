@@ -1,6 +1,6 @@
 // src/pages/Invoices/InvoicesPage.tsx
-import React, { useState, useMemo, useContext, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useMemo, useContext, useCallback, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DataTable, Column } from '../../components/shared/DataTable';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { useAuth } from '../../context/AuthContext';
@@ -23,8 +23,13 @@ export const InvoicesPage: React.FC = () => {
 
   const { invoices, vendors, loading } = dataContext;
 
-  // Local filter states
-  const [searchTerm, setSearchTerm] = useState<string>('');
+  // Local filter states; `?search=` comes from the TopBar global search (Enter key)
+  const [searchParams] = useSearchParams();
+  const urlSearch = searchParams.get('search');
+  const [searchTerm, setSearchTerm] = useState<string>(urlSearch || '');
+  useEffect(() => {
+    if (urlSearch !== null) setSearchTerm(urlSearch);
+  }, [urlSearch]);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [vendorFilter, setVendorFilter] = useState<string>('all');
 

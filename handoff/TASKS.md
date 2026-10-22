@@ -73,10 +73,13 @@ Deduplicated master task list for project stabilization and feature completion.
    - **Problem**: `/api/auth/login` lacks request throttling, leaving user credentials vulnerable to brute-force attacks.
    - **Fix**: Add lightweight in-memory rate limiting middleware on `/login` and `/api/auth/login` allowing 10 attempts per 15-minute sliding window per IP.
 
-9. [ ] **[P1] [CC] Implement Global Search Functionality**
+9. [x] ✅ **[P1] [CC] Implement Global Search Functionality**
    - **Files**: `src/components/layout/TopBar.tsx:65-75`, `src/pages/Invoices/InvoicesPage.tsx:35`
    - **Problem**: TopBar search input updates local component state but provides no submit handler, Enter key listener, or navigation to invoices/vendors.
    - **Fix**: Wrap TopBar search in a form that on submit navigates to `/invoices?search=${query}` and sets search filter in table state.
+   - **Done**: New `src/components/layout/GlobalSearch.tsx`, used by `TopBar`. Input is debounced (250 ms, min 2 chars) and searches already-loaded `DataContext` data: invoices by number or vendor name, vendors by name, up to 5 of each. The dropdown is an accessible combobox: ↑/↓ to move, Enter or click to open `/invoices/:id` or `/vendors/:id`, Esc to close. Enter with nothing highlighted goes to `/invoices?search=<q>`, and `InvoicesPage` now seeds its search filter from `?search=`. Tests: `tests/components/GlobalSearch.test.tsx`.
+   - **Decisions (made unattended)**: Search is client-side over data already loaded (no new endpoint). Requester results are scoped to their own invoices, the same as `InvoicesPage`. Input role changed from `searchbox` to `combobox`, and `tests/components/layout.test.tsx` was updated to match.
+   - **How to test manually**: `npm start`, log in. Type `apex` in the top-bar search: after a short pause a dropdown lists matching invoices and the vendor. Click the vendor to open its detail page. Type `INV-2026`, press ↓ then Enter to open that invoice. Type `cloud` and press Enter straight away to land on Invoices with the search box pre-filled and the table filtered.
 
 10. [x] **[P1] [AG] Add Loading Skeleton to Dashboard Page**
     - **Files**: `src/pages/Dashboard/DashboardPage.tsx:24-30`
