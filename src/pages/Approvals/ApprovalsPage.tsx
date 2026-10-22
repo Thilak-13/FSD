@@ -6,6 +6,7 @@ import { StatusBadge } from '../../components/shared/StatusBadge';
 import { ConfirmDialog } from '../../components/shared/ConfirmDialog';
 import { useAuth } from '../../context/AuthContext';
 import { DataContext } from '../../context/DataContext';
+import { ResourceErrorAlert } from '../../components/shared/ResourceErrorAlert';
 import { BatchApprovalBar } from './BatchApprovalBar';
 import { FlagModal } from './FlagModal';
 import { Invoice } from '../../types';
@@ -311,6 +312,11 @@ export const ApprovalsPage: React.FC = () => {
           </span>
         </div>
       </header>
+
+      <ResourceErrorAlert
+        message={dataContext.resourceErrors?.invoices}
+        onRetry={dataContext.refreshAll}
+      />
 
       {/* Queue Metrics Bar */}
       <section

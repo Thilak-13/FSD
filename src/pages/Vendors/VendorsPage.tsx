@@ -5,6 +5,7 @@ import { DataTable, Column } from '../../components/shared/DataTable';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { AuthContext } from '../../context/AuthContext';
 import { DataContext } from '../../context/DataContext';
+import { ResourceErrorAlert } from '../../components/shared/ResourceErrorAlert';
 import { VendorFormDialog } from './VendorFormDialog';
 import { Vendor } from '../../types';
 import './vendors.css';
@@ -172,6 +173,11 @@ export const VendorsPage: React.FC = () => {
           )}
         </div>
       </header>
+
+      <ResourceErrorAlert
+        message={dataContext.resourceErrors?.vendors}
+        onRetry={dataContext.refreshAll}
+      />
 
       {/* Success Notification Banner / Toast */}
       {toastMessage && (

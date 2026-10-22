@@ -6,6 +6,7 @@ import { StatusBadge } from '../../components/shared/StatusBadge';
 import { ConfirmDialog } from '../../components/shared/ConfirmDialog';
 import { FormField } from '../../components/shared/FormField';
 import { DataContext } from '../../context/DataContext';
+import { ResourceErrorAlert } from '../../components/shared/ResourceErrorAlert';
 import { PaymentSummaryStrip } from './PaymentSummaryStrip';
 import { SchedulePaymentModal } from './SchedulePaymentModal';
 import { Invoice } from '../../types';
@@ -316,6 +317,11 @@ export const PaymentsPage: React.FC = () => {
           </p>
         </div>
       </header>
+
+      <ResourceErrorAlert
+        message={dataContext.resourceErrors?.invoices}
+        onRetry={dataContext.refreshAll}
+      />
 
       {/* Summary Strip */}
       <PaymentSummaryStrip invoices={invoices} />

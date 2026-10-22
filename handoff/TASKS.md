@@ -47,11 +47,14 @@ Deduplicated master task list for project stabilization and feature completion.
    - **Problem**: Running `node backend/src/server.js` directly crashes if local MongoDB daemon is absent because `NODE_ENV` defaults to undefined.
    - **Fix**: Set default fallback `NODE_ENV = process.env.NODE_ENV || 'development'` in `backend/src/config/env.js` and auto-enable memory DB fallback in `server.js` for standalone development runs.
 
-5. [ ] **[P1] [CC] Render API Error States and Alerts on Data Pages**
+5. [x] ✅ **[P1] [CC] Render API Error States and Alerts on Data Pages**
    - **Files**: `src/pages/Invoices/InvoicesPage.tsx:23`, `src/pages/Approvals/ApprovalsPage.tsx:28`, `src/pages/Payments/PaymentsPage.tsx:27`, `src/pages/Vendors/VendorsPage.tsx:23`, `src/pages/AuditLog/AuditLogPage.tsx:18`, `src/context/DataContext.tsx:165`
    - **Problem**: Data pages ignore `dataContext.error` and `resourceErrors.*`, silently displaying empty tables when API calls fail without user feedback or retry actions.
    - **Fix**: Add error alert banners and retry triggers to table page components when `resourceErrors[entity]` is present.
    - **Notes**: `src/context/DataContext.tsx` was updated during Task 10 to safely export the `useDataContext()` hook.
+   - **Done**: New shared `src/components/shared/ResourceErrorAlert.tsx` (red `role="alert"` banner + Retry that calls `refreshAll`). Placed under the header of Invoices / Approvals / Payments (`resourceErrors.invoices`), Vendors (`resourceErrors.vendors`), and Audit Log (`resourceErrors.auditLog`). Tests: `tests/pages/ResourceErrors.test.tsx`.
+   - **Decision (made unattended)**: Banners key off `resourceErrors[entity]` only, as specified. The dev "simulate error" toggle sets just the global `error`, so it does not trigger them.
+   - **How to test manually**: `npm start`, log in as Admin, open Invoices. Stop the backend (Ctrl+C on the server process), then click the Retry button on any page or reload the page. A red banner with the API error appears above the table instead of a silently empty table. Restart the backend and click Retry: the banner disappears and the rows load. Repeat on Vendors and Audit Log.
 
 6. [x] ✅ **[P1] [CC] Standardize Invoice `submittedBy` Foreign Key Schema**
    - **Files**: `backend/src/models/Invoice.js:84`, `backend/src/controllers/invoiceController.js:14-49,83-120`, `backend/src/controllers/reportsController.js:40-77`

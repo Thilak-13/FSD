@@ -5,6 +5,7 @@ import { DataTable, Column } from '../../components/shared/DataTable';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { useAuth } from '../../context/AuthContext';
 import { DataContext } from '../../context/DataContext';
+import { ResourceErrorAlert } from '../../components/shared/ResourceErrorAlert';
 import { InvoiceFilters } from './InvoiceFilters';
 import { InvoiceFormDialog } from './InvoiceFormDialog';
 import { Invoice } from '../../types';
@@ -223,6 +224,11 @@ export const InvoicesPage: React.FC = () => {
           </button>
         </div>
       </header>
+
+      <ResourceErrorAlert
+        message={dataContext.resourceErrors?.invoices}
+        onRetry={dataContext.refreshAll}
+      />
 
       {/* Success Notification Banner / Toast */}
       {toastMessage && (

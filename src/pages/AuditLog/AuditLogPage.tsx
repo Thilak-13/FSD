@@ -2,6 +2,7 @@
 import React, { useState, useMemo, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { DataContext } from '../../context/DataContext';
+import { ResourceErrorAlert } from '../../components/shared/ResourceErrorAlert';
 import { DataTable, Column } from '../../components/shared/DataTable';
 import { StatusBadge } from '../../components/shared/StatusBadge';
 import { AuditEntry, StatusLightVariant } from '../../types';
@@ -118,6 +119,11 @@ export const AuditLogPage: React.FC = () => {
           </p>
         </div>
       </div>
+
+      <ResourceErrorAlert
+        message={dataContext.resourceErrors?.auditLog}
+        onRetry={dataContext.refreshAll}
+      />
 
       {/* Controls Bar */}
       <div className="audit-controls-bar">
