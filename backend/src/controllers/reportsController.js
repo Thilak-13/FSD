@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const Invoice = require('../models/Invoice');
 const Vendor = require('../models/Vendor');
-const User = require('../models/User');
 
 const isInvoiceInDateRange = (submittedDate, dueDate, from, to) => {
   const dateStr = submittedDate || dueDate;
@@ -38,64 +37,12 @@ const getReportsSummary = async (req, res) => {
     const { from, to } = req.query;
     const query = {};
     if (req.user && req.user.role === 'Requester') {
-      const matchCriteria = [];
-      if (req.user.id) {
-        if (mongoose.isValidObjectId(req.user.id)) {
-          matchCriteria.push(new mongoose.Types.ObjectId(req.user.id));
-        }
-        matchCriteria.push(String(req.user.id));
-      }
-      if (req.user.email) {
-        matchCriteria.push(req.user.email);
-        matchCriteria.push(req.user.email.toLowerCase());
-      }
-      try {
-        const userObj = await User.findOne({
-          $or: [
-            ...(req.user.id && mongoose.isValidObjectId(req.user.id) ? [{ _id: req.user.id }] : []),
-            ...(req.user.email ? [{ email: req.user.email.toLowerCase() }, { email: req.user.email }] : [])
-          ]
-        }).lean();
-        if (userObj) {
-          matchCriteria.push(userObj._id);
-          matchCriteria.push(userObj._id.toString());
-          if (userObj.email) {
-            matchCriteria.push(userObj.email);
-            matchCriteria.push(userObj.email.toLowerCase());
-          }
-        }
-      } catch (_) {}
-
-      const uniqueCriteria = [];
-      for (const item of matchCriteria) {
-        uniqueCriteria.push(item);
-        if (typeof item === 'string' && mongoose.isValidObjectId(item)) {
-          uniqueCriteria.push(new mongoose.Types.ObjectId(item));
-        }
-      }
-      query.submittedBy = { $in: uniqueCriteria };
+      // An id that cannot be an ObjectId owns nothing; empty $in avoids a CastError.
+      query.submittedBy = { $in: mongoose.isValidObjectId(req.user.id) ? [req.user.id] : [] };
     }
     const allInvoices = await Invoice.find(query).lean();
 
-    let invoicesToProcess = allInvoices;
-    if (req.user && req.user.role === 'Requester') {
-      invoicesToProcess = invoicesToProcess.filter((inv) => {
-        const sId = inv.submittedBy?._id
-          ? inv.submittedBy._id.toString()
-          : inv.submittedBy?.toString
-          ? inv.submittedBy.toString()
-          : String(inv.submittedBy);
-        return (
-          (req.user.id && sId === String(req.user.id)) ||
-          (req.user.email && (
-            sId.toLowerCase() === req.user.email.toLowerCase() ||
-            (inv.submittedBy?.email && inv.submittedBy.email.toLowerCase() === req.user.email.toLowerCase())
-          ))
-        );
-      });
-    }
-
-    const filteredInvoices = invoicesToProcess.filter((inv) =>
+    const filteredInvoices = allInvoices.filter((inv) =>
       isInvoiceInDateRange(inv.submittedDate, inv.dueDate, from, to)
     );
 

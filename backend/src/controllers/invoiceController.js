@@ -3,51 +3,15 @@ const path = require('path');
 const mongoose = require('mongoose');
 const Invoice = require('../models/Invoice');
 const AuditEntry = require('../models/AuditEntry');
-const User = require('../models/User');
 const Vendor = require('../models/Vendor');
 const { verifyInvoice, validateInvoice } = require('../services/verificationService');
 
 /**
- * Checks if a user is the owner of an invoice by matching user ID or email.
+ * Checks if a user is the owner of an invoice (submittedBy is a User ObjectId, possibly populated).
  */
-async function isInvoiceOwner(invoice, user) {
-  if (!invoice || !user) return false;
-  const invSubmittedBy = invoice.submittedBy?._id
-    ? invoice.submittedBy._id.toString()
-    : invoice.submittedBy?.toString
-    ? invoice.submittedBy.toString()
-    : String(invoice.submittedBy);
-
-  if (user.id && String(invSubmittedBy) === String(user.id)) {
-    return true;
-  }
-  if (user.email) {
-    if (String(invSubmittedBy).toLowerCase() === String(user.email).toLowerCase()) {
-      return true;
-    }
-    if (
-      invoice.submittedBy?.email &&
-      String(invoice.submittedBy.email).toLowerCase() === String(user.email).toLowerCase()
-    ) {
-      return true;
-    }
-  }
-
-  if (mongoose.isValidObjectId(invSubmittedBy)) {
-    try {
-      const ownerUser = await User.findById(invSubmittedBy).lean();
-      if (ownerUser) {
-        if (user.email && ownerUser.email?.toLowerCase() === String(user.email).toLowerCase()) {
-          return true;
-        }
-        if (user.id && ownerUser._id?.toString() === String(user.id)) {
-          return true;
-        }
-      }
-    } catch (_) {}
-  }
-
-  return false;
+function isInvoiceOwner(invoice, user) {
+  if (!invoice?.submittedBy || !user?.id) return false;
+  return String(invoice.submittedBy._id ?? invoice.submittedBy) === String(user.id);
 }
 
 /**
@@ -82,42 +46,8 @@ async function getInvoices(req, res, next) {
     const query = {};
 
     if (req.user && req.user.role === 'Requester') {
-      const matchCriteria = [];
-      if (req.user.id) {
-        if (mongoose.isValidObjectId(req.user.id)) {
-          matchCriteria.push(new mongoose.Types.ObjectId(req.user.id));
-        }
-        matchCriteria.push(String(req.user.id));
-      }
-      if (req.user.email) {
-        matchCriteria.push(req.user.email);
-        matchCriteria.push(req.user.email.toLowerCase());
-      }
-      try {
-        const userObj = await User.findOne({
-          $or: [
-            ...(req.user.id && mongoose.isValidObjectId(req.user.id) ? [{ _id: req.user.id }] : []),
-            ...(req.user.email ? [{ email: req.user.email.toLowerCase() }, { email: req.user.email }] : [])
-          ]
-        }).lean();
-        if (userObj) {
-          matchCriteria.push(userObj._id);
-          matchCriteria.push(userObj._id.toString());
-          if (userObj.email) {
-            matchCriteria.push(userObj.email);
-            matchCriteria.push(userObj.email.toLowerCase());
-          }
-        }
-      } catch (_) {}
-
-      const uniqueCriteria = [];
-      for (const item of matchCriteria) {
-        uniqueCriteria.push(item);
-        if (typeof item === 'string' && mongoose.isValidObjectId(item)) {
-          uniqueCriteria.push(new mongoose.Types.ObjectId(item));
-        }
-      }
-      query.submittedBy = { $in: uniqueCriteria };
+      // An id that cannot be an ObjectId owns nothing; empty $in avoids a CastError.
+      query.submittedBy = { $in: mongoose.isValidObjectId(req.user.id) ? [req.user.id] : [] };
     }
 
     if (status && status !== 'all') {
@@ -178,8 +108,7 @@ async function getInvoiceById(req, res, next) {
     }
 
     if (req.user && req.user.role === 'Requester') {
-      const isOwner = await isInvoiceOwner(invoice, req.user);
-      if (!isOwner) {
+      if (!isInvoiceOwner(invoice, req.user)) {
         return res.status(404).json({ error: 'Invoice not found' });
       }
     }
@@ -392,7 +321,7 @@ async function uploadAttachment(req, res, next) {
       return res.status(404).json({ error: 'Invoice not found', message: `Invoice not found: ${id}` });
     }
 
-    const isOwner = await isInvoiceOwner(invoice, req.user);
+    const isOwner = isInvoiceOwner(invoice, req.user);
     const isAuthorized =
       req.user &&
       (req.user.role === 'Admin' ||
@@ -450,7 +379,7 @@ async function getInvoiceAttachment(req, res, next) {
       return res.status(404).json({ error: 'Invoice not found' });
     }
 
-    const isOwner = await isInvoiceOwner(invoice, req.user);
+    const isOwner = isInvoiceOwner(invoice, req.user);
     const isAuthorized =
       req.user &&
       (req.user.role === 'Admin' ||

@@ -81,7 +81,7 @@ const invoiceSchema = new mongoose.Schema(
       index: true,
     },
     submittedBy: {
-      type: mongoose.Schema.Types.Mixed,
+      type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       required: true,
       index: true,
@@ -125,6 +125,30 @@ const invoiceSchema = new mongoose.Schema(
 invoiceSchema.virtual('id').get(function () {
   return this._id ? this._id.toString() : undefined;
 });
+
+/**
+ * Rewrites legacy submittedBy values (ObjectId hex strings or user emails) to User ObjectIds.
+ * Uses the raw collection because such documents no longer cast through the schema.
+ * Returns { migrated, unresolved } counts; unresolved documents are left untouched.
+ */
+invoiceSchema.statics.migrateLegacySubmittedBy = async function () {
+  const User = mongoose.model('User');
+  const legacy = await this.collection
+    .find({ submittedBy: { $not: { $type: 'objectId' } } })
+    .toArray();
+
+  let migrated = 0;
+  for (const doc of legacy) {
+    const raw = String(doc.submittedBy ?? '').trim();
+    const userId = /^[a-f\d]{24}$/i.test(raw)
+      ? new mongoose.Types.ObjectId(raw)
+      : (await User.findOne({ email: raw.toLowerCase() }).select('_id').lean())?._id;
+    if (!userId) continue;
+    await this.collection.updateOne({ _id: doc._id }, { $set: { submittedBy: userId } });
+    migrated += 1;
+  }
+  return { migrated, unresolved: legacy.length - migrated };
+};
 
 module.exports =
   mongoose.models.Invoice || mongoose.model('Invoice', invoiceSchema);

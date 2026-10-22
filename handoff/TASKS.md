@@ -43,11 +43,12 @@ Deduplicated master task list for project stabilization and feature completion.
    - **Fix**: Add error alert banners and retry triggers to table page components when `resourceErrors[entity]` is present.
    - **Notes**: `src/context/DataContext.tsx` was updated during Task 10 to safely export the `useDataContext()` hook.
 
-6. [ ] **[P1] [CC] Standardize Invoice `submittedBy` Foreign Key Schema**
+6. [x] ✅ **[P1] [CC] Standardize Invoice `submittedBy` Foreign Key Schema**
    - **Files**: `backend/src/models/Invoice.js:84`, `backend/src/controllers/invoiceController.js:14-49,83-120`, `backend/src/controllers/reportsController.js:40-77`
    - **Problem**: `submittedBy` is defined as `Mixed` instead of `ObjectId`, necessitating fragile string-vs-ObjectId heuristic branches across multiple controllers.
    - **Fix**: Migrate `submittedBy` to `mongoose.Schema.Types.ObjectId` referencing `User` with a migration/coercion helper for seed and legacy string IDs.
    - **Notes**: `backend/src/controllers/invoiceController.js` was modified during Task 12 to add strict `vendorId` ObjectId validation and existence checking against the `Vendor` collection.
+   - **Done**: `submittedBy` is now `ObjectId` ref `User`; ownership/scoping in both controllers is a single ObjectId match. Legacy string/email values are converted by `Invoice.migrateLegacySubmittedBy()` (not yet called at boot; wire into `db.js` if a persistent DB holds legacy data).
 
 7. [x] **[P1] [AG] Fix Insecure CORS Fallback and Dev Proxy Bypass**
    - **Files**: `backend/src/app.js:19`, `src/services/api/client.ts:3`, `.env:5`, `vite.config.ts:14`
